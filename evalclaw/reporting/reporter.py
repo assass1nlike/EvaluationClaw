@@ -280,7 +280,6 @@ def build_report(
 
     if laaj is not None:
         metrics = [
-            ("Clarity", laaj.clarity),
             ("Correctness", laaj.correctness),
             ("Faithfulness", laaj.faithfulness),
             ("Diversity", laaj.diversity),
@@ -308,7 +307,7 @@ def build_report(
         )
         if laaj.item_results:
             lines.extend([
-                "Clarity, correctness, and faithfulness are equally weighted per-task means. "
+                "Correctness and faithfulness are equally weighted per-task means. "
                 "Diversity and the Analyser metrics are overall judgments.",
                 "",
                 _markdown_table(
@@ -317,7 +316,7 @@ def build_report(
                         [item.item_id, name.capitalize(), str(getattr(item, name).score),
                          _escape_cell(getattr(item, name).reasoning, 320)]
                         for item in laaj.item_results
-                        for name in ("clarity", "correctness", "faithfulness")
+                        for name in ("correctness", "faithfulness")
                     ],
                 ),
                 "",
@@ -374,7 +373,7 @@ def build_report(
             rows = [
                 [name.capitalize(), f"{getattr(result, name).score:.2f}",
                  _escape_cell(getattr(result, name).reasoning, 320)]
-                for name in ("clarity", "correctness", "faithfulness", "diversity")
+                for name in ("correctness", "faithfulness", "diversity")
             ]
             contamination = result.contamination
             if contamination is not None:

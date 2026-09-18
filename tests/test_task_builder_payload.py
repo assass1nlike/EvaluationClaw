@@ -138,7 +138,8 @@ def test_choice_duplicate_key_includes_choices() -> None:
     )
 
 
-def test_task_builder_payload_uses_resolved_scale_and_omits_target_subjects() -> None:
+@pytest.mark.parametrize("environment_notes", ["", "Use the local HTTPS package mirror."])
+def test_task_builder_payload_uses_resolved_scale_and_omits_target_subjects(environment_notes) -> None:
     dimension = EvalDimension(
         id="reasoning",
         name="Reasoning",
@@ -168,7 +169,9 @@ def test_task_builder_payload_uses_resolved_scale_and_omits_target_subjects() ->
         dimension,
         blueprint,
         "No external sources.",
+        config=BenchmarkConfig(builder_environment_notes=environment_notes),
     )
+    assert payload.get("construction_environment_notes", "") == environment_notes
 
     benchmark_context = payload["benchmark_context"]
     assert "subjects" not in benchmark_context

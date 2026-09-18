@@ -277,8 +277,15 @@ def test_cli_contamination_options_reach_configuration():
 
 def test_sampled_no_match_is_unscored_and_agent_state_is_isolated(monkeypatch):
     suite = _suite()
-    _model(monkeypatch, [[_call("fetch_url", url="https://one.example")], _done(),
-                         [_call("fetch_url", url="https://two.example")], _done()])
+    urls = {"item_1": "https://one.example", "item_3": "https://two.example"}
+
+    def research(request, *args, **kwargs):
+        call = _call("fetch_url", url=urls[request["item"]["id"]])
+        result = kwargs["tool_handlers"][call.name](call)
+        kwargs["on_tool_result"](call, result)
+        return json.dumps(_done())
+
+    monkeypatch.setattr(module, "_run_laaj_tool_loop", research)
     monkeypatch.setattr(tool_module, "fetch_url_text", lambda *a, **k: "Unrelated original content.")
     report = module.evaluate_contamination("Goal", suite, _config(contamination_sample_size=2), log=lambda _: None)
     assert [item.item_id for item in report.items] == ["item_1", "item_3"]

@@ -90,6 +90,43 @@ def test_scoring_service_failure_does_not_reject_task(monkeypatch, tmp_path, cal
 
 
 @pytest.mark.parametrize("phase", ["construction", "execution"])
+def test_judge_response_failure_blocks_only_its_item(monkeypatch, tmp_path, phase):
+    import json
+
+    from evalclaw.construction import suite
+    from evalclaw.execution import environment_claw
+    from evalclaw.execution.errors import JudgeResponseError
+
+    visited = []
+
+    def preflight(item, *args, **kwargs):
+        visited.append(item.id)
+        if item.id == "bad":
+            raise JudgeResponseError("Missing criterion: safety")
+        return [{"status": "passed", "harness": "openclaw"}]
+
+    monkeypatch.setattr(harness_module, "preflight_harness_environments", preflight)
+    items = [_item().model_copy(update={"id": key}) for key in ["bad", "good"]]
+    config = BenchmarkConfig(targets=[_target().model_copy(update={"harness": "openclaw"})])
+    if phase == "construction":
+        tasks = [TaskDefinition(id=i.id, dimension_id=i.dimension_id, task_type=TaskType.agent,
+            title="Task", prompt=i.prompt, environment=i.metadata["agent_env"]) for i in items]
+        issues, failed, blocked = suite._preflight_builder_environments(tasks,
+            dimension=EvalDimension(id="d1", name="Work", description="Work", approach="Work"),
+            blueprint=TaskBlueprint(id="b1", dimension_id="d1", title="Work"),
+            resources=[], config=config, trace_dir=tmp_path)
+        assert issues == [] and failed == set()
+        assert blocked == {"bad": "Missing criterion: safety"}
+    else:
+        report = environment_claw.EnvironmentClawReport(enabled=True)
+        environment_claw._preflight_executable_items(report, items, config, trace_dir=tmp_path)
+        assert report.blocked_item_ids == ["bad"]
+        assert report.probes[0].data["status"] == "evaluation_blocked"
+    assert visited == ["bad", "good"]
+    assert json.loads((tmp_path / "bad/failure.json").read_text())["status"] == "evaluation_blocked"
+
+
+@pytest.mark.parametrize("phase", ["construction", "execution"])
 @pytest.mark.parametrize("fail_last", [False, True])
 def test_pipeline_preflights_every_selected_harness(monkeypatch, tmp_path, phase, fail_last):
     from evalclaw.construction import suite
@@ -119,11 +156,12 @@ def test_pipeline_preflights_every_selected_harness(monkeypatch, tmp_path, phase
             id="task_1", dimension_id="d1", task_type=TaskType.agent,
             title="Task", prompt="Do the task.", environment={"type": "docker_workspace"},
         )
-        issues, failed_ids = suite._preflight_builder_environments(
+        issues, failed_ids, blocked = suite._preflight_builder_environments(
             [task], dimension=EvalDimension(id="d1", name="d1", description="d", approach="a"),
             blueprint=TaskBlueprint(id="b1", title="Task"), resources=[],
             config=config, trace_dir=tmp_path,
         )
+        assert not blocked
     else:
         report = environment_claw.EnvironmentClawReport(enabled=True)
         environment_claw._preflight_executable_items(

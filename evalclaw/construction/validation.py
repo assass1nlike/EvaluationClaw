@@ -806,7 +806,12 @@ def task_structure_issues(
             )
         ) or (
             isinstance(modalities, list)
-            and any(str(modality).strip().lower() != "text" for modality in modalities)
+            # Content formats such as tables can be supplied inline. Only the
+            # file-backed modalities in the Planner contract imply attachments.
+            and any(
+                str(modality).strip().lower() in {"image", "audio", "video", "files"}
+                for modality in modalities
+            )
         )
         if requires_task_assets and task.environment is None and not task.assets:
             issues.append("TaskDesign requires file inputs, so the task must provide assets.")
@@ -1065,17 +1070,9 @@ def task_structure_issues(
             "Environment files must belong to exactly one lifecycle phase; duplicate paths: "
             + ", ".join(sorted(collisions))
         )
-    setup_text = "\n".join(env.setup_commands)
-    referenced_hidden = [
-        path
-        for path in hidden_paths
-        if path in setup_text or PurePosixPath(path).name in setup_text
-    ]
-    if referenced_hidden:
-        issues.append(
-            "setup_commands reference evaluator-only hidden_files. Move setup assets to runtime_files: "
-            + ", ".join(sorted(referenced_hidden))
-        )
+    # Setup is arbitrary executable code: mentions, basenames, and even literal
+    # paths do not establish a dependency. Environment preflight executes setup
+    # without hidden_files and checks whether the declared initial state works.
 
     if env.type == AgentEnvironmentType.docker_workspace:
         planned_actors = (

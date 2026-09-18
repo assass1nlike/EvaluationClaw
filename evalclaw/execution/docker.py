@@ -26,6 +26,9 @@ def _windows_docker_cli_candidates() -> list[Path]:
 
 def resolve_docker_executable(executable: str = "docker") -> str | None:
     """Resolve Docker CLI from PATH or standard Windows install locations."""
+    budget = os.environ.get("EVALCLAW_MEMORY_SPEC")
+    if budget:
+        return str(Path(budget).parent / "docker")
     resolved = shutil.which(executable)
     if resolved:
         return resolved

@@ -8,6 +8,7 @@ import uuid
 
 from .docker import docker_subprocess_env, resolve_docker_executable
 from .errors import EvaluationExecutionError
+from .image_acquisition import image_pull_options
 from .process import run_bounded
 from .resource_guard import DockerResourceGuard
 
@@ -55,7 +56,7 @@ class JudgeSandbox:
                     # Existing framework writable mounts are directories. Fail explicitly
                     # for other mount types rather than silently omitting episode state.
                     self.docker_call([
-                        "run", "--name", helper, "--rm", "--network", "none", "--user", "0:0",
+                        "run", *image_pull_options(), "--name", helper, "--rm", "--network", "none", "--user", "0:0",
                         "--entrypoint", "sh", "--volumes-from", self.source + ":ro",
                         "-v", volume + ":/evalclaw-copy", self.image, "-lc",
                         f"test -d {shlex.quote(destination)} && cp -a {shlex.quote(destination + '/.')} /evalclaw-copy/",
@@ -65,7 +66,7 @@ class JudgeSandbox:
                     source = mount.get("Name") if mount["Type"] == "volume" else mount["Source"]
                     mounts += ["-v", f"{source}:{destination}:ro"]
             self.docker_call([
-                "create", "--name", self.name, "--network", "none", "--user", "0:0",
+                "create", *image_pull_options(), "--name", self.name, "--network", "none", "--user", "0:0",
                 "--workdir", self.workdir, "--entrypoint", "sh", *mounts,
                 self.image, "-lc", "while :; do sleep 3600; done",
             ])

@@ -26,6 +26,7 @@ from .execution.environment_claw import (
     run_environment_claw,
 )
 from .execution.lm_eval import run_lm_eval
+from .execution.memory_budget import check_memory_budget, memory_budget
 from .execution.plan import build_execution_plan, exclude_blocked_items
 from .execution.runner import run_eval
 from .models.roles import role_model_settings
@@ -503,6 +504,7 @@ def _run_pipeline(
         log(msg)
 
     def mark_stage(stage: str, status: str = "active") -> None:
+        check_memory_budget()
         if debug_run_dir is not None:
             _write_run_state(debug_run_dir, status, stage=stage)
 
@@ -894,15 +896,11 @@ def run_pipeline(
             raise ValueError("A non-empty goal is required when starting a new run.")
         debug_run_dir = new_debug_dir(config.output_dir, "runs")
     if debug_run_dir is None:
-        return _run_pipeline(
-            goal or "",
-            config,
-            log=log,
-            progress=progress,
-            ask_user=ask_user,
-            interactive=interactive,
-            resuming=False,
-        )
+        with memory_budget(config):
+            return _run_pipeline(
+                goal or "", config, log=log, progress=progress, ask_user=ask_user,
+                interactive=interactive, resuming=False,
+            )
 
     if not resuming:
         write_json(
@@ -925,17 +923,12 @@ def run_pipeline(
 
     live_run_id = _live_run_id(debug_run_dir, config.live_url)
     try:
-        package = _run_pipeline(
-            goal,
-            config,
-            log=traced_log,
-            progress=traced_progress,
-            ask_user=ask_user,
-            interactive=interactive,
-            debug_run_dir=debug_run_dir,
-            live_run_id=live_run_id,
-            resuming=resuming,
-        )
+        with memory_budget(config, debug_run_dir):
+            package = _run_pipeline(
+                goal, config, log=traced_log, progress=traced_progress, ask_user=ask_user,
+                interactive=interactive, debug_run_dir=debug_run_dir,
+                live_run_id=live_run_id, resuming=resuming,
+            )
     except BaseException as exc:
         _live_end(live_run_id, failed=True)
         state = _read_json(debug_run_dir / "status.json")

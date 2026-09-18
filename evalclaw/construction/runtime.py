@@ -9,6 +9,7 @@ import uuid
 from pathlib import Path
 
 from ..execution.docker import docker_subprocess_env, resolve_docker_executable
+from ..execution.image_acquisition import acquire_image, image_pull_options
 from ..execution.process import run_bounded
 from ..execution.resource_guard import DockerResourceGuard
 from ..types import BenchmarkConfig
@@ -26,10 +27,13 @@ class BuilderRuntime:
         self.guard.register("container", self.name)
         directory = str(work_dir.resolve())
         try:
+            image = acquire_image(config.builder_sandbox_image, docker_executable=config.docker_executable,
+                                  timeout_s=config.docker_pull_timeout_s)
             self._docker(["network", "create", self.name])
             self._docker(
                 [
                     "run",
+                    *image_pull_options(),
                     "-d",
                     "--name",
                     self.name,
@@ -60,7 +64,7 @@ class BuilderRuntime:
                     f"type=bind,source={directory},target={directory}",
                     "--workdir",
                     directory,
-                    config.builder_sandbox_image,
+                    image,
                     "sleep",
                     "infinity",
                 ],

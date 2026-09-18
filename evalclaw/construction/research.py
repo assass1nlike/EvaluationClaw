@@ -27,7 +27,10 @@ from ..diagnostics import (
 )
 from ..execution.docker import docker_subprocess_env, resolve_docker_executable
 from ..execution.docker_images import (
+    DEFAULT_DOCKER_BUILD_TIMEOUT_S,
     DEFAULT_DOCKER_IMAGE,
+    DockerBuildExecutionError,
+    DockerImageBuildError,
     build_docker_image_from_context,
     commit_inspection_container,
     run_docker_image_check,
@@ -36,6 +39,7 @@ from ..execution.docker_images import (
     start_inspection_container,
     stop_inspection_container,
 )
+from ..execution.image_acquisition import ImageAcquisitionError
 from ..execution.resource_guard import DockerResourceGuard
 from ..execution.vm_provider import (
     build_vm_image,
@@ -90,6 +94,7 @@ _MAX_DOWNLOAD_BYTES = 1024 * 1024 * 1024
 _PYTHON_TIMEOUT_SECONDS = 60
 TASK_BUILDER_MAX_OUTPUT_TOKENS = 65_536
 _MAX_IMAGE_BUILDS = 100
+_MAX_IMAGE_BUILD_TIMEOUT_S = 7200
 _MAX_IMAGE_CHECKS = 500
 _MAX_IMAGE_CONTEXT_FILES = 128
 _MAX_IMAGE_CONTEXT_BYTES = 256 * 1024 * 1024
@@ -172,6 +177,8 @@ checks after a successful build. The build tool returns a relative image_build.c
 preserve that value in the final task's environment.image_build together with
 image_build.enabled=true and the image tag. Do not put host paths in target-visible
 fields, and do not claim an image is ready without a successful build or check.
+If build_image returns a build error, fix its inputs and rebuild before using that
+image. A failed local build cannot be replaced by downloading the same image tag.
 When start_inspect_container, run_in_container, and commit_inspect_container are
 available, you may start a long-lived inspection container from a base or built image
 and run commands inside it to install and verify software step by step. The container
@@ -396,8 +403,13 @@ TASK_BUILDER_IMAGE_TOOLS = [
                 "timeout_s": {
                     "type": "integer",
                     "minimum": 1,
-                    "maximum": 1200,
-                    "description": "Maximum Docker build duration in seconds.",
+                    "maximum": _MAX_IMAGE_BUILD_TIMEOUT_S,
+                    "default": DEFAULT_DOCKER_BUILD_TIMEOUT_S,
+                    "description": (
+                        "Maximum Docker build duration in seconds. Omit to allow 3600 seconds; "
+                        "use up to 7200 for slow storage or large builds. Concurrent builds may "
+                        "spend substantial time waiting for disk operations, so avoid short limits."
+                    ),
                 },
             },
             "required": ["dockerfile_path"],
@@ -1076,6 +1088,30 @@ def _prepare_image_context(
     return context_dir, manifest_entries
 
 
+def _builder_image_key(image: str) -> str:
+    """Compare Docker reference aliases without guessing whether an image is local."""
+    parts = image.strip().split("/")
+    if len(parts) == 1 or not ("." in parts[0] or ":" in parts[0] or parts[0] == "localhost"):
+        parts.insert(0, "docker.io")
+    if parts[0] in {"index.docker.io", "registry-1.docker.io"}:
+        parts[0] = "docker.io"
+    if parts[0] == "docker.io" and len(parts) == 2:
+        parts.insert(1, "library")
+    if ":" not in parts[-1] and "@" not in parts[-1]:
+        parts[-1] += ":latest"
+    return "/".join(parts)
+
+
+def _builder_image_allows_pull(image: str, state: dict[str, Any]) -> bool:
+    built = state.get("local_images", {}).get(_builder_image_key(image))
+    if built is False:
+        raise ValueError(
+            f"Local image {image!r} has not built successfully. Fix the build error and "
+            "run build_image successfully before using it; it will not be downloaded."
+        )
+    return built is None
+
+
 def _execute_task_builder_tool(
     call: ToolCall,
     config: BenchmarkConfig,
@@ -1296,6 +1332,9 @@ def _execute_task_builder_tool(
                 )
             work_dir.mkdir(parents=True, exist_ok=True)
             state["last_image"] = ""
+            tag = str(args.get("tag") or "").strip()
+            if tag:
+                state.setdefault("local_images", {})[_builder_image_key(tag)] = False
             context_dir, manifest_entries = _prepare_image_context(
                 work_dir,
                 build_number=builds_used + 1,
@@ -1309,18 +1348,19 @@ def _execute_task_builder_tool(
                 raise ValueError("build_args must be an object when provided")
             result = build_docker_image_from_context(
                 context_dir,
-                tag=str(args.get("tag") or "").strip(),
+                tag=tag,
                 build_args={str(key): str(value) for key, value in (build_args or {}).items()},
                 network=str(args.get("network") or "default").strip().lower(),
                 docker_executable=config.docker_executable,
                 timeout_s=_bounded_int(
                     args.get("timeout_s"),
-                    default=600,
+                    default=DEFAULT_DOCKER_BUILD_TIMEOUT_S,
                     minimum=1,
-                    maximum=1200,
+                    maximum=_MAX_IMAGE_BUILD_TIMEOUT_S,
                 ),
             )
             state["last_image"] = result.image
+            state.setdefault("local_images", {})[_builder_image_key(result.image)] = True
             state["image_contexts"] = {
                 **(state.get("image_contexts") if isinstance(state.get("image_contexts"), dict) else {}),
                 result.image: {
@@ -1371,6 +1411,7 @@ def _execute_task_builder_tool(
                     error="image_check_budget_exhausted",
                 )
             image = str(args.get("image") or state.get("last_image") or "").strip()
+            allow_pull = _builder_image_allows_pull(image, state)
             command = str(args.get("command") or "").strip()
             if len(command) > _MAX_IMAGE_CHECK_COMMAND_CHARS:
                 raise ValueError(
@@ -1382,6 +1423,7 @@ def _execute_task_builder_tool(
                 memory_mb=config.builder_memory_mb, pids_limit=config.builder_pids_limit,
                 network="none",
                 docker_executable=config.docker_executable,
+                allow_pull=allow_pull,
                 timeout_s=_bounded_int(
                     args.get("timeout_s"),
                     default=60,
@@ -1424,6 +1466,7 @@ def _execute_task_builder_tool(
                     error="inspect_start_budget_exhausted",
                 )
             image = str(args.get("image") or state.get("last_image") or DEFAULT_DOCKER_IMAGE).strip()
+            allow_pull = _builder_image_allows_pull(image, state)
             existing = str(state.get("inspect_container") or "").strip()
             if existing:
                 try:
@@ -1442,6 +1485,7 @@ def _execute_task_builder_tool(
                 image, docker_executable=config.docker_executable,
                 memory_mb=config.builder_memory_mb, pids_limit=config.builder_pids_limit,
                 workspace=work_dir, resource_guard=guard,
+                allow_pull=allow_pull,
             )
             state["inspect_container"] = result.container
             state["inspect_starts_used"] = starts_used + 1
@@ -1534,6 +1578,7 @@ def _execute_task_builder_tool(
                 docker_executable=config.docker_executable,
             )
             state["last_image"] = result.image
+            state.setdefault("local_images", {})[_builder_image_key(result.image)] = True
             state.pop("inspect_container", None)
             try:
                 stop_inspection_container(container, docker_executable=config.docker_executable)
@@ -1894,6 +1939,13 @@ def _execute_task_builder_tool(
         )
     except SearchError as exc:
         return search_failure_result(call, exc)
+    except (ImageAcquisitionError, DockerBuildExecutionError):
+        raise
+    except DockerImageBuildError as exc:
+        state.setdefault("local_images", {})[_builder_image_key(exc.image)] = False
+        return ToolResult(
+            tool_call_id=call.id, name=call.name, content=str(exc), error="image_build_failed",
+        )
     except Exception as exc:
         return ToolResult(
             tool_call_id=call.id,

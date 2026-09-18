@@ -168,8 +168,12 @@ Fields:
   as the environment itself or as an environment controller.
   Provide image, visible_files, runtime_files,
   hidden_files, setup_commands, test_command, timeout, and resource_limits in
-  metadata.agent_env. Setup-only server/application assets belong in
-  runtime_files; hidden_files are injected only while the evaluator runs.
+  metadata.agent_env. Put target-visible inputs in visible_files. Native targets
+  may use runtime_files for private runtime support; external harnesses cannot
+  hide runtime_files, so put setup-only support in image_build instead.
+  hidden_files are injected only while the evaluator runs and cannot supply
+  setup dependencies. Initialize evaluator-only files in test_command after
+  injection; do not expose private tests or answers to make setup succeed.
   For Docker tasks, provide readiness_checks for fast, read-only checks of essential
   inputs and services as the target user after setup; these must not consume budgets.
   preflight_commands run functional self-checks only in a disposable preflight instance.

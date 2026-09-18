@@ -1,0 +1,410 @@
+from __future__ import annotations
+
+import json
+import multiprocessing as mp
+import os
+import subprocess
+import sys
+import threading
+import uuid
+from concurrent.futures import CancelledError
+from pathlib import Path
+
+import pytest
+from pydantic import ValidationError
+
+from evalclaw.execution import memory_budget as module
+from evalclaw.execution.budget_docker import command
+from evalclaw.types import BenchmarkConfig
+
+pytestmark = pytest.mark.skipif(sys.platform != "linux", reason="Linux cgroup v2")
+
+
+def make_group(path):
+    path.mkdir()
+    (path / "memory.current").write_text("0")
+    (path / "memory.stat").write_text("inactive_file 0\n")
+    (path / "memory.events").write_text("oom 0\noom_kill 0\n")
+    (path / "memory.events.local").write_text("oom 0\noom_kill 0\n")
+    return path
+
+
+def claim_in_process(group, state, ready, release):
+    manager = module.MemoryBudget(group, 100, 10, state)
+    with manager.reserve(60):
+        ready.set()
+        release.wait(10)
+
+
+def test_budget_is_shared_across_processes_and_reclaims_crashed_owner(tmp_path):
+    group = make_group(tmp_path / "group")
+    state = tmp_path / "state"
+    ctx = mp.get_context("spawn")
+    ready, release = ctx.Event(), ctx.Event()
+    holder = ctx.Process(target=claim_in_process, args=(group, state, ready, release))
+    holder.start()
+    admitted = threading.Event()
+    manager = module.MemoryBudget(group, 100, 10, state)
+
+    def waiter():
+        with manager.reserve(60):
+            admitted.set()
+
+    thread = threading.Thread(target=waiter)
+    try:
+        assert ready.wait(10)
+        thread.start()
+        assert not admitted.wait(0.2)
+        holder.kill()
+        holder.join(5)
+        assert admitted.wait(5)
+        thread.join(5)
+        assert json.loads((state / "claims.json").read_text()) == {}
+    finally:
+        if holder.is_alive():
+            holder.terminate()
+        holder.join(5)
+
+
+def test_live_memory_blocks_admission_but_reclaimable_cache_does_not(tmp_path):
+    group = make_group(tmp_path / "group")
+    manager = module.MemoryBudget(group, 100, 10, tmp_path / "state")
+    (group / "memory.current").write_text("85")
+    admitted = threading.Event()
+
+    def waiter():
+        with manager.reserve(20):
+            admitted.set()
+
+    thread = threading.Thread(target=waiter)
+    thread.start()
+    try:
+        assert not admitted.wait(0.2)
+        (group / "memory.stat").write_text("inactive_file 70\n")
+        assert admitted.wait(5)
+    finally:
+        (group / "memory.current").write_text("0")
+        thread.join(5)
+
+
+def test_exception_releases_reservation_and_oom_invalidates_work(tmp_path):
+    group = make_group(tmp_path / "group")
+    manager = module.MemoryBudget(group, 100, 10, tmp_path / "state")
+    with pytest.raises(ValueError):
+        with manager.reserve(60):
+            raise ValueError("task failed")
+    assert json.loads((manager.state / "claims.json").read_text()) == {}
+    with pytest.raises(module.MemoryBudgetError):
+        with manager.reserve(60):
+            (group / "memory.events.local").write_text("oom 1\noom_kill 1\n")
+    assert json.loads((manager.state / "claims.json").read_text()) == {}
+    with pytest.raises(module.MemoryBudgetError):
+        with manager.reserve(10):
+            pytest.fail("must not admit after shared OOM")
+
+
+def test_cancellation_and_oversize_fail_without_hanging(tmp_path):
+    group = make_group(tmp_path / "group")
+    manager = module.MemoryBudget(group, 100, 10, tmp_path / "state")
+    with pytest.raises(module.MemoryBudgetError):
+        with manager.reserve(91):
+            pytest.fail("over budget")
+    stop = threading.Event()
+    stop.set()
+    with pytest.raises(CancelledError):
+        with manager.reserve(10, stop):
+            pytest.fail("cancelled")
+
+
+def test_task_local_oom_does_not_invalidate_other_jobs(tmp_path):
+    group = make_group(tmp_path / "group")
+    manager = module.MemoryBudget(group, 100, 10, tmp_path / "state")
+    with manager.reserve(10):
+        (group / "memory.events").write_text("oom 1\noom_kill 1\n")
+    manager.check()
+
+
+def test_policy_is_shared_while_active_and_can_change_between_batches(tmp_path):
+    group = make_group(tmp_path / "group")
+    first = module.MemoryBudget(group, 100, 10, tmp_path / "state")
+    second = module.MemoryBudget(group, 100, 20, tmp_path / "state")
+    token = first.join({"budget": 100, "headroom": 10})
+    with pytest.raises(module.MemoryBudgetError):
+        second.join({"budget": 100, "headroom": 20})
+    first.leave(token)
+    token = second.join({"budget": 100, "headroom": 20})
+    second.leave(token)
+
+
+def test_hard_limit_requires_host_process_to_be_in_slice():
+    with pytest.raises(module.MemoryBudgetError, match="Launch the framework"):
+        module._verify_group(
+            "/sys/fs/cgroup/evalclaw.slice",
+            600 * module.GIB,
+            own_group="/sys/fs/cgroup/user.slice/session.scope",
+        )
+    with pytest.raises(module.MemoryBudgetError, match="system-level slice"):
+        module._verify_group(
+            "/sys/fs/cgroup/user.slice/user-1005.slice/user@1005.service/app.slice",
+            600 * module.GIB,
+        )
+
+
+def test_automatic_concurrency_requires_budget():
+    with pytest.raises(ValidationError):
+        BenchmarkConfig(task_builder_max_workers=0)
+    config = BenchmarkConfig(
+        memory_budget_gib=600,
+        memory_cgroup="/sys/fs/cgroup/evalclaw.slice",
+        task_builder_max_workers=0,
+        runner_max_workers=0,
+    )
+    assert module.worker_count(config.task_builder_max_workers, 28) == 28
+    assert module.worker_count(4, 28) == 4
+    assert module.worker_count(4, 2) == 2
+    measured = BenchmarkConfig(memory_budget_gib=600, task_builder_max_workers=0, runner_max_workers=0)
+    assert not measured.memory_cgroup
+
+
+def test_measured_memory_and_host_pressure_gate_admission(monkeypatch, tmp_path):
+    from evalclaw.execution import memory_usage
+
+    usage = [85, 100]
+    monkeypatch.setattr(memory_usage, "sample_usage", lambda *a: tuple(usage))
+    manager = module.MemoryBudget(None, 100, 10, tmp_path)
+    admitted = threading.Event()
+
+    def waiter():
+        with manager.reserve(20):
+            admitted.set()
+
+    thread = threading.Thread(target=waiter)
+    thread.start()
+    try:
+        assert not admitted.wait(0.2)
+        usage[:] = [0, 15]  # Other workloads still leave too little host memory.
+        assert not admitted.wait(1.2)
+        usage[:] = [0, 100]
+        assert admitted.wait(5)
+    finally:
+        usage[:] = [0, 100]
+        thread.join(5)
+    assert json.loads((tmp_path / "claims.json").read_text()) == {}
+
+
+def test_measured_wrapper_labels_containers_without_privileged_parent():
+    spec = {"docker": "/usr/bin/docker", "label": "evalclaw.memory-owner=1005"}
+    assert command(["run", "--rm", "alpine"], spec) == [
+        "/usr/bin/docker", "--context", "default", "run", "--label",
+        "evalclaw.memory-owner=1005", "--rm", "alpine",
+    ]
+    assert command(["build", "-t", "example", "."], spec) == [
+        "/usr/bin/docker", "--context", "default", "buildx", "build", "--builder",
+        "default", "--load", "-t", "example", ".",
+    ]
+
+
+def test_process_measurement_counts_descendants_and_retains_orphans(tmp_path):
+    from evalclaw.execution.memory_usage import process_usage
+
+    def process(pid, parent, identity, pages):
+        folder = tmp_path / str(pid)
+        folder.mkdir(exist_ok=True)
+        fields = ["0"] * 22
+        fields[0], fields[1], fields[19], fields[21] = "S", str(parent), identity, str(pages)
+        (folder / "stat").write_text(f"{pid} (worker) " + " ".join(fields))
+
+    process(100, 1, "root", 10)
+    process(200, 100, "child", 20)
+    process(300, 1, "unrelated", 30)
+    owners = {"run": {"pid": 100, "identity": "root"}}
+    total, tracked = process_usage(owners, {}, tmp_path)
+    assert total == 30 * os.sysconf("SC_PAGE_SIZE")
+    process(200, 1, "child", 20)
+    total, tracked = process_usage({}, tracked, tmp_path)
+    assert total == 30 * os.sysconf("SC_PAGE_SIZE")
+    process(200, 1, "reused-pid", 20)
+    total, _ = process_usage({}, tracked, tmp_path)
+    assert total == 10 * os.sysconf("SC_PAGE_SIZE")
+
+
+def test_container_transition_defers_admission_instead_of_failing_run(monkeypatch, tmp_path):
+    from evalclaw.execution import memory_usage
+
+    monkeypatch.setattr(memory_usage, "process_usage", lambda *a: (100, {}))
+    def transitioning(*args):
+        raise memory_usage.MemorySamplePending("teardown")
+    monkeypatch.setattr(memory_usage, "container_usage", transitioning)
+    usage, available = memory_usage.sample_usage(tmp_path, "docker")
+    assert usage > 600 * module.GIB
+    assert available == 0
+    assert not (tmp_path / "usage.json").exists()
+
+
+@pytest.mark.parametrize("operation", ["run", "create"])
+def test_all_container_creation_gets_shared_parent(operation):
+    spec = dict(docker="/usr/bin/docker", parent="evalclaw.slice", builder="dedicated")
+    assert command([operation, "--memory", "8g", "image"], spec) == [
+        "/usr/bin/docker",
+        "--context",
+        "default",
+        operation,
+        "--cgroup-parent",
+        "evalclaw.slice",
+        "--memory",
+        "8g",
+        "image",
+    ]
+    with pytest.raises(ValueError):
+        command([operation, "--cgroup-parent=system.slice", "image"], spec)
+
+
+def test_build_preserves_local_images_and_uses_full_cgroup_path():
+    spec = dict(
+        docker="/usr/bin/docker",
+        parent="evalclaw-batch.slice",
+        build_parent="/evalclaw.slice/evalclaw-batch.slice",
+    )
+    assert command(["build", "-t", "task:test", "/context"], spec) == [
+        "/usr/bin/docker",
+        "--context",
+        "default",
+        "buildx",
+        "build",
+        "--builder",
+        "default",
+        "--load",
+        "--cgroup-parent",
+        "/evalclaw.slice/evalclaw-batch.slice",
+        "-t",
+        "task:test",
+        "/context",
+    ]
+    with pytest.raises(ValueError):
+        command(["build", "--builder=default", "/context"], spec)
+
+
+def test_oom_result_keeps_response_and_is_excluded_from_score(monkeypatch, tmp_path):
+    from evalclaw.execution import runner
+    from evalclaw.types import (
+        EvalDimension,
+        EvalSpec,
+        ItemResult,
+        QcReport,
+        TargetModelConfig,
+        TaskSuite,
+    )
+
+    group = make_group(tmp_path / "group")
+    manager = module.MemoryBudget(group, 600 * module.GIB, 16 * module.GIB, tmp_path / "state")
+    monkeypatch.setattr(module, "_active", manager)
+    dimension = EvalDimension(id="d", name="d", description="d", approach="d")
+    spec = EvalSpec(objective="test", scale=1, dimensions=[dimension])
+    suite = TaskSuite(
+        objective="test",
+        spec=spec,
+        dimensions=[dimension],
+        tasks=[
+            dict(
+                id="item",
+                dimension_id="d",
+                task_type="fill_blank",
+                prompt="p",
+                expected_texts=["a"],
+            )
+        ],
+    )
+    config = BenchmarkConfig(
+        targets=[TargetModelConfig(id="t", model="test", provider="openai_compatible")],
+        memory_budget_gib=600,
+        memory_cgroup="/sys/fs/cgroup/evalclaw.slice",
+        runner_max_workers=0,
+    )
+
+    def answer(item, config, target_id, **kwargs):
+        (group / "memory.events.local").write_text("oom 1\noom_kill 1\n")
+        return ItemResult(
+            item_id=item.id, target_id=target_id, raw_response="preserved evidence", score=1
+        )
+
+    monkeypatch.setattr(runner, "_run_item", answer)
+    result = runner.run_eval(
+        suite, QcReport(passed_item_ids=["item"]), config, trace_dir=tmp_path / "run"
+    )
+    assert result.results[0].raw_response == "preserved evidence"
+    assert result.results[0].execution["infrastructure_error"] is True
+    assert result.summaries[0].errors == 1
+    assert json.loads((tmp_path / "run/t/item/result.json").read_text())["error"]
+
+
+def test_pipeline_fails_before_model_calls_outside_resource_group(monkeypatch, tmp_path):
+    from evalclaw import pipeline
+
+    monkeypatch.setattr(pipeline, "_run_pipeline", lambda *a, **k: pytest.fail("must not run"))
+    monkeypatch.setattr(
+        module, "_own_group", lambda: Path("/sys/fs/cgroup/user.slice/session.scope")
+    )
+    config = BenchmarkConfig(
+        memory_budget_gib=600,
+        memory_cgroup="/sys/fs/cgroup/evalclaw.slice",
+        output_dir=str(tmp_path),
+    )
+    with pytest.raises(module.MemoryBudgetError):
+        pipeline.run_pipeline("test", config, interactive=False)
+    failure = json.loads(next(tmp_path.glob("debug/runs/*/failure.json")).read_text())
+    assert failure["error_type"] == "MemoryBudgetError"
+    assert module.SPEC_ENV not in os.environ
+
+
+@pytest.mark.skipif(
+    not os.environ.get("EVALCLAW_MEMORY_TEST_CGROUP"),
+    reason="requires administrator-provisioned system slice and framework launched inside it",
+)
+def test_real_shared_slice_contains_host_child_and_docker(tmp_path):
+    from evalclaw.execution.docker import resolve_docker_executable
+
+    group = Path(os.environ["EVALCLAW_MEMORY_TEST_CGROUP"]).resolve()
+    budget = int((group / "memory.max").read_text()) // module.GIB
+    config = BenchmarkConfig(
+        memory_budget_gib=budget, memory_cgroup=str(group), memory_job_gib=1, memory_headroom_gib=1
+    )
+    name = "evalclaw-memory-test-" + uuid.uuid4().hex[:12]
+    with module.memory_budget(config, tmp_path):
+        own = subprocess.check_output(
+            [
+                sys.executable,
+                "-c",
+                'from pathlib import Path; print(Path("/proc/self/cgroup").read_text())',
+            ],
+            text=True,
+        )
+        assert str(group.relative_to("/sys/fs/cgroup")) in own
+        docker = resolve_docker_executable()
+        try:
+            subprocess.run(
+                [
+                    docker,
+                    "run",
+                    "-d",
+                    "--name",
+                    name,
+                    "--pull",
+                    "never",
+                    "--network",
+                    "none",
+                    "alpine:3.21.5",
+                    "sleep",
+                    "60",
+                ],
+                check=True,
+                capture_output=True,
+            )
+            container = json.loads(subprocess.check_output([docker, "inspect", name]))[0]
+            assert container["HostConfig"]["CgroupParent"] == group.name
+            actual = Path(f"/proc/{container['State']['Pid']}/cgroup").read_text()
+            cgroup = Path("/sys/fs/cgroup") / actual.split("0::", 1)[1].strip().lstrip("/")
+            assert group in cgroup.parents
+            module.check_memory_budget()
+        finally:
+            subprocess.run([docker, "rm", "-f", name], check=True, capture_output=True)
+    assert (tmp_path / "memory-budget.json").is_file()

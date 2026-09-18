@@ -17,7 +17,7 @@ from .docker_images import (
     docker_image_build_requested,
     inspect_docker_image,
 )
-from .errors import EvaluationExecutionError
+from .errors import EvaluationExecutionError, JudgeResponseError
 from .harness_compatibility import external_harness_issues
 from .installers import package_list
 from .vm_materializer import (
@@ -426,7 +426,15 @@ def _preflight_executable_items(
                 write_json(trace_dir / safe_name(item.id) / "failure.json", {
                     "status": "evaluation_blocked", "item_id": item.id, **error_record(exc),
                 })
-            raise
+            if not isinstance(exc, JudgeResponseError):
+                raise
+            report.probes.append(EnvironmentProbe(
+                name="task_preflight", ok=False, detail=str(exc),
+                data={"item_id": item.id, "environment": _agent_env_type(item),
+                      "status": "evaluation_blocked"},
+            ))
+            report.blocking_errors.append(f"Task {item.id} preflight scoring failed: {exc}")
+            report.blocked_item_ids.append(item.id)
         except Exception as exc:
             detail = f"Task {item.id} failed executable preflight: {exc}"
             report.probes.append(

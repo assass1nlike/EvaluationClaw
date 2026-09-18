@@ -53,6 +53,7 @@ from ..types import (
 from .errors import EvaluationExecutionError
 from .evidence import execution_failure, redact_evidence
 from .judge_protocol import SCORING_INSTRUCTION, DialogueTurn, JudgeScore
+from .memory_budget import MemoryBudgetError, memory_job, worker_count
 from .plan import build_execution_plan
 from .sandbox import build_code_harness, run_python_sandbox
 
@@ -743,14 +744,25 @@ def run_eval(
                 and not cached_result.error
             ):
                 return cached_result
-            result = _run_item(item, config, target_id, trace_dir=item_dir)
+            result = None
+            try:
+                with memory_job(config, item=item):
+                    if gateway_blocked.is_set():
+                        return None
+                    result = _run_item(item, config, target_id, trace_dir=item_dir)
+            except MemoryBudgetError as exc:
+                if result is None:
+                    result = ItemResult(item_id=item.id, target_id=target_id)
+                result.error = f"MemoryBudgetError: {exc}"
+                result.score = 0.0
+                result.execution.update({"stage": "memory_budget", "infrastructure_error": True})
             if result.error and result.execution.get("stage") == "model_gateway":
                 gateway_blocked.set()
             if item_dir is not None:
                 write_json(item_dir / "result.json", result.model_dump(mode="json"))
             return result
 
-        max_workers = max(1, int(getattr(config, "runner_max_workers", 4) or 1))
+        max_workers = worker_count(config.runner_max_workers, len(jobs))
         if max_workers == 1 or len(jobs) <= 1:
             completed = 0
             for target_id, item in jobs:

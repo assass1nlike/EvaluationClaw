@@ -541,7 +541,7 @@ def test_initial_builder_keeps_individual_tasks_across_repairs(monkeypatch, tmp_
 
     def preflight(tasks, **kwargs):
         failed = {task.id for task in tasks if task.id.endswith("_task_3")}
-        return [f"{task_id}: evaluator missing" for task_id in failed], failed
+        return [f"{task_id}: evaluator missing" for task_id in failed], failed, {}
 
     monkeypatch.setattr("evalclaw.construction.suite._preflight_builder_environments", preflight)
     reviewed = []

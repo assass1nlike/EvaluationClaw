@@ -5,6 +5,7 @@ import json
 import mimetypes
 import subprocess
 import uuid
+from collections import Counter
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable
 
@@ -16,7 +17,7 @@ from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_orchestrator_with_tools
 from ..models.roles import resolve_task_model
 from ..protocols.tool import ToolResult, ToolSpec
 from ..types import AgentJudgeSpec, BenchmarkConfig, BenchmarkItem
-from .errors import EvaluationExecutionError
+from .errors import EvaluationExecutionError, JudgeResponseError
 from .evidence import execution_failure, redact_evidence
 from .judge_sandbox import JudgeSandbox
 
@@ -179,12 +180,18 @@ def score_with_agent(
                         if not isinstance(data, dict):
                             raise ValueError("Return a JSON object.")
                         if data.get("status") == "ungradable":
-                            raise EvaluationExecutionError(f"Judge could not grade: {data.get('reason', '')}")
+                            raise JudgeResponseError(f"Judge could not grade: {data.get('reason', '')}")
                         findings = [Finding.model_validate(value) for value in data.get("criteria", [])]
-                        if data.get("status") != "scored" or len(findings) != len(spec.criteria) or {
-                            f.id for f in findings
-                        } != {c.id for c in spec.criteria}:
-                            raise ValueError("Return exactly one finding for every declared criterion.")
+                        expected = [c.id for c in spec.criteria]
+                        counts = Counter(f.id for f in findings)
+                        if data.get("status") != "scored" or counts != Counter(expected):
+                            raise ValueError(json.dumps({
+                                "error": "Return status=scored and exactly one finding for each listed criterion, using the supplied rubric and existing evidence.",
+                                "expected_criterion_ids": expected,
+                                "missing_criterion_ids": sorted(set(expected) - counts.keys()),
+                                "unexpected_criterion_ids": sorted(counts.keys() - set(expected)),
+                                "duplicate_criterion_ids": sorted(k for k, n in counts.items() if n > 1),
+                            }))
                         if not inspected:
                             raise ValueError("Inspect the environment with review_command or view_image before scoring.")
                         invalid_ids = sorted({ref for f in findings for ref in f.evidence} - valid_ids)
@@ -197,12 +204,12 @@ def score_with_agent(
                         break
                     except (ValueError, TypeError) as exc:
                         if repairs >= 2:
-                            raise EvaluationExecutionError(f"Judge response validation failed: {exc}") from exc
+                            raise JudgeResponseError(f"Judge response validation failed: {exc}") from exc
                         repairs += 1
                         messages.extend([response.assistant_message, {"role": "user", "content": str(exc)}])
                         continue
                 if used >= config.agent_judge_tool_max_calls:
-                    raise EvaluationExecutionError("Judge requested tools after exhausting its scoring budget.")
+                    raise JudgeResponseError("Judge requested tools after exhausting its scoring budget.")
                 results = []
                 for call in response.tool_calls:
                     try:
