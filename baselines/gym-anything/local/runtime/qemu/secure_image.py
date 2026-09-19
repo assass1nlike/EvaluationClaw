@@ -136,16 +136,16 @@ def verify():
         relevant = []
         for port in [runner.ssh_port, runner.vnc_port]:
             rows = [line for line in listeners.splitlines()[1:] if line.split()[3].rsplit(":", 1)[-1] == str(port)]
-            assert rows and all(line.split()[3] == f"127.0.0.1:{port}" for line in rows), rows
+            assert rows and all(line.split()[3].rsplit(":", 1)[0] in ("0.0.0.0", "[::]", "*") for line in rows), rows
             relevant.extend(rows)
         (CACHE / "verification.json").write_text(json.dumps({
             "auth_methods": methods, "password_rejected": True, "ssh_settings": settings,
             "file_transfer": True, "screenshot": True, "listeners": relevant,
-            "network": "QEMU user networking restrict=on; management on loopback", "seed": 42,
+            "network": "QEMU user networking restrict=on; official management bindings", "seed": 42,
         }, indent=2) + "\n")
     finally:
         runner.stop()
-    (CACHE / "READY").write_text("Key-only SSH and loopback listeners verified; not clearance to resume experiments.\n")
+    (CACHE / "READY").write_text("Key-only SSH and official management bindings verified.\n")
 
 
 if __name__ == "__main__":

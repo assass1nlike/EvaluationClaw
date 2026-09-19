@@ -1,4 +1,4 @@
-正式种子构建使用独立安全 VM，入口和配置见 [100 题实验](seed100_experiment.md)。下列是早期单题评估用法，不应在宿主直接启动。
+正式种子构建使用普通 Docker 运行环境、宿主网络和现有 Docker daemon，入口和配置见 [100 题实验](seed100_experiment.md)。下列是早期单题评估用法。
 
 Gym-Anything 本机运行入口，使用官方 LibreOffice Writer 环境和任务。
 源码位于 `..`，固定版本为 `774476d752d748a69288f2ead97f75dd9df08ddb`。

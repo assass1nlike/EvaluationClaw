@@ -1,6 +1,6 @@
-安全批量生成入口为 `local/isolation/vm/run_batch.py`，每款软件在独立生成 VM 中运行。旧宿主/特权容器批量入口保持禁用。配置与批次记录见 [100 题实验](seed100_experiment.md)。
+批量生成入口为 `local/seed_batch.py --runtime docker`。普通 Docker 运行环境通过设备映射使用 KVM，连接宿主网络和 Docker daemon；软件环境使用官方 bridge/NAT 设置，不增加域名、目的 IP 或端口限制。Linux QEMU 保留公钥认证。配置与批次记录见 [100 题实验](seed100_experiment.md)。
 
-生成 VM 的 CLI 外部入口对结构化 API 临时错误最多额外重试 3 次，间隔 5 秒：连接中断、408/409/429 和 5xx。恢复同一会话及已有文件，不重复提交最初的批量生成请求；需求和 thinking/high 配置保留。重试计入原阶段 10 小时限额，普通任务失败、认证错误及框架异常不自动重试。每次尝试记录到 `phase_N_attempt_K.jsonl` 和 `api-retries.jsonl`；耗尽后返回最终退出码，官方阶段推进逻辑保持原样。本机制不修改官方源码，也不覆盖截图 MCP 的独立 API 调用。
+CLI 外部入口对结构化 API 临时错误最多额外重试 3 次，间隔 5 秒：连接中断、408/409/429 和 5xx。恢复同一会话及已有文件，不重复提交最初的批量生成请求；需求和 thinking/high 配置保留。重试计入原阶段 10 小时限额，普通任务失败、认证错误及框架异常不自动重试。每次尝试记录到 `phase_N_attempt_K.jsonl` 和 `api-retries.jsonl`；耗尽后返回最终退出码，官方阶段推进逻辑保持原样。本机制不修改官方源码，也不覆盖截图 MCP 的独立 API 调用。
 
 `generate.py` 是官方 Propose-and-Amplify 流程的外部入口，新增 `--requirement-file` 参数，读取 UTF-8 评测需求。用户的五条原始需求保存在 `requirements/goal_1.txt` 至 `goal_5.txt`。
 
@@ -14,7 +14,7 @@
 .venv/bin/python local/generate.py --help
 ```
 
-以下单软件命令只在生成 VM 内执行，读取来宾内的 DeepSeek 配置：
+以下为单软件命令，读取该工作目录的 DeepSeek 配置：
 
 ```bash
 .venv/bin/python local/generate.py \
@@ -32,7 +32,7 @@
 
 本机依赖锁定 Anthropic SDK 0.84.0，兼容官方 `messages.stream()` 调用及其 `temperature` 参数。官方客户端继续原样发送 `temperature=1.0`、`max_tokens=40000`、开启 thinking 且 `budget_tokens=16384`，并沿用流式解析、对话保存和重试逻辑。没有删减请求参数或改写官方 API 调用代码。
 
-官方提题原定 5 道，本轮改为每软件 10 道种子题，共 100 道；每阶段超时 10 小时，使用 `isolation/vm/run_batch.py` 最多 10 并行，在各软件独立的文件系统、临时目录、Claude 会话、Docker 和 QEMU 缓存中调用 `seed_batch.py`，仅运行提题。配置与产物位置见 `seed100_experiment.md`。上一轮记录见 `seed_experiment.md`。扩增默认 75 道，本轮不运行。
+官方提题原定 5 道，本轮改为每软件 10 道种子题，共 100 道；每阶段超时 10 小时，最多 10 并行。各软件使用独立工作目录、新 Claude 会话和新 QEMU 缓存，Docker 使用宿主 daemon，环境版本附加批次名以区分本轮缓存，仅运行提题。配置与产物位置见 `seed100_experiment.md`。上一轮记录见 `seed_experiment.md`。扩增默认 75 道，本轮不运行。
 
 此次验证覆盖完整官方阶段调度下的需求传递、扩增提示保留、原始需求快照，以及空需求和混用需求的拒绝行为。模型调用和外部进程执行在测试中替换，不生成实验题目。
 

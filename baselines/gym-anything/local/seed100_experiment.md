@@ -1,4 +1,4 @@
-本轮目标 100 道种子题：D1 ERPNext、Moodle；D2 Redmine、Nuxeo Platform；D3 Visual Studio Code、LibreOffice Writer；D4 WordPress、Rancher；D6 QGIS、RStudio。每软件同一会话生成 10 道，最大 10 并行，只执行官方 propose 四阶段，不扩增。每阶段超时 36000 秒（10 小时）。旧批次已停止，新机批次为 `local/outputs/s100_0919`，使用独立安全 VM 构建。
+本轮目标 100 道种子题：D1 ERPNext、Moodle；D2 Redmine、Nuxeo Platform；D3 Visual Studio Code、LibreOffice Writer；D4 WordPress、Rancher；D6 QGIS、RStudio。每软件同一会话生成 10 道，最大 10 并行，只执行官方 propose 四阶段，不扩增。每阶段超时 36000 秒（10 小时）。旧 VM 批次 `local/outputs/s100_0919` 已停止并保留；新批次为 `local/outputs/s100_host_0919`，使用普通 Docker 运行环境和官方网络设置，当前正在验证，尚未启动模型构建。
 
 新机器正式构建任务类型为 enterprise，Claude Code 固定 2.1.229，所有模型使用 deepseek-flash，thinking 开启，DeepSeek 和 Claude Code 的 effort 均为 high，配置保存在 `local/deepseek-settings.json`。所有可设置的本地随机种子均为 42；API 不设置 seed，用户接受远端输出的随机性。启动后检查官方截图 MCP 的真实图片调用、thinking/high 参数及返回结果，记录异常；目前主模型工具链已验证，截图模型调用仍待实测。单 VM 参数与工具链检查见 [新机配置](setup.md)。下文保留旧批次实际使用的配置与运行记录。
 
@@ -44,3 +44,15 @@ Moodle 阶段 2、VS Code 和 Writer 阶段 1 的 CLI 返回码为 1，结果 is
 部署没有中断正在执行的 CLI，只对之后启动的阶段生效；之前的失败阶段未补跑。10 台的版本、部署时间和当时阶段记录在批次 `retry-deployment.json`，源码保存在 `source/retry-update/`。各 VM 导出 `retry-policy.json`、`phase_N_attempt_K.jsonl` 和 `api-retries.jsonl`，K 从 0 开始。部署后已观察到 VS Code 阶段 3 通过此入口启动，尚无真实重试结果。模拟 CLI 子进程测试覆盖首次成功、瞬时失败恢复、3 次重试上限、会话/参数保留，以及官方超时清理子进程；全套回归 362 passed、22 skipped、7 subtests passed，见 `retry-regression-final.log`。该测试不调用真实模型。
 
 核对官方提交 774476d752d748a69288f2ead97f75dd9df08ddb：Docker 默认 bridge，仅在 `resources.net=False` 且未启用 VNC 时设置 network=none；QEMU 默认用户态 NAT，`resources.net=False` 时设置 restrict=on。官方运行器没有本地代理的域名白名单，也没有相同的公网/私网目的地址过滤。当前拒绝部分正常下载和公开数据站点的是本实验额外添加的白名单，不能将这些拒绝归因于官方方法能力；本次只核查来源，未放宽网络策略。
+
+2026-09-19 用户要求除公钥认证外恢复官方网络设置，并选择保留旧记录、干净重跑 100 题。`s100_0919` 的 10 台生成 VM 全部停止，工作磁盘、会话和日志保留，停止记录见该批 `host-restart-stop.json` 及各软件 `manual-stop.json`。ERPNext 在人工停止前已出现“Build service stopped without an exit record”，归为基础设施错误，根因未确认；另外 9 路由本次切换主动停止。旧产物不计入新批次。
+
+新批次 `s100_host_0919` 使用官方固定提交的新工作副本、原始示例、新 CLI 会话和空软件缓存。需求与 user-inputs.txt 第 1、2、3、4、6 行核对一致。任务类型 enterprise，每软件 10 题、共 10 路并行；seed=42、deepseek-flash、thinking/high、CLI 2.1.229、单阶段 36000 秒、额外 API 重试 3 次均保持。提题数量、需求注入、镜像/运行器兼容适配和 API 重试之外，不改变官方四阶段、示例、构建与评分流程；框架错误仍先讨论。
+
+本用户没有宿主 KVM 权限或 sudo，使用已有 Docker 权限的标准设备映射。运行环境为 `gym-anything-local/host-generation:20260919`，由保留的 Ubuntu 24.04 工具镜像派生，仅调整运行用户 UID/GID 为 1005/1006；源码见 local/runtime/Dockerfile。构建命令为 `docker build --build-arg USER_UID=1005 --build-arg USER_GID=1006 -t gym-anything-local/host-generation:20260919 - < local/runtime/Dockerfile`。CLI 和框架在普通容器内运行，使用 `--network host`、`--device /dev/kvm`、KVM 与 Docker socket 的实际组；挂载当前 baseline 根目录、同路径 /tmp 和宿主 Docker socket。没有额外生成 VM、域名白名单、目的 IP/端口过滤或外层资源配额，不改宿主权限。该容器不是宿主安全边界；部署用户空间与裸机不同，但同一 QEMU 6.2、KVM、软件镜像及官方执行流程保持。
+
+QEMU 的监听地址恢复官方默认，Linux SSH 仅公钥；软件 Docker 使用默认 bridge，软件 QEMU 使用官方 NAT，resources.net 控制禁网。不配置额外强制代理。CLI 继承本机已有 17891 HTTP 代理，取代此次验证中出现 TLS EOF 的共享 7890；不修改代理服务。软件 Docker 直接访问 rubygems.org 返回 200，DeepSeek 未认证返回 401；CLI 运行环境经 17891 对应返回 200/401。原白名单不参与本轮流量。
+
+预检证据在新批次 validation/：KVM API=12，Docker daemon=29.1.3，CLI=2.1.229；运行容器和宿主共用网络命名空间。官方 QEMU 启动、公钥登录、服务端仅提供 publickey、命令执行及 1920×1080 截图通过；官方 Docker 默认 bridge 下的命令执行和桌面截图通过，截图已查看。验证无模型调用，seed=42，临时 VM/容器均清理。验证脚本初次误把 Docker 返回的默认网络名断言为 default，实际为 bridge；另将截图路径移至运行器要求的 artifacts 目录后才取得宿主截图，这两项仅修正测试输入，原日志保留。回归 364 passed、22 skipped、7 subtests passed，见 regression.log。
+
+启动命令：在 gym-anything 目录执行 `source local/runtime/activate.sh`，为本次进程设置 `http_proxy=http://127.0.0.1:17891`、`https_proxy=http://127.0.0.1:17891`、`all_proxy=http://127.0.0.1:17891`，再运行 `.venv/bin/python -u local/seed_batch.py --runtime docker --batch local/outputs/s100_host_0919`。各软件 config.json、phase_N.input.json、phase_N.jsonl、phase_N.result.json、api-retries.jsonl 和截图 API 元数据记录实际执行；monitor.jsonl 每 30 秒记录阶段状态与可用磁盘。日志观察不能保证提前阻止宿主操作。
