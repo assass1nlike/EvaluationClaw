@@ -29,9 +29,9 @@ GYM_ANYTHING_RUN_EXECUTION_TESTS=0 .venv/bin/python -m pytest \
 
 结果为 342 passed、22 skipped、7 subtests passed，一项 Pillow 弃用警告。日志、依赖清单、镜像身份、KVM 查询、代理检查和配置状态都在 `local/outputs/setup_20260919/`。
 
-用于单 VM 验证的 50 GiB 预分配工作盘、cloud-init ISO 和 `framework.tar` 已准备在 `local/outputs/vm_isolation_check/`。代码包不含 API key、管理私钥、历史模型会话或历史生成题目。没有复制旧 `verification.json` 或 READY 标记。
+用于单 VM 验证的 50 GiB 工作盘和新机验证证据位于 `local/outputs/vm_isolation_check/`。这块磁盘已经包含测试状态，不能作为正式实验的干净初始盘。基础镜像保持原样。
 
-实际启动验证待用户确认。计划按以下顺序验证，只有边界检查通过才执行第二步：
+2026-09-19 经用户授权，按以下顺序完成实际验证，边界检查通过后才执行第二步：
 
 ```bash
 source local/runtime/activate.sh
@@ -41,6 +41,12 @@ docker rm ga-vm-isolation-check
 .venv/bin/python -u local/isolation/vm/verify.py --smoke
 ```
 
-该验证只使用一台 4 vCPU/8 GiB 来宾，外层限制 4 CPU/10 GiB、无额外 swap、512 PID、50 GiB 工作盘；不发布宿主端口、SSH 仅公钥、模型只在 VM 内执行。先检查隔离与内部 Docker/嵌套 QEMU，再用 deepseek-flash 做最多 3 轮、180 秒的工具链路检查；不生成正式题目，结束停止 VM。验证脚本 seed=42，远端接口无 seed。
+验证只使用一台 4 vCPU/8 GiB 来宾，外层限制 4 CPU/10 GiB、无额外 swap、512 PID、50 GiB 工作盘；不发布宿主端口、SSH 仅公钥。宿主文件/内核隔离、网络白名单与私网拒绝、资源限额检查通过。来宾 root 写入与宿主同名的路径也没有改变宿主文件。内部 Docker 29.1.3 和 AMD 嵌套 KVM 均实际启动成功；官方 Docker/QEMU 运行器完成命令执行和 1920×1080 截图。
 
-正式 100 题尚未启动。新机真实验证、干净生成镜像、10 路 VM 调度、十款软件的下载与资源检查仍需依次完成；本次资源检查不等于已经验证所有软件的完整构建。
+deepseek-flash 经 `/anthropic` 和 Claude Code 2.1.229 在 VM 内完成一次工具操作，产物为 `{"hostname":"gym-isolation","marker":42}`；上限 3 轮、180 秒，实际 2 轮，返回 success。验证脚本 seed=42，远端接口无 seed，采样使用 CLI/provider 默认；没有 dataset，也未生成正式题目。
+
+启动时出现过 SSH 尚未就绪的握手重试，以及来宾打印服务等待 90 秒后由 systemd 自行恢复。Docker 首张截图为黑底和鼠标；随后用相同原始镜像、运行器及资源配置单独检查，GNOME 桌面正常显示，在初次及额外等待 15、30 秒后的截图均正常。补查只增加进程/窗口观察和等待，没有修改官方代码、镜像或生成流程；原始截图与所有日志保留。一次额外 SSH 检查碰到 VM 已关机而失败，下一阶段重复检查成功。
+
+验证及补查结束后，外层容器 exited、restart policy 为 no，可见 QEMU 进程为 0，相关管理端口无监听，代理 socket 已删除。导出文本中的实际 API key 检查无命中。结果在 `local/outputs/setup_20260919/live-result.json`；原阶段日志为 `live-boundary.log`、`live-smoke.log`，桌面补查脚本及截图也保存在同目录。迁移的基础镜像未被更改。
+
+正式 100 题尚未启动。干净生成镜像、10 路 VM 调度、十款软件的下载与资源检查仍需完成；本次单 VM 验证不等于已经验证所有软件的完整构建。
