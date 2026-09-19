@@ -132,7 +132,7 @@ def worker(batch,index,item,barrier,api):
         with client.open_sftp() as sftp:
             sftp.put(str(ROOT/'local/runtime/tools/uv'),'/home/ga/.local/bin/uv')
             sftp.chmod('/home/ga/.local/bin/uv',0o755)
-            for p in ['guest_run.py','guest_launch.py','provision_job.py','screenshot_mcp.py']:
+            for p in ['guest_run.py','guest_launch.py','provision_job.py','screenshot_mcp.py','claude_retry.py']:
                 sftp.put(str(verify.HERE/p),str(ROOT/'local/isolation/vm'/p))
             sftp.put(str(job/'config.json'),GUEST_JOB+'/config.json')
             sftp.put(str(ROOT/f'local/requirements/goal_{goal}.txt'),GUEST_JOB+'/requirement.txt')

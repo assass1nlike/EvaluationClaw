@@ -34,3 +34,13 @@
 正式放行时间为北京时间 2026-09-19 15:24:51（UTC 07:24:51）。10/10 VM 通过预检，全部进入官方第一阶段并收到 deepseek-flash 响应，visual-grounding MCP 均为 connected。启动检查保存于 `startup-check.json`，后台调度 PID 见 `process.json`，总体日志为 `supervisor.log`；01–10 对应上文软件顺序，每目录保存 config、preflight、state、phase_N 输入/输出/结果。宿主未发布管理端口，启动时 199 个导出文本文件扫描无实际 API key。旧准备监督进程在任何 VM 启动前停止过一次，用于补充来宾输出文件名/读取大小限制及固定版本 uv 传输；9 份已完成的干净磁盘保留，记录在 `local/outputs/s100_prep_0919/preparation-restart.json`，未发生模型会话重跑。
 
 截图检查在 Writer 生成 VM 内另行执行 `check_screenshot.py`，不参与正式任务设计：白底、左红方块与右蓝圆形，询问颜色、位置及中心坐标。DeepSeek OpenAI 接口调用成功，thinking enabled、effort high，返回 108 个 reasoning tokens；正文却是要求执行 Bash 的文本工具标记，没有直接回答视觉问题。官方 MCP 原样返回了该正文和坐标缩放说明，因此只能确认接口接受图片及思考参数，不能将本次检查记为视觉定位成功。证据在 `06/screenshot-smoke.json`、`06/screenshot-smoke-api.jsonl`；保留此异常，没有更改官方提示、解析或增加自动执行/重试逻辑。后台 snap 更新访问 api.snapcraft.io 被代理拒绝，已记录；启动检查本身通过，实际软件安装是否受影响以阶段日志为准。
+
+2026-09-19 16:03（北京时间）进度：10 路仍运行且日志持续更新；Nuxeo 位于阶段 1，ERPNext/Redmine/VS Code/Writer/WordPress/QGIS/RStudio 位于阶段 2，Moodle/Rancher 位于阶段 3，尚无软件完整结束。按相对官方初始目录新增、同时具有 task.json 与 verifier.py 统计，候选题 37 道：Redmine 10、VS Code 10、Writer 5、Rancher 10、QGIS 1、RStudio 1。这只是文件产出，不代表通过实机验证；快照见批次 progress_20260919T0803.json。多数 seed_tasks.json 仍为官方示例清单，不能据此统计新题。
+
+Moodle 阶段 2、VS Code 和 Writer 阶段 1 的 CLI 返回码为 1，结果 is_error=true，正文均为“Connection lost mid-response”；没有触发 10 小时超时，官方调用自然进入下一阶段，未人工重跑。连接中断的具体网络根因尚未定位。代理白名单还阻挡了 Rancher 下载域名、rubygems.org 及多处政府/科研公开数据站点，属于本地网络适配限制，应与框架错误分开记录；本次进度检查未修改网络或框架。各 VM 磁盘剩余约 154–170 GiB。Moodle 已有 1 次、VS Code 已有 2 次正式截图 MCP 调用，均返回正文及思考内容，正文为具体软件界面描述；这三次没有重现独立图片检查的文本工具调用异常，但尚未逐张人工核验视觉准确性。
+
+2026-09-19 16:25（北京时间），按用户要求向 10 台 VM 部署外部 CLI 重试入口，版本仍为 Claude Code 2.1.229。结构化 `terminal_reason=api_error` 且状态为空（传输中断）、408/409/429 或 5xx 时，间隔 5 秒额外重试最多 3 次（合计最多 4 次）。用同一 session 的 `--resume` 继续原请求，保留已写文件、需求及 thinking/high 参数，不重新发起一批提题。重试占用原阶段 10 小时限额；普通任务/框架错误及认证失败不触发重试。耗尽后返回最后退出码，仍由官方逻辑推进后续阶段。本次不修改官方框架、网络规则、模型配置或种子。
+
+部署没有中断正在执行的 CLI，只对之后启动的阶段生效；之前的失败阶段未补跑。10 台的版本、部署时间和当时阶段记录在批次 `retry-deployment.json`，源码保存在 `source/retry-update/`。各 VM 导出 `retry-policy.json`、`phase_N_attempt_K.jsonl` 和 `api-retries.jsonl`，K 从 0 开始。部署后已观察到 VS Code 阶段 3 通过此入口启动，尚无真实重试结果。模拟 CLI 子进程测试覆盖首次成功、瞬时失败恢复、3 次重试上限、会话/参数保留，以及官方超时清理子进程；全套回归 362 passed、22 skipped、7 subtests passed，见 `retry-regression-final.log`。该测试不调用真实模型。
+
+核对官方提交 774476d752d748a69288f2ead97f75dd9df08ddb：Docker 默认 bridge，仅在 `resources.net=False` 且未启用 VNC 时设置 network=none；QEMU 默认用户态 NAT，`resources.net=False` 时设置 restrict=on。官方运行器没有本地代理的域名白名单，也没有相同的公网/私网目的地址过滤。当前拒绝部分正常下载和公开数据站点的是本实验额外添加的白名单，不能将这些拒绝归因于官方方法能力；本次只核查来源，未放宽网络策略。
