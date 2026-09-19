@@ -58,3 +58,15 @@ QEMU 的监听地址恢复官方默认，Linux SSH 仅公钥；软件 Docker 使
 启动命令：在 gym-anything 目录执行 `source local/runtime/activate.sh`，为本次进程设置 `http_proxy=http://127.0.0.1:17891`、`https_proxy=http://127.0.0.1:17891`、`all_proxy=http://127.0.0.1:17891`，再运行 `.venv/bin/python -u local/seed_batch.py --runtime docker --batch local/outputs/s100_host_0919`。各软件 config.json、phase_N.input.json、phase_N.jsonl、phase_N.result.json、api-retries.jsonl 和截图 API 元数据记录实际执行；monitor.jsonl 每 30 秒记录阶段状态与可用磁盘。日志观察不能保证提前阻止宿主操作。
 
 正式启动：2026-09-19 17:16:14（北京时间），监督进程 PID 559322。10 路均进入阶段 1，使用 10 个不同 session；首轮均返回 deepseek-flash 响应和 thinking 内容，已执行工具调用，启动核查时没有结构化终止错误。high 参数、设置文件、宿主网络及 KVM 映射逐路核对通过，证据见 startup-audit.json 和 startup-progress.json。抽查的近期工具调用以读取官方说明/示例、查询本地镜像及软件下载连通性为主；该抽查不是所有后续操作的安全保证。运行环境镜像 ID 为 sha256:54bb8b5bc737c055962facbf16dadada21af9ebe85d6101968e3af1c506b4169。代码提交 82cde50cf，精确源码哈希见 source.json。
+
+2026-09-19 17:28:04（北京时间）进度：10 路仍运行，均处于官方阶段 1，尚无软件结束四阶段。新增且同时具有 task.json/verifier.py 的候选题 17 道：ERPNext 3、Moodle 1、Redmine 1、Nuxeo Platform 2、Visual Studio Code 1、LibreOffice Writer 1、WordPress 2、Rancher 4、QGIS 2、RStudio 0；不代表实机验证通过，seed_tasks.json 尚不能作为新题计数。此次检查未发现 CLI 终止 API 错误或已触发的外部 API 重试；有模型开发期间的路径错误和自建离线测试失败，模型仍在继续修订，未由助手干预。无正式截图 MCP 调用记录。可用内存约 926 GiB，/data1 剩余约 4.5 TiB。快照见 progress_latest.json。
+
+2026-09-19 18:47（北京时间）进度：启动约 91 分钟，ERPNext、Redmine 的四阶段均以 rc=0、completed 结束，各最终清单包含 10 道新题；其余 8 路运行中。Rancher 阶段 4；Moodle、VS Code、Writer、RStudio 阶段 3；Nuxeo、WordPress、QGIS 阶段 2。新增且具有 task.json/verifier.py 的候选共 117 道（10/11/11/14/14/13/10/14/10/10，按 JOBS 顺序），包含可能未进入最终清单的额外产物，不能按 117/100 报完成率。当前快照见 progress_current.json。
+
+Nuxeo、WordPress 阶段 2 各发生一次 terminal_reason=api_error、状态为空的调用中断，外部重试均已启动 attempt=1 并产生新工具活动；阶段尚未结束，不能称已成功完成恢复。没有阶段触发 10h 超时或耗尽外部重试。截图 API 共 15 次均成功返回（ERPNext 1、Moodle 4、Writer 6、Rancher 1、RStudio 3），仅表示接口成功，不证明全部任务已实机验证。
+
+最终回复显示验证缺口：ERPNext 自报仅 1/10 题在真实 VM 跑过，其余为 mock 检查；该次不执行任务得 15/100、未通过。Redmine 最终回复仍称 VM 安装进行中，截图和实机验证待完成，且没有截图 MCP 记录。因此四阶段自然结束不能视为十题全部验证合格。ERPNext 模型还报告建站锁等待及初始化 SQL 错误，尚未独立确认根因。运行中的软件仍有任务脚本/离线测试错误、安装等待和 Docker 启动探测超时，模型自行处理；本次进度检查没有干预代码或补跑。可用内存约 906 GiB，/data1 剩余约 4.5 TiB。
+
+2026-09-19 21:20（北京时间）进度：运行约 4 小时 5 分钟，6 款软件四阶段均 rc=0/completed：ERPNext 10、Redmine 10、Nuxeo 14、VS Code 10、Rancher 14、RStudio 11，最终清单合计 69 道新题。Moodle/Writer/QGIS 位于阶段 3，WordPress 位于阶段 2，4 路均有近期日志和工具活动；当前新增完整候选目录 123 个，不等于最终题数或实机验证通过数。快照 progress_20260919T1320.json。
+
+Nuxeo 阶段 2 的第一次重试已经 completed/rc=0；WordPress 同阶段第一次重试仍在执行，未出现额外重试、耗尽或阶段超时。截图 API 累计 108 次均成功返回。最终会话仍存在实机验证未完就自然结束的情况：Nuxeo 阶段 4 自报第二轮检查仅到 2/13，Rancher 最终回复仍等安装/启动监控，RStudio 自报一个后台任务的 README/证据收尾未完成。VS Code 还自报截图 MCP 两次虚构工具调用、随后用直接读图交叉检查；该内容异常尚未逐条独立核实，不能用 API 成功率表示视觉正确率。本次仅检查和记录，没有人工补跑或修改。可用内存约 928 GiB，/data1 剩余约 4.5 TiB。

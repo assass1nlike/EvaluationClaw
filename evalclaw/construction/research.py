@@ -39,7 +39,7 @@ from ..execution.docker_images import (
     start_inspection_container,
     stop_inspection_container,
 )
-from ..execution.image_acquisition import ImageAcquisitionError
+from ..execution.image_acquisition import ImageAcquisitionError, canonical_image
 from ..execution.resource_guard import DockerResourceGuard
 from ..execution.vm_provider import (
     build_vm_image,
@@ -177,6 +177,9 @@ checks after a successful build. The build tool returns a relative image_build.c
 preserve that value in the final task's environment.image_build together with
 image_build.enabled=true and the image tag. Do not put host paths in target-visible
 fields, and do not claim an image is ready without a successful build or check.
+Use ordinary image references (for example, node:20-bookworm-slim). When registry
+mirrors are configured, the framework prepares external Dockerfile image dependencies
+and handles mirror selection and routing; you do not need to choose mirror prefixes.
 If build_image returns a build error, fix its inputs and rebuild before using that
 image. A failed local build cannot be replaced by downloading the same image tag.
 When start_inspect_container, run_in_container, and commit_inspect_container are
@@ -247,6 +250,13 @@ TASK_BUILDER_READ_TOOL = ToolSpec(
         },
         "additionalProperties": False,
     },
+)
+
+TASK_BUILDER_VERIFY_TOOL = ToolSpec(
+    name="verify_candidate",
+    description="Run the selected agent candidate's verification_cases in fresh target environments using its packaged files and original scorer. Each case declares target commands, final_answer, min_score and max_score. Returns exact failures for repair. No target model is invoked; configured actors and judges may be invoked.",
+    parameters={"type": "object", "properties": {"task_index": {"type": "integer", "minimum": 0}},
+                "required": ["task_index"], "additionalProperties": False},
 )
 
 
@@ -1090,16 +1100,7 @@ def _prepare_image_context(
 
 def _builder_image_key(image: str) -> str:
     """Compare Docker reference aliases without guessing whether an image is local."""
-    parts = image.strip().split("/")
-    if len(parts) == 1 or not ("." in parts[0] or ":" in parts[0] or parts[0] == "localhost"):
-        parts.insert(0, "docker.io")
-    if parts[0] in {"index.docker.io", "registry-1.docker.io"}:
-        parts[0] = "docker.io"
-    if parts[0] == "docker.io" and len(parts) == 2:
-        parts.insert(1, "library")
-    if ":" not in parts[-1] and "@" not in parts[-1]:
-        parts[-1] += ":latest"
-    return "/".join(parts)
+    return canonical_image(image)
 
 
 def _builder_image_allows_pull(image: str, state: dict[str, Any]) -> bool:
@@ -1124,6 +1125,29 @@ def _execute_task_builder_tool(
     args = call.arguments if isinstance(call.arguments, dict) else {}
     state = tool_state if tool_state is not None else {}
     try:
+        if call.name == "verify_candidate":
+            from .parsing import _task_from_raw
+            from .packaging import pack_task_item
+            from .verification import verify_agent_cases
+            from ..types import EvalDimension
+
+            document = json.loads(Path(document_path).read_text(encoding="utf-8"))
+            index = int(args["task_index"])
+            if index < 0:
+                raise ValueError("task_index must be nonnegative")
+            task = _task_from_raw(document["tasks"][index], f"verification-{index}", default_dimension_id="verification")
+            if work_dir is not None:
+                task.metadata["builder_job_id"] = work_dir.name
+                from .validation import resolve_builder_asset_path
+
+                for asset in task.assets:
+                    asset.path = str(resolve_builder_asset_path(asset.path, work_dir))
+            if not task.environment or not task.environment.verification_cases:
+                raise ValueError("Declare environment.verification_cases before verifying.")
+            dimension = EvalDimension(id="verification", name="Verification", description="Candidate verification", approach="Execute cases")
+            item = pack_task_item(task, dimension, resource_by_id={})
+            result = verify_agent_cases(item, config, directory=work_dir / "verification" if work_dir else None)
+            return ToolResult(tool_call_id=call.id, name=call.name, content=_tool_content(result, max_chars=max_chars))
         if not config.use_web_research and call.name in {
             "read_research_source", "search_sources", "load_source", "fetch_url", "list_url_links", "download_files",
         }:
@@ -1352,6 +1376,7 @@ def _execute_task_builder_tool(
                 build_args={str(key): str(value) for key, value in (build_args or {}).items()},
                 network=str(args.get("network") or "default").strip().lower(),
                 docker_executable=config.docker_executable,
+                unavailable_images={key for key, built in state.get("local_images", {}).items() if not built},
                 timeout_s=_bounded_int(
                     args.get("timeout_s"),
                     default=DEFAULT_DOCKER_BUILD_TIMEOUT_S,
@@ -2111,7 +2136,7 @@ def run_task_builder_tools(
         minimum=1000,
         maximum=100_000,
     )
-    tools = [TASK_BUILDER_PYTHON_TOOL, TASK_BUILDER_READ_TOOL, TASK_BUILDER_WRITE_TOOL, TASK_BUILDER_VIEW_IMAGE_TOOL]
+    tools = [TASK_BUILDER_PYTHON_TOOL, TASK_BUILDER_READ_TOOL, TASK_BUILDER_WRITE_TOOL, TASK_BUILDER_VIEW_IMAGE_TOOL, TASK_BUILDER_VERIFY_TOOL]
     tools.extend(TASK_BUILDER_DOCUMENT_TOOLS)
     if _image_generation_configured(config):
         tools.append(TASK_BUILDER_GENERATE_IMAGE_TOOL)

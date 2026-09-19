@@ -101,7 +101,7 @@ def test_real_harness_images_share_preflight_actor_and_scoring_lifecycle(monkeyp
     assert len(evidence["actors"]["interactions"]) == 2
 
 
-@pytest.mark.parametrize("failure", ["setup", "runtime", "scorer", "score_format", "actor_client"])
+@pytest.mark.parametrize("failure", ["setup", "hidden_dependency", "runtime", "scorer", "score_format", "actor_client"])
 def test_real_preflight_rejects_broken_runtime_or_evaluator(tmp_path, failure):
     item = _task()
     env = item.metadata["agent_env"]
@@ -109,6 +109,8 @@ def test_real_preflight_rejects_broken_runtime_or_evaluator(tmp_path, failure):
     manifest = ManifestHarness(name="fixture", run="python3 solve.py", model_env={}, preflight=("python3 --version",))
     if failure == "setup":
         env["setup_commands"] = ["exit 7"]
+    elif failure == "hidden_dependency":
+        env["setup_commands"] = ["python3 eval.py"]
     elif failure == "runtime":
         manifest = replace(manifest, preflight=("missing-harness --version",))
     elif failure == "scorer":

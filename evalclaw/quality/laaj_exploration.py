@@ -4,6 +4,7 @@ from __future__ import annotations
 import copy
 import json
 import subprocess
+import threading
 import time
 import uuid
 from contextlib import ExitStack
@@ -75,6 +76,10 @@ class TaskExperiment:
         self.started_at = datetime.now(timezone.utc).isoformat()
         self.started = time.monotonic()
         self.ended = False
+        self.episode_started: float | None = None
+        self.budget_exhausted = False
+        self.budget_timer = None
+        self.budget_error = None
         self.reviewer_access = False
         self.record: dict[str, Any] = {
             "purpose": "laaj_exploration", "item_id": item.id,
@@ -100,7 +105,7 @@ class TaskExperiment:
                 # Same setup, runtime mounts and target identity, without target inference.
                 runner._launch(
                     self.item, self.target, config, self.image, self.workdir,
-                    actor_session=self.actors, capture=self.capture, preflight_only=True,
+                    actor_session=self.actors, capture=self.capture, prepare_only=True,
                 )
             else:
                 if env.get("actors"):
@@ -140,10 +145,36 @@ class TaskExperiment:
         if self.actors:
             data["contacts"] = CONTACT_INSTRUCTIONS
         data["interventions"] = "Begin on the first target-perspective action."
+        if self.item.workflow is not None:
+            data["workflow"] = "This trial explores the initial environment only. It cannot simulate staged conversations or grade a workflow; use stage-aware target execution for that."
         return data
+
+    def _expire_budget(self):
+        self.budget_exhausted = True
+        try:
+            harness.ManifestHarnessRunner._stop_episode(self.capture["docker"], self.capture["container_name"])
+            if self.controller:
+                self.controller.stop()
+        except Exception as exc:
+            self.budget_error = exc
+
+    def _finish_budget_timer(self):
+        if self.budget_timer is not None:
+            self.budget_timer.cancel()
+            self.budget_timer.join()
+            self.budget_timer = None
+        budget = harness.agent_env(self.item).get("budget") or {}
+        if budget and self.episode_started is not None and not self.budget_exhausted and not self.ended:
+            if time.monotonic() - self.episode_started >= float(budget["wall_time_seconds"]):
+                self._expire_budget()
+        if self.budget_error:
+            raise RuntimeError("Could not stop the expired trial episode.") from self.budget_error
 
     def _exec(self, command: str, timeout: int, *, reviewer: bool):
         prefix = "" if reviewer else self.capture.get("runtime_prefix", "")
+        if not reviewer:
+            import shlex
+            prefix += f"export EVALCLAW_EPISODE_ID={shlex.quote(self.capture['container_name'])}; "
         return harness._run_bounded(
             harness._container_exec_command(
                 self.capture["docker"], self.capture["container_name"], prefix + command,
@@ -181,7 +212,7 @@ class TaskExperiment:
                 "started_at": self.started_at, "finished_at": datetime.now(timezone.utc).isoformat(),
                 "duration_ms": round((time.monotonic() - self.started) * 1000),
             },
-            "termination": {"status": "completed", "done": True, "steps": len(self.trace)},
+            "termination": {"status": "budget_exhausted" if self.budget_exhausted else "completed", "done": True, "steps": len(self.trace)},
         }
 
     def perform(self, args: dict[str, Any]):
@@ -195,9 +226,26 @@ class TaskExperiment:
             if operation in {"command", "action"}:
                 if reviewer:
                     self.reviewer_access = True
-                elif self.controller and not self.trace:
-                    self.controller.start()
+                else:
+                    if self.budget_exhausted:
+                        raise ValueError("Episode budget exhausted; evaluate the saved state or reset.")
+                    if self.episode_started is None:
+                        self.episode_started = time.monotonic()
+                        if self.controller:
+                            self.controller.start()
+                        budget = harness.agent_env(self.item).get("budget") or {}
+                        if budget:
+                            self.budget_timer = threading.Timer(float(budget["wall_time_seconds"]), self._expire_budget)
+                            self.budget_timer.daemon = True
+                            self.budget_timer.start()
                 timeout = max(1, min(600, int(args.get("timeout_seconds", 120))))
+                budget = harness.agent_env(self.item).get("budget") or {}
+                if budget and not reviewer:
+                    remaining = float(budget["wall_time_seconds"]) - (time.monotonic() - self.episode_started)
+                    if remaining <= 0:
+                        self._finish_budget_timer()
+                        return {"status": "budget_exhausted", "returncode": 124}
+                    timeout = min(timeout, remaining)
                 if operation == "command":
                     command = str(args.get("command") or "").strip()
                     if not command:
@@ -231,7 +279,13 @@ class TaskExperiment:
                     self.controller.raise_if_failed()
                 if self.actors:
                     self.actors.raise_if_failed()
+                if self.budget_exhausted:
+                    self._finish_budget_timer()
+                    result["status"] = "budget_exhausted"
             elif operation == "evaluate":
+                if self.item.workflow is not None:
+                    raise ValueError("Workflow scoring requires stage-aware execution; this trial explores the initial environment only.")
+                self._finish_budget_timer()
                 self.ended = True
                 if self.controller:
                     self.controller.stop()
@@ -240,6 +294,8 @@ class TaskExperiment:
                     self.actors.close()
                     self.actors.raise_if_failed()
                 final_answer = str(args.get("final_answer") or "")
+                if self.budget_exhausted:
+                    final_answer = ""
                 write_answer = getattr(self.environment, "_write_final_answer", None)
                 if callable(write_answer):
                     self.environment.final_answer = final_answer
@@ -271,6 +327,10 @@ class TaskExperiment:
         except Exception as exc:
             entry["error"] = execution_failure(exc)
             if isinstance(exc, subprocess.TimeoutExpired):
+                budget = harness.agent_env(self.item).get("budget") or {}
+                if budget and not reviewer and self.episode_started is not None and time.monotonic() - self.episode_started >= float(budget["wall_time_seconds"]):
+                    self._finish_budget_timer()
+                    return {"status": "budget_exhausted", "returncode": 124, "stdout": entry["error"]["stdout"], "stderr": entry["error"]["stderr"]}
                 # docker exec timeout alone leaves the command running inside the container.
                 self.close()
                 self.ended = True
@@ -293,6 +353,7 @@ class TaskExperiment:
                     cleanup.callback(self.actors.close)
                 if self.controller:
                     cleanup.callback(self.controller.stop)
+                cleanup.callback(self._finish_budget_timer)
         finally:
             self.workdir = None
             self.capture = {}

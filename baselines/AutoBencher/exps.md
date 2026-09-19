@@ -204,3 +204,47 @@ GPT 请求通过 https://www.rightapi.ai/v1，model=gpt-5.6-sol，并发上限 8
 Token 用量（包含日志中有用量的所有请求）：{"target": {"prompt_tokens": 373198, "completion_tokens": 207057, "total_tokens": 580255}, "judge": {"prompt_tokens": 570990, "completion_tokens": 63069, "total_tokens": 634059}}
 
 已核验 1,725 题、原题副本及源文件 SHA-256、逐条题目/作答/判分/参考答案对应关系、实际请求及响应模型名。请求时间区间计算得到的已记录最大并发均不超过 8。两次续跑状态快照和原因见 archive/ 与 resumes.jsonl；不重复已有成功作答或判分。官方源码未修改。
+
+后续实验默认 thinking 配置：DeepSeek 出题、作答及裁判均使用 thinking.type=enabled；Qwen 作答使用 enable_thinking=true；GPT 作答使用 reasoning_effort=medium。已更新 configs/ 中三个生成批次配置和两个固定题集评测配置，以及 run.py 默认值、.env 和 .env.example。模型、温度、种子、并发、重试及 token 上限保持原配置。本次仅修改未来实验设置，未发起模型调用；此前运行目录内配置快照、题目、作答、评分和结果均保留。
+
+GPT 默认推理强度设置为 high，并通过 RightAPI 真实请求验证。模型 gpt-5.6-sol，接口 https://www.rightapi.ai/v1，reasoning_effort=high，无需额外 thinking 开关。沿用 temperature=0.01、max_tokens=50、n=1、seed=42；seed_everything 固定 Python、NumPy、PyTorch、CUDA，PYTHONHASHSEED=42。单请求验证，最大尝试 3 次，超时 300 秒，传输或可重试 HTTP 错误后等待 1、2 秒。题目是求大于 1000 且分别模 3 余 2、模 5 余 3、模 7 余 2 的最小整数，参考答案 1073。请求一次成功，HTTP 200，模型返回 1073，finish_reason=stop；输入 122 tokens、生成 232 tokens（包含 216 reasoning tokens），总计 354 tokens。接口接受 high 参数并返回非零推理用量。请求仍传 max_tokens=50，供应商报告的生成总量超过该值。验证脚本、配置、完整请求响应和结果位于 runs/gpt-high-check/；运行命令 `PYTHONHASHSEED=42 .venv/bin/python -u runs/gpt-high-check/check.py`。已更新 configs/gpt-first-round.json 和 README 默认值；未重新运行整批题集。
+
+八需求八轮 thinking/high 实验：完整复用 configs/eight-needs.json 的八段需求，独立配置 configs/eight-needs-high.json。模型角色（选题/出题、作答、裁判）均为 deepseek-flash，https://api.deepseek.com；显式 thinking.type=enabled、reasoning_effort=high，8 轮，目标准确率 0.1--0.3，seed=42，n=1。8 个任务同时启动，官方单任务内部串行，因此模型调用整体最多 8 路。seed_everything 固定 Python、NumPy、PyTorch、CUDA，Python 哈希和 API 请求均用 seed=42。出题 max_tokens=2000、作答 50、裁判 3000；保留原 temperature 请求参数，但官方文档说明 DeepSeek thinking 模式忽略 temperature。上游流程与两项已批准网络补丁保持不变。NO_PROXY 追加 api.deepseek.com，使 DeepSeek 请求直连；维基请求沿用本机代理。
+
+启动前对固定题集第一题做真实作答检查：runs/deepseek-high-check-20260919T062522Z/ 保存配置和请求响应。使用相同作答提示，temperature=0.01、max_tokens=50、thinking enabled、effort high、seed=42，超时 300 秒，单次请求 HTTP 200，答案 The chemical elements, arranged by atomic number.，finish_reason=stop；输入 60、输出 48（其中 reasoning 38）、总计 108 tokens。此检查独立于八轮主实验。
+
+启动命令：`NO_PROXY="${NO_PROXY},api.deepseek.com" .venv/bin/python -u batch.py configs/eight-needs-high.json`，tmux 会话 autobencher-eight-high。各任务在新批次目录保存原始配置、题目、作答、判分、完整请求响应及 token 用量。以前的实验结果保留。
+
+本次 thinking/high 主批次目录：`runs/batch-20260919T062602129855Z`。已检查八组实际配置：8 轮、三角色 deepseek-flash、thinking enabled、reasoning_effort high。
+
+八需求 thinking/high 批次在首轮选题步骤全部退出：八次模型请求 HTTP 200、finish_reason=length；原始 max_tokens=2000 被推理消耗，返回正文为空，官方 JSON 解析因此失败，尚无有效题目。详见批次 failure-summary.json 与各任务 requests.jsonl。已准备待确认方案 proposed-config.json：通过现有外部请求参数覆盖，将各阶段 max_tokens 统一设为 65536（DeepSeek high 模式官方默认总输出预算），保留 thinking/high、8 轮及其他配置。方案尚未运行，官方源码不作修改。
+
+用户明确要求将三个阶段输出上限统一设为 30 万 tokens。当前八需求八轮 thinking/high 实验配置 configs/eight-needs-high.json 的 extra_body.max_tokens=300000，经现有 API 转发覆盖选题/出题、作答和裁判的原始上限；thinking.type=enabled、reasoning_effort=high，三角色均为 deepseek-flash。8 路独立任务并行，8 轮、目标准确率 0.1--0.3、seed 42 和其他设置不变，官方源码不修改。此前首轮选题失败的 runs/batch-20260919T062602129855Z/ 保留，新建独立批次按新预算重新运行，不采用 proposed-config.json 中的 65536 方案。启动命令：`NO_PROXY="${NO_PROXY},api.deepseek.com" .venv/bin/python -u batch.py configs/eight-needs-high.json`，tmux 会话 autobencher-eight-high-300k。
+
+30 万输出预算批次目录：`runs/batch-20260919T070124906727Z`。八组已启动，保存的请求配置均为 thinking enabled、effort high、max_tokens=300000。
+
+30 万预算批次 data-analysis 完成第一轮后，在第二轮访问量排序的 Wikimedia GET 读取时超时退出。独立续跑该组，复用官方缓存和原配置，另外七组继续运行；续跑状态记录在批次 data-analysis/recovery/status.json，原退出状态保存在同目录 previous-status.json，日志继续追加 data-analysis.log。命令 `run.py --resume runs/batch-20260919T070124906727Z/data-analysis`，DeepSeek 保持直连，维基仍经原代理，未修改源码或模型参数。
+
+按用户要求，HF dataset assassinlike/b635 的 autobencher 配置已替换为 thinking/high 批次 runs/batch-20260919T070124906727Z/ 八组第一轮共 1,745 题，只发布 iteration=1。提交 b27f5cf720f5d4c3d28d2c91acfe37201a6709e7。八组题目、参考答案、模型回答、裁判原文及判定完整保留，无无效判分。模型均为 deepseek-flash、thinking enabled、effort high、max_tokens=300000，详细配置与源产物 SHA-256 见远端 autobencher/provenance/。已从 HF 重新加载核验全部 1,745 行逐行与本地一致、仅含第一轮；其他 baseline 文件 blob 未变，根 README 仅更新 AutoBencher 行与总规模标签。上传及核验记录位于本批次 hf-export/。第 2–8 轮不在上传范围。
+
+30 万预算批次进度检查：推理与多语言各完成 2 轮后在第三轮维基检索发生 SSL EOF、网络重试耗尽，按原参数独立缓存续跑，状态保存于各任务 recovery/status.json，日志追加原日志。数据分析续跑在第二轮维基检索触发 search_step 递归循环，重复调用 966 次后 RecursionError，当前保持失败现场待排查，未修改官方代码或重新生成选题。知识、数学、计算机科学、指令遵循、长上下文继续运行。
+
+经用户明确批准，对官方维基检索做最小 URL 编码修复：search_step 将手工拼接 search 参数改为 requests 的 params={"search": entity}，搜索地址、请求头、超时、检索和评测逻辑不变。补丁 patches/wikipedia-search-encoding.patch；setup.sh 可依次应用三个已批准补丁，并识别已应用状态。已验证从官方原始文件顺序应用三个补丁可准确重建当前文件，安装脚本语法通过。含 &、+、#、%、中文的查询参数均能完整编码还原；真实调用 search_step("ANOVA gauge R&R") 一次 HTTP 请求取回 8 段资料，无递归循环，证据保存在 data-analysis/recovery/encoding-check.json。
+
+数据分析组在原 runs/batch-20260919T070124906727Z/data-analysis/ 目录断点续跑，8 轮、thinking enabled、effort high、max_tokens=300000、seed=42 及其他参数保持不变。tmux 会话 autobencher-high-data-encoding，运行 recovery/resume.py 调用 run.py --resume，复用已完成轮次和选题缓存；新增源码差异由 resumes.jsonl 保存。启动前状态及已存在产物 SHA-256 保存于 recovery/20260919T100214Z/。续跑进度以 recovery/status.json 为准。
+
+八需求八轮 DeepSeek 构建、Qwen 作答实验：配置 configs/eight-needs-qwen-high.json，完整复用八段需求。选题、出题和裁判使用 deepseek-flash，接口 https://api.deepseek.com，thinking.type=enabled、reasoning_effort=high、max_tokens=300000；被测模型 qwen3.8-27b，接口 https://dashscope.aliyuncs.com/compatible-mode/v1，enable_thinking=true、reasoning_effort=xhigh、max_tokens=131072，不同时传 thinking_budget。Qwen 接口实测拒绝 max_tokens=300000，明确支持范围为 1–131072，因此使用支持的最大值。两套供应商参数分别发送，凭据通过 .env 中 AUTOBENCHER_API_KEY 和 QWEN_API_KEY 读取，不写入配置或请求日志。
+
+每组 8 轮、目标准确率 0.1--0.3、seed=42、n=1，温度和提示沿用官方各阶段设置（作答 temperature=0.01，判分 temperature=0）；DeepSeek thinking 模式忽略温度。seed_everything 固定 Python、NumPy、PyTorch、CUDA，Python 哈希种子及 API seed 同为 42。八组独立进程同时启动，组内沿用官方串行顺序，因此本批最多 8 路模型请求，与已有 DeepSeek 批次同时运行。每组后续选题读取该组累计的 Qwen 作答、DeepSeek 判分结果；实时维基检索、候选排序、出题和逐题判分流程沿用官方实现及已批准的三个维基补丁。
+
+外部转发增加显式被测角色路由，官方 test_taker 模型别名 gpt-autobencher-target 对应 Qwen；agent/tool 别名 gpt-autobencher 对应 DeepSeek。API 传输错误和 HTTP 408/409/429/5xx 每次转发最多尝试 3 次，间隔 1、2 秒，单次超时 300 秒；官方 OpenAI SDK 及外层最多 5 次尝试继续保留，故 3 次不是整个调用的总尝试上限。每次转发尝试记录请求、响应、状态、时长和用量；无效裁判内容按原流程处理。run.py --resume 恢复两套模型配置及官方缓存。tests/test_api.py 已验证独立地址、凭据、模型、thinking 和 token 参数路由，以及传输错误、503、429 重试、400 不重试和原单模型接口兼容。
+
+真实预检保存于 runs/qwen-xhigh-check/，命令 PYTHONHASHSEED=42 .venv/bin/python -u runs/qwen-xhigh-check/check.py。题目求大于 1000 且模 3 余 2、模 5 余 3、模 7 余 2 的最小整数；Qwen 在 thinking/xhigh、max_tokens=131072 下 HTTP 200，答案 1073，finish_reason=stop，输入 101、输出 407（含推理 399）、总计 508 tokens。此前 300000 上限的 HTTP 400 响应同时保留在 requests.jsonl。
+
+新批次目录 runs/batch-20260919T101821130037Z，tmux 会话 autobencher-eight-qwen-high。启动命令 NO_PROXY="${NO_PROXY},api.deepseek.com" PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -u batch.py configs/eight-needs-qwen-high.json；启动日志 runs/eight-qwen-high.log，批次 status.json 保存各组进程与退出状态，各组保存独立配置、原始请求响应、题目、作答和评分。DeepSeek 直连，维基和 Qwen 使用当前网络环境。
+
+启动后已核验八个任务进程存活，各组保存的角色、8 轮、目标区间、种子及两套 thinking/effort/token 参数均与配置一致；八组首个 DeepSeek 选题请求均返回 HTTP 200，正在第一轮生成流程。
+
+2026-09-19 18:48（北京时间）检查两个八组批次：16 个任务进程均存活。DeepSeek 被测批次 batch-20260919T070124906727Z 按知识、推理、数学、计算机科学、数据分析、指令遵循、长上下文、多语言顺序完成 4、2、5、4、2、3、4、2 轮，共 26/64 组轮，已完成轮次的裁判判定均有效；数据分析修复后已完成第二轮并进入第三轮出题。Qwen 被测批次 batch-20260919T101821130037Z 八组均已完成第一轮出题，共 1,767 题，正在作答，暂无整轮完成。Qwen 指令遵循组一次读取超时已通过第二次尝试成功恢复，部分请求耗时接近 300 秒。各组进度、进程状态及错误统计保存于两个批次各自 progress/20260919T1048Z.json。
+
+2026-09-19 21:37（北京时间）进度检查：DeepSeek 被测批次八组完成轮数依次为 7、4、6、8、5、4、6、4，共 44/64 组轮（计算机科学在检查期间完成第八轮，最终核验通过）；Qwen 被测批次为 1、1、1、1、1、1、2、1，共 9/64 组轮。已完成轮次均无无效裁判判定。DeepSeek 数学在第七轮 Wikimedia 访问量请求、指令遵循在第五轮维基检索发生 SSL EOF 并耗尽重试，已使用原配置和缓存分别断点续跑，进程与状态见各组 recovery/status.json，续跑前产物散列见 recovery/source-sha256.json。Qwen 八组仍在运行，累计记录 26 次传输超时、1 次 HTTP 500、2 次供应商输出内容检查 HTTP 400，之后均继续获得成功响应；原始响应保留。检查快照保存于两个批次各自 progress/20260919T133713Z.json。

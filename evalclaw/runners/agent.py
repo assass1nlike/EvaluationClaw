@@ -545,7 +545,11 @@ def run_agent_interaction(
     artifact_dir: str | Path | None = None,
 ) -> tuple[str, float, str]:
     artifact_path = Path(artifact_dir) if artifact_dir is not None else None
+    if item.metadata.get("task_agent", {}).get("interaction"):
+        raise ValueError("Agent interaction metadata cannot execute follow-ups; use workflow.stages.")
     env_metadata = item.metadata.get("agent_env") if isinstance(item.metadata, dict) else None
+    if isinstance(env_metadata, dict) and env_metadata.get("budget") and not target.harness:
+        raise ValueError("Episode wall-clock budgets currently require an external shell harness.")
     if isinstance(env_metadata, dict) and env_metadata.get("judge"):
         from ..execution.agent_judge import judge_spec
 
@@ -555,12 +559,9 @@ def run_agent_interaction(
         raise RuntimeError(
             "Environment actors require a Docker task run with an external shell harness."
         )
-    if item.workflow is not None and target.harness:
-        raise RuntimeError(
-            "External harnesses do not implement the task's multi-stage workflow contract. "
-            "Use the native agent runner or a task without workflow stages."
-        )
-    if item.workflow is not None:
+    if item.workflow is not None and not target.harness:
+        if isinstance(env_metadata, dict) and env_metadata.get("judge"):
+            raise ValueError("Workflow judge scoring currently requires an external shell harness.")
         from .workflow import run_workflow
 
         return run_workflow(item, target, config, artifact_dir=artifact_path)

@@ -23,22 +23,15 @@ from .errors import EvaluationExecutionError
 from .process import run_bounded
 
 MIRRORS_ENV = "EVALCLAW_DOCKER_MIRRORS"
+ROUTES_ENV = "EVALCLAW_IMAGE_ROUTES"
 
 
 class ImageAcquisitionError(EvaluationExecutionError):
     """Image infrastructure is unavailable; do not rewrite the task to repair it."""
 
 
-def mirror_sources(image: str, mirrors: list[str]) -> list[str]:
-    repository = image
-    first, separator, rest = image.partition("/")
-    if first in {"docker.io", "index.docker.io", "registry-1.docker.io"}:
-        repository = rest
-    elif separator and ("." in first or ":" in first or first == "localhost"):
-        return [image]
-    if "/" not in repository:
-        repository = "library/" + repository
-    sources = []
+def mirror_hosts(mirrors: list[str]) -> list[str]:
+    hosts = []
     for mirror in mirrors:
         parsed = urlsplit(mirror if "://" in mirror else "https://" + mirror)
         if (
@@ -53,33 +46,95 @@ def mirror_sources(image: str, mirrors: list[str]) -> list[str]:
             raise ImageAcquisitionError(
                 "Docker mirrors must be HTTPS registry hosts, without paths or credentials."
             )
-        sources.append(parsed.netloc + "/" + repository)
-    return sources
+        hosts.append(parsed.netloc.lower())
+    return list(dict.fromkeys(hosts))
+
+
+def configured_mirrors() -> list[str]:
+    return mirror_hosts([part.strip() for part in os.environ.get(MIRRORS_ENV, "").split(",") if part.strip()])
+
+
+def canonical_image(image: str, mirrors: list[str] | None = None) -> str:
+    """Normalize registry aliases explicitly declared as Docker Hub mirrors."""
+    hosts = configured_mirrors() if mirrors is None else mirror_hosts(mirrors)
+    first, separator, rest = image.strip().partition("/")
+    if separator and ("." in first or ":" in first or first == "localhost"):
+        host, repository = first, rest
+    else:
+        host, repository = "docker.io", image.strip()
+    if host in {"index.docker.io", "registry-1.docker.io", *hosts}:
+        host = "docker.io"
+    if host == "docker.io" and "/" not in repository:
+        repository = "library/" + repository
+    if ":" not in repository.rsplit("/", 1)[-1] and "@" not in repository:
+        repository += ":latest"
+    return host + "/" + repository
+
+
+def mirror_sources(image: str, mirrors: list[str]) -> list[str]:
+    hosts = mirror_hosts(mirrors)
+    reference = canonical_image(image, hosts)
+    host, repository = reference.split("/", 1)
+    if host != "docker.io":
+        return [image]
+    return [host + "/" + repository for host in hosts]
+
+
+def image_source_env(source: str, env: dict[str, str]) -> dict[str, str]:
+    """Apply an explicit route to one registry operation, including its redirects."""
+    try:
+        routes = json.loads(env.get(ROUTES_ENV, "{}"))
+        if not isinstance(routes, dict) or any(v not in {"direct", "environment"} for v in routes.values()):
+            raise ValueError("expected registry hosts mapped to direct or environment")
+        for host in routes:
+            if mirror_hosts([host]) != [host]:
+                raise ValueError("route keys must be registry host names")
+    except (ValueError, TypeError) as exc:
+        raise ImageAcquisitionError(f"Invalid {ROUTES_ENV}: {exc}") from exc
+    if routes.get(source.split("/", 1)[0]) == "direct":
+        return {k: v for k, v in env.items() if k.lower() not in {"http_proxy", "https_proxy", "all_proxy", "no_proxy"}}
+    return dict(env)
 
 
 def image_pull_options() -> list[str]:
     return ["--pull", "never"] if os.environ.get(MIRRORS_ENV, "").strip() else []
 
 
+def normalize_platform(platform: str) -> str:
+    parts = platform.lower().split("/")
+    if len(parts) not in {2, 3} or not all(parts):
+        raise ValueError(f"Expected os/architecture[/variant], got {platform!r}")
+    parts[1] = {"x86_64": "amd64", "aarch64": "arm64"}.get(parts[1], parts[1])
+    if parts[1:] == ["arm64", "v8"]:
+        parts.pop()
+    return "/".join(parts)
+
+
 def acquire_image(
-    image: str, *, docker_executable: str = "docker", timeout_s: int = 300, allow_pull: bool = True
+    image: str, *, docker_executable: str = "docker", timeout_s: int = 300, allow_pull: bool = True,
+    platform: str | None = None,
 ) -> str:
     """Return a local image reference; preserve legacy behavior without a policy.
 
     Pinned digests are downloaded unchanged and cached under a deterministic local
     tag because docker load does not preserve registry RepoDigests.
     """
-    mirrors = [part.strip() for part in os.environ.get(MIRRORS_ENV, "").split(",") if part.strip()]
+    mirrors = configured_mirrors()
     if not mirrors:
         return image
+    if platform:
+        platform = normalize_platform(platform)
     docker = resolve_docker_executable(docker_executable)
     if not docker:
         raise ImageAcquisitionError("Docker executable is unavailable for image acquisition.")
     env = docker_subprocess_env(docker_executable)
 
     def local(reference):
-        result = run_bounded([docker, "image", "inspect", reference], timeout=30, env=env)
-        return result.returncode == 0
+        command = [docker, "image", "inspect", reference]
+        if platform:
+            command.extend(["--format", "{{.Os}}/{{.Architecture}}{{if .Variant}}/{{.Variant}}{{end}}"])
+        result = run_bounded(command, timeout=30, env=env)
+        return result.returncode == 0 and (not platform or normalize_platform(result.stdout.strip()) == platform)
 
     def checked(args):
         result = run_bounded(args, timeout=timeout_s, env=env)
@@ -91,7 +146,8 @@ def acquire_image(
 
     import fcntl
 
-    key = hashlib.sha256(image.encode()).hexdigest()
+    canonical = canonical_image(image, mirrors)
+    key = hashlib.sha256((canonical + ("\0" + platform if platform else "")).encode()).hexdigest()
     state = Path("/tmp") / f"evalclaw-image-locks-{os.getuid()}"
     state.mkdir(mode=0o700, exist_ok=True)
     with (state / key).open("a") as lock:
@@ -99,7 +155,9 @@ def acquire_image(
         try:
             if local(image):
                 return image
-            cached = f"evalclaw-pinned:{key}" if "@" in image else image
+            if canonical != image and local(canonical):
+                return canonical
+            cached = f"evalclaw-pinned:{key}" if "@" in image or platform else image
             if cached != image and local(cached):
                 return cached
             if not allow_pull:
@@ -111,21 +169,22 @@ def acquire_image(
                 raise ImageAcquisitionError(
                     "Configured Docker mirrors require crane; set EVALCLAW_CRANE_EXECUTABLE."
                 )
-            info = json.loads(checked([docker, "info", "--format", "{{json .}}"]).stdout)
-            architecture = {"x86_64": "amd64", "aarch64": "arm64"}.get(
-                info["Architecture"], info["Architecture"]
-            )
-            platform = f"{info['OSType']}/{architecture}"
+            pull_platform = platform
+            if not pull_platform:
+                info = json.loads(checked([docker, "info", "--format", "{{json .}}"]).stdout)
+                architecture = {"x86_64": "amd64", "aarch64": "arm64"}.get(info["Architecture"], info["Architecture"])
+                pull_platform = f"{info['OSType']}/{architecture}"
             failures = []
             with tempfile.TemporaryDirectory(prefix="evalclaw-image-") as directory:
                 archive = Path(directory) / "image.tar"
                 for source in mirror_sources(image, mirrors):
-                    print(f"[docker image] Fetching {source} ({platform}).", flush=True)
+                    source_env = image_source_env(source, env)
+                    print(f"[docker image] Fetching {source} ({pull_platform}).", flush=True)
                     try:
                         result = run_bounded(
-                            [crane, "pull", "--platform", platform, source, str(archive)],
+                            [crane, "pull", "--platform", pull_platform, source, str(archive)],
                             timeout=timeout_s,
-                            env=env,
+                            env=source_env,
                         )
                     except subprocess.TimeoutExpired:
                         failures.append(f"{source}: timed out after {timeout_s}s")
@@ -143,7 +202,9 @@ def acquire_image(
                             raise ImageAcquisitionError(
                                 "Expected one platform image in the downloaded archive."
                             )
-                        manifest[0]["RepoTags"] = [cached]
+                        manifest[0]["RepoTags"] = list(dict.fromkeys(
+                            [cached] if "@" in image or platform else [image, canonical]
+                        ))
                         content = json.dumps(manifest).encode()
                         with tarfile.open(imported, "w") as output:
                             for member in tar:
@@ -163,7 +224,7 @@ def acquire_image(
                     )
                     return cached
             raise ImageAcquisitionError(
-                "All configured image sources failed; Docker Hub direct fallback is disabled.\n"
+                f"All attempted image sources failed for {image!r}; no direct Docker Hub fallback.\n"
                 + "\n".join(failures)
             )
         except (OSError, subprocess.SubprocessError, ValueError, tarfile.TarError) as exc:

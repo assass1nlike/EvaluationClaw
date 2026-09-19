@@ -108,11 +108,13 @@ _EFFORT_GUIDANCE = {
     "E3": (
         "challenge_effort is E3 (maximum construction effort): use maximum effort to create an "
         "extremely difficult task. Keep optimizing to make the task harder until you have exhausted "
-        "every possible way to increase difficulty. Make a correct solution require extremely broad "
-        "knowledge, tedious reasoning, and even bold hypotheses and verification; while keeping the task "
+        "productive way to increase difficulty. Make a correct solution require broad "
+        "knowledge, difficult reasoning, or hypotheses and verification; while keeping the task "
         "correct and solvable in principle by a sufficiently strong testee, use every difficulty-increasing "
         "technique — including but not limited to deepening the reasoning chain, complicating through "
-        "combination, adding interference, and even reverse engineering — to increase difficulty."
+        "combination, adding interference, and even reverse engineering — to increase difficulty. "
+        "Repetitive workload, arbitrary hidden requirements, and underdetermined answers are not "
+        "substitutes for difficult reasoning or decisions supported by obtainable evidence."
     ),
 }
 

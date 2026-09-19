@@ -76,7 +76,7 @@ Use only these task types:
 
 Choose task types according to what the evaluation goal requires. You do not need to assign tasks to every task-type category merely to cover all categories.
 
-In particular, when the evaluation goal inherently requires interaction or actions within an environment, do not assign task types that clearly cannot meaningfully evaluate the requested capabilities. If a task type is a less natural fit but can still provide meaningful evaluation, you may include a small number of such tasks to improve the benchmark’s diversity.
+In particular, when the evaluation goal inherently requires interaction or actions within an environment, do not assign task types that clearly cannot meaningfully evaluate the requested capabilities. If a task type is a less natural fit but can still provide meaningful evaluation, you may include a small number of such tasks to improve the benchmark’s diversity. Such tasks, across all less naturally suited task types combined, should account for no more than 25% of the benchmark’s total task count.
 
 Conversely, for evaluation goals that primarily call for paper-and-pencil assessment, you do not need to allocate many agent tasks.
 
@@ -84,11 +84,15 @@ This says "each task group" rather than "each task" because one description may 
 
 Make the sum of the task counts across all dimensions equal the user's target task count. Allocate task counts according to coverage value and measurement importance; do not divide them evenly by default.
 
+For agent TaskDesigns, include a concise `content_design.measurement` object describing `behavior`, `necessary_conditions`, and `success_evidence`: what the target must actually do, which executable conditions make that behavior necessary, and which observations distinguish success from failure. Check coverage across the whole benchmark, including combinations central to the user's request. Retrospective log reading can test attribution but cannot alone establish live delegation and tracking; a seeded prior workspace can test handoff consistency but cannot alone establish behavior across actual context resets. Use executable workflow stages when later user messages or fresh contexts are essential. Each individual task need not cover the whole goal.
+
+Vary consequential decisions, information availability, dependencies, and failure mechanisms, not only names or file formats. Similar variants can test robustness, but should not crowd out important parts of the goal. Supply normal task rules without resolving the uncertainty or strategy choice being evaluated. Private actor behavior and reference facts must not leak through public descriptions.
+
 Use only these `challenge_effort` levels:
 
 - `E1`: simple construction — the task is meaningfully challenging but stays below research-level depth.
 - `E2`: difficult construction — the task should require a non-obvious insight or a multi-step rigorous argument.
-- `E3`: maximum construction effort — the task is extremely difficult: requiring broad knowledge, tedious reasoning, or bold hypotheses, and using every technique to raise difficulty.
+- `E3`: maximum construction effort — pursue difficult, valid tasks through demanding reasoning, consequential decisions, interacting dependencies, or constrained information and resources. More files, repetitive work, arbitrary hidden requirements, or underdetermined answers do not by themselves establish difficulty. Preserve an evidence-supported way to satisfy the scoring contract, including honest partial completion in intentionally unattainable scenarios.
 
 The framework has exactly these three effort levels.
 

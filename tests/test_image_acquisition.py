@@ -27,6 +27,8 @@ def registry(monkeypatch):
         code, output = 0, ""
         if args[1:3] == ["image", "inspect"]:
             code = 0 if args[3] in images else 1
+            if "--format" in args and code == 0:
+                output = "linux/amd64"
         elif args[1] == "info":
             output = json.dumps({"OSType": "linux", "Architecture": "x86_64"})
         elif args[0] == "/crane":
@@ -83,6 +85,54 @@ def test_hub_reference_mapping(reference, repository):
 def test_other_registries_are_not_rewritten():
     for image in ["ghcr.io/org/image:1", "localhost:5000/image:1"]:
         assert acquisition.mirror_sources(image, ["mirror.example"]) == [image]
+
+
+@pytest.mark.parametrize("reference", [
+    "node:20", "docker.io/library/node:20", "second.example/library/node:20",
+])
+def test_configured_mirror_references_keep_the_full_fallback_chain(reference):
+    assert acquisition.mirror_sources(reference, ["https://first.example/", "second.example"]) == [
+        "first.example/library/node:20", "second.example/library/node:20",
+    ]
+
+
+def test_mirror_alias_keeps_digest():
+    digest = "sha256:" + "a" * 64
+    assert acquisition.mirror_sources("second.example/team/image@" + digest, ["first.example", "second.example"]) == [
+        "first.example/team/image@" + digest, "second.example/team/image@" + digest,
+    ]
+
+
+def test_explicit_route_does_not_change_other_requests():
+    env = {
+        "HTTPS_PROXY": "http://proxy:123", "http_proxy": "http://proxy:123", "ALL_PROXY": "socks5://proxy:456",
+        "NO_PROXY": "localhost", "PATH": "/bin",
+        acquisition.ROUTES_ENV: '{"mainland.example":"direct"}',
+    }
+    direct = acquisition.image_source_env("mainland.example/library/node:20", env)
+    assert not any(key.lower().endswith('_proxy') for key in direct)
+    assert direct["PATH"] == "/bin"
+    assert acquisition.image_source_env("other.example/node:20", env) == env
+    assert env["HTTPS_PROXY"] == "http://proxy:123"
+
+
+def test_mirror_alias_reuses_downloaded_image(registry):
+    _, calls, _ = registry
+    acquisition.acquire_image("second.example/library/node:20")
+    acquisition.acquire_image("node:20")
+    assert len([c for c in calls if c[0] == "/crane"]) == 1
+
+
+def test_platform_scoped_acquisition_and_digest_alias_cache(registry):
+    _, calls, _ = registry
+    digest = "sha256:" + "b" * 64
+    first = acquisition.acquire_image("second.example/library/node@" + digest, platform="linux/x86_64")
+    second = acquisition.acquire_image("node@" + digest, platform="linux/amd64")
+    assert first == second
+    pulls = [c for c in calls if c[0] == "/crane"]
+    assert len(pulls) == 1
+    assert pulls[0][2:4] == ["--platform", "linux/amd64"]
+    assert acquisition.normalize_platform("linux/arm64/v8") == "linux/arm64"
 
 
 def test_mirrors_retry_in_order_without_direct_fallback(registry):
