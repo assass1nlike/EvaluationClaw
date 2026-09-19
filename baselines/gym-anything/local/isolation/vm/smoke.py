@@ -91,12 +91,14 @@ finally:r.stop()
     model_smoke = '''import json,os,shlex
 from pathlib import Path
 from extras.research.task_generation.propose_and_amplify.pipeline.propose_cc import run_claude
+from local.generate import ROOT as LOCAL_ROOT
 cfg=json.loads(Path('/home/ga/smoke/api.json').read_text())
 os.environ.update(ANTHROPIC_API_KEY=cfg['DEEPSEEK_API_KEY'],ANTHROPIC_AUTH_TOKEN=cfg['DEEPSEEK_API_KEY'],ANTHROPIC_BASE_URL=cfg['DEEPSEEK_BASE_URL'].rstrip('/')+'/anthropic',ANTHROPIC_MODEL=cfg['DEEPSEEK_MODEL'],DISABLE_AUTOUPDATER='1')
 for k in ['ANTHROPIC_DEFAULT_OPUS_MODEL','ANTHROPIC_DEFAULT_SONNET_MODEL','ANTHROPIC_DEFAULT_HAIKU_MODEL','CLAUDE_CODE_SUBAGENT_MODEL']:os.environ[k]=cfg['DEEPSEEK_MODEL']
 code="import json,socket; from pathlib import Path; Path('/home/ga/smoke/model-tool.json').write_text(json.dumps({'hostname':socket.gethostname(),'marker':42}))"
 prompt="This is an infrastructure smoke test, not benchmark generation. Use Bash once to execute: " + shlex.join(['python3','-c',code]) + ". Then stop. Do not inspect credentials, change services, install packages or access the network with tools."
-run_claude(Path('/home/ga/.local/bin/claude'),['-p',prompt,'--model',cfg['DEEPSEEK_MODEL'],'--dangerously-skip-permissions','--max-turns','3','--output-format','json'],cwd=Path('/home/ga/smoke'),timeout=180)
+settings=LOCAL_ROOT/'deepseek-settings.json'
+run_claude(Path('/home/ga/.local/bin/claude'),['-p',prompt,'--model',cfg['DEEPSEEK_MODEL'],'--settings',str(settings),'--effort','high','--dangerously-skip-permissions','--max-turns','3','--output-format','json'],cwd=Path('/home/ga/smoke'),timeout=180)
 '''
     try:
         rc,text,err=guest(client,prefix+shlex.quote(py)+" - <<'INNER' > /home/ga/smoke/model-response.json 2>/home/ga/smoke/model-error.log\n"+model_smoke+'INNER',timeout=210)

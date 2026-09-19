@@ -132,6 +132,7 @@ def prepare(batch, item):
         subprocess.run(['git', 'clone', '--quiet', *clone_args, UPSTREAM_URL, str(workspace)], check=True)
         subprocess.run(['git', 'checkout', '--quiet', '-b', 'seed-generation', UPSTREAM_COMMIT], cwd=workspace, check=True)
     for rel in ['src/gym_anything/runtime/runners/docker.py', 'local/generate.py',
+                'local/deepseek-settings.json',
                 'extras/research/task_generation/propose_and_amplify/pipeline/propose_cc.py']:
         destination = workspace / rel
         destination.parent.mkdir(parents=True, exist_ok=True)
