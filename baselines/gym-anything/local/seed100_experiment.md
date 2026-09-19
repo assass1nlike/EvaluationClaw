@@ -1,5 +1,7 @@
 本轮目标 100 道种子题：D1 ERPNext、Moodle；D2 Redmine、Nuxeo Platform；D3 Visual Studio Code、LibreOffice Writer；D4 WordPress、Rancher；D6 QGIS、RStudio。每软件同一会话生成 10 道，最大 10 并行，只执行官方 propose 四阶段，不扩增。每阶段超时 36000 秒（10 小时）。旧批次已停止，正式安全构建迁往新机器，接续步骤见 [迁移说明](migration.md)。
 
+新机器正式构建使用 deepseek-flash，thinking 开启，DeepSeek 和 Claude Code 的 effort 均为 high，配置保存在 `local/deepseek-settings.json`。单 VM 参数与工具链检查见 [新机配置](setup.md)。下文保留旧批次实际使用的配置与运行记录。
+
 需求以主仓库 user-inputs.txt 前 15 行为准，本批使用第 1、2、3、4、6 行，完整文件快照保存在本批 user-inputs.txt。四阶段均注入需求原文和已批准的统一说明：以需求中的能力与限制条件作为设计目标，任务情境、初始状态和成功判据应检验它们，官方示例用于实现参考而不能替代评测目标。不提供具体题目、解法或评分规则。
 
 批次：local/outputs/seeds10_clean_20260918T104248Z。命令：在 gym-anything 根目录执行 .venv/bin/python -u local/isolation/run_batch.py --batch local/outputs/seeds10_clean_20260918T104248Z。开始模型调用前，各容器生成 isolation_check.json；确认全部通过后为各软件写入空的 start 文件放行。官方提交 774476d752d748a69288f2ead97f75dd9df08ddb，任务类型 enterprise，原始示例任务来自该提交。提题提示仅把 5 new tasks 改为 10 new tasks；阶段提示、顺序、验证、失败处理和清理仍由官方实现执行。外层仅保存日志和隔离宿主资源，生成期间框架错误先报告讨论，不自行修补。

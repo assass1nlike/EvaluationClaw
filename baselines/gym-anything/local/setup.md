@@ -50,3 +50,11 @@ deepseek-flash 经 `/anthropic` 和 Claude Code 2.1.229 在 VM 内完成一次�
 验证及补查结束后，外层容器 exited、restart policy 为 no，可见 QEMU 进程为 0，相关管理端口无监听，代理 socket 已删除。导出文本中的实际 API key 检查无命中。结果在 `local/outputs/setup_20260919/live-result.json`；原阶段日志为 `live-boundary.log`、`live-smoke.log`，桌面补查脚本及截图也保存在同目录。迁移的基础镜像未被更改。
 
 正式 100 题尚未启动。干净生成镜像、10 路 VM 调度、十款软件的下载与资源检查仍需完成；本次单 VM 验证不等于已经验证所有软件的完整构建。
+
+2026-09-19 按用户要求配置后续种子构建：deepseek-flash 开启 thinking，Claude Code 的配置文件及 `--effort` 均为 high。入口、VM 代码包和工作副本统一使用 `local/deepseek-settings.json`，作用于官方 propose 全部四阶段。没有修改官方框架的构建、验证或失败处理逻辑。
+
+在同一安全验证 VM 中，用不改写请求正文的来宾内观察代理检查实际 HTTPS 请求；仅保存模型参数、状态码、思考字符计数及工具块数量，不保存认证头或思考正文。最终检查主会话两次请求均为 `model=deepseek-flash`、`thinking={type:adaptive,display:omitted}`、`output_config.effort=high`、`max_tokens=32000`、流式响应，HTTP 200；首轮返回 369 个思考字符和一个工具调用，工具结果送回后得到 success。生成标题的辅助调用也使用 high，未显式发送 thinking，服务默认开启并返回了思考内容。Claude Code 的汇总 `thinking_tokens` 为 0，与实际流式思考事件不一致，不能用该计数判断思考是否开启。Anthropic 协议的 effort 与 OpenAI 协议 `reasoning_effort` 的对应关系遵循 DeepSeek 官方文档，文档快照保存在证据目录。
+
+验证上限 3 轮、180 秒，实际 2 轮；Python、NumPy 与哈希种子为 42，API 无 seed，其余采样参数使用 CLI/provider 默认，无 dataset。模型通过 Bash 在来宾写出 `{"hostname":"gym-isolation","value":17575}`，正确计算 1 至 37 的平方和。过程出现启动期 SSH 握手重试、LiteLLM 价格表下载超时后使用自带副本，最终模型请求均成功。初次检查的 TLS 重试及观察脚本对 thinking 字段的严格断言失败保留在 `first_check/`，最终检查使用实际协议语义核验思考开启和 high。
+
+证据及复现脚本在 `local/outputs/thinking_check/`：`host_check.py`、`guest_check.py`、`requests.json`、`result.json`。结束后验证 VM 已停止、无 QEMU 进程、无宿主管理端口监听，出口 socket 与来宾临时 API 文件已删除，基础镜像 SHA256 未变。文本产物检查无实际 API key。回归命令在上述基础上加入 `local/test_generation_api.py`，结果 345 passed、22 skipped、7 subtests passed，一项既有 Pillow 弃用警告。正式 100 题未启动。

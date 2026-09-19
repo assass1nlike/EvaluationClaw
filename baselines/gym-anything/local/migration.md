@@ -28,7 +28,7 @@
 - 模型 `deepseek-flash`，服务 `https://api.deepseek.com`；Claude Code 提题使用 `/anthropic`，截图 MCP 使用 OpenAI 兼容接口。Claude Code 固定 **2.1.229**，禁用自动更新。
 - 每软件同一会话生成 10 道；最大同时 10 个软件；每阶段 36000 秒，共四阶段；任务类型 `enterprise`。四阶段通过官方流程恢复同一会话，不是每道题分别调用一次。
 - Python/NumPy/hash seed 为 42，远端模型接口无 seed。采样参数保留 CLI/provider 默认，不额外设置交互轮数或费用上限。不要把 smoke test 的 3 轮、180 秒限制带入实验。
-- 原批次实际配置为 `effortLevel=xhigh`、`CLAUDE_CODE_EFFORT_LEVEL=high`，完整最小配置在 `records/claude-settings.json`。不擅自统一这两个值；服务端如何解释尚未确认。
+- 原批次配置快照在 `records/claude-settings.json`。新机后续种子构建按用户要求统一为 thinking 开启、effort high，使用 `local/deepseek-settings.json`；实际请求与验证说明见 `local/generation.md`、`local/setup.md`。
 - 四阶段均通过 `local/generate.py` 加入原始需求和已批准的统一说明：任务情境、初始状态和成功判据应检验用户要评测的能力与限制；官方示例用于实现参考，不替代评测目标。不提供我们设计的题目、解法或评分规则。
 - 保留已批准的数量 5→10、阶段超时、API/SDK、Docker timeout/VNC/runc/网络、QEMU 与公钥登录适配。官方阶段顺序、示例使用、失败处理、清理和评分保持原流程。不使用之前已撤销的 bare、strict MCP、自行终止后续阶段或自定义进程组清理。
 - API、下载及机器资源问题可以处理；框架 bug 先报告讨论，不为跑通而修补。官方生成代理自己调试属于其原始流程。按实际产出与证据记录失败或缺题，不人工补齐 100。

@@ -20,7 +20,7 @@ with tarfile.open(BUNDLE,'a') as tar:
                 'src/gym_anything/runtime/runners/qemu_ssh.py',
                 'src/gym_anything/runtime/runners/build_base_qcow2_nodocker.py',
                 'extras/research/task_generation/propose_and_amplify/pipeline/propose_cc.py',
-                'local/generate.py', '.venv']:
+                'local/generate.py', 'local/deepseek-settings.json', '.venv']:
         tar.add(ROOT/rel,arcname=str(ROOT/rel).lstrip('/'))
     python_home=(ROOT/'.venv/bin/python').resolve().parent.parent
     tar.add(python_home,arcname=str(python_home).lstrip('/'))

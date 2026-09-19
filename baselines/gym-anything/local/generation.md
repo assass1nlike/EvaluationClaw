@@ -26,6 +26,8 @@
 
 `--deepseek` 从 `local/.env` 读取 `DEEPSEEK_API_KEY`、`DEEPSEEK_BASE_URL` 和 `DEEPSEEK_MODEL`，通过 `https://api.deepseek.com/anthropic` 为提题 CLI 和扩增子进程配置服务，两个阶段默认使用 `deepseek-flash`。显式传入的 `--proposer-model` 和 `--amplifier-model` 优先。凭据仅通过进程环境传递，不写入运行配置；未指定 `--deepseek` 时使用官方模型与服务配置方式。
 
+本轮种子构建的四次 Claude Code 调用均加载 `local/deepseek-settings.json`：`alwaysThinkingEnabled=true`、`effortLevel=high`、`CLAUDE_CODE_EFFORT_LEVEL=high`，并显式传入 `--effort high`。Claude Code 2.1.229 实际发送 `thinking.type=adaptive` 和 `output_config.effort=high`；DeepSeek 返回了思考内容并完成工具调用。按 [DeepSeek 参数说明](https://api-docs.deepseek.com/guides/thinking_mode)，Anthropic 协议的 `output_config.effort=high` 对应 OpenAI 协议的 `reasoning_effort=high`。配置不覆盖正常 MCP 发现或官方阶段逻辑。其它 SDK 调用不读取这个 CLI 配置；官方截图 MCP 和扩增客户端的 effort 沿用 DeepSeek 当前文档规定的默认 high，本轮不运行扩增。
+
 本机依赖锁定 Anthropic SDK 0.84.0，兼容官方 `messages.stream()` 调用及其 `temperature` 参数。官方客户端继续原样发送 `temperature=1.0`、`max_tokens=40000`、开启 thinking 且 `budget_tokens=16384`，并沿用流式解析、对话保存和重试逻辑。没有删减请求参数或改写官方 API 调用代码。
 
 官方提题原定 5 道，本轮改为每软件 10 道种子题，共 100 道；每阶段超时 10 小时，使用 `isolation/run_batch.py` 最多 10 并行，在各软件独立的文件系统、临时目录、Claude 会话、Docker 和 QEMU 缓存中调用 `seed_batch.py`，仅运行提题。配置与产物位置见 `seed100_experiment.md`。上一轮记录见 `seed_experiment.md`。扩增默认 75 道，本轮不运行。

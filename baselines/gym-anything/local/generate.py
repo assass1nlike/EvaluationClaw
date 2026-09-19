@@ -91,6 +91,9 @@ def main(argv=None):
     original_subprocess = method._run_subprocess
 
     def run_claude(binary, cli_args, **kwargs):
+        if args.deepseek:
+            cli_args = [*cli_args, "--settings", str(ROOT / "deepseek-settings.json"),
+                        "--effort", "high"]
         return original_claude(binary, [
             *cli_args, "--append-system-prompt", requirement_prompt(requirement),
         ], **kwargs)
