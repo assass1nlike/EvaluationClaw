@@ -11,7 +11,11 @@ from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlsplit
 
 DOMAINS = ('ubuntu.com', 'debian.org', 'github.com', 'githubusercontent.com',
-           'docker.com', 'docker.io', 'pypi.org', 'pythonhosted.org', 'api.deepseek.com')
+           'docker.com', 'docker.io', 'pypi.org', 'pythonhosted.org', 'api.deepseek.com',
+           'ghcr.io', 'packages.microsoft.com', 'deb.nodesource.com', 'nodejs.org',
+           'registry.npmjs.org', 'registry.yarnpkg.com', 'dl.yarnpkg.com',
+           'download.moodle.org', 'wordpress.org', 'qgis.org', 'r-project.org',
+           'download1.rstudio.org', 'cdn.devlabs.io')
 LOCAL_NETWORKS = []
 
 
@@ -47,6 +51,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def forward(self, tunnel):
         remote = None
+        host, port = None, None
         try:
             target = urlsplit(('https://' if tunnel else '') + self.path)
             host, port = target.hostname, target.port or (443 if tunnel else 80)
@@ -54,6 +59,9 @@ class Handler(BaseHTTPRequestHandler):
                 raise ValueError('invalid destination')
             ip = resolve_public(host, port)
         except (ValueError, OSError):
+            if self.server.audit:
+                with open(self.server.audit, 'a') as log:
+                    log.write(json.dumps({'event': 'denied', 'host': host, 'port': port}) + '\n')
             self.send_error(403, 'Destination denied')
             return
         try:
@@ -103,12 +111,13 @@ class Server(socketserver.ThreadingMixIn, socketserver.UnixStreamServer):
     daemon_threads = True
     request_queue_size = 32
 
-    def __init__(self, path):
+    def __init__(self, path, audit=None):
         global LOCAL_NETWORKS
         interfaces = json.loads(subprocess.check_output(['ip', '-j', 'address', 'show'], text=True))
         LOCAL_NETWORKS = [ipaddress.ip_network(f"{addr['local']}/{addr['prefixlen']}", strict=False)
                           for interface in interfaces for addr in interface['addr_info']]
         self.slots = threading.BoundedSemaphore(32)
+        self.audit = audit
         super().__init__(path, Handler)
 
     def process_request(self, request, address):

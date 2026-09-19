@@ -36,8 +36,8 @@ def record(name, value):
     print(name + ': ' + ('saved' if name == 'guest_boundary' else json.dumps(value)), flush=True)
 
 
-def connect():
-    transport = paramiko.ProxyCommand(shlex.join(['docker', 'exec', '-i', NAME, 'python3', '/relay.py', 'ssh']))
+def connect(name=NAME):
+    transport = paramiko.ProxyCommand(shlex.join(['docker', 'exec', '-i', name, 'python3', '/relay.py', 'ssh']))
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
@@ -59,15 +59,16 @@ def guest(client, command, timeout=120, check=True):
     return rc, out, err
 
 
-def prepare():
-    OUT.mkdir(mode=0o700, parents=True, exist_ok=True)
-    (OUT / 'egress').mkdir(mode=0o700, exist_ok=True)
-    (OUT / 'host-canary.txt').write_text('Host-only safety sentinel\n')
-    if not (OUT / 'disk.raw').exists():
-        print('Preparing fixed-size 50 GiB guest disk', flush=True)
+def prepare(out=OUT, source=None, disk_gb=50, instance="gym-isolation-verify"):
+    source = source or QEMU / "secure-cache/base_ubuntu_gnome.qcow2"
+    out.mkdir(mode=0o700, parents=True, exist_ok=True)
+    (out / 'egress').mkdir(mode=0o700, exist_ok=True)
+    (out / 'host-canary.txt').write_text('Host-only safety sentinel\n')
+    if not (out / 'disk.raw').exists():
+        print('Preparing fixed-size guest disk', flush=True)
         host([str(QEMU / 'bin/qemu-img'), 'convert', '-O', 'raw',
-              str(QEMU / 'secure-cache/base_ubuntu_gnome.qcow2'), str(OUT / 'disk.raw')])
-        host(['fallocate', '-l', str(50 * 1024**3), str(OUT / 'disk.raw')])
+              str(source), str(out / 'disk.raw')])
+        host(['fallocate', '-l', str(disk_gb * 1024**3), str(out / 'disk.raw')])
     from gym_anything.runtime.runners.qemu_ssh import SSHD_CONFIG
     config = {
         'ssh_pwauth': False,
@@ -79,39 +80,40 @@ def prepare():
         ],
         'runcmd': [['systemctl', 'restart', 'ssh']],
     }
-    (OUT / 'user-data').write_text('#cloud-config\n' + yaml.safe_dump(config))
-    (OUT / 'meta-data').write_text('instance-id: gym-isolation-verify\nlocal-hostname: gym-isolation\n')
-    host(['genisoimage', '-output', str(OUT / 'seed.iso'), '-volid', 'cidata', '-joliet', '-rock',
-          str(OUT / 'user-data'), str(OUT / 'meta-data')])
+    (out / 'user-data').write_text('#cloud-config\n' + yaml.safe_dump(config))
+    hostname = 'gym-isolation' if instance == 'gym-isolation-verify' else instance
+    (out / 'meta-data').write_text(f'instance-id: {instance}\nlocal-hostname: {hostname}\n')
+    host(['genisoimage', '-output', str(out / 'seed.iso'), '-volid', 'cidata', '-joliet', '-rock',
+          str(out / 'user-data'), str(out / 'meta-data')])
 
 
-def launch():
-    cmd = ['docker', 'run', '-d', '--init', '--name', NAME, '--network', 'none', '--read-only',
+def launch(out=OUT, name=NAME, cpus=4, memory_gb=8, limit_gb=10, disk_gb=50):
+    cmd = ['docker', 'run', '-d', '--init', '--name', name, '--network', 'none', '--read-only',
            '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges=true',
            '--user', f'{os.getuid()}:{os.stat("/dev/kvm").st_gid}', '--device', '/dev/kvm',
-           '--cpus', '4', '--memory', '10g', '--memory-swap', '10g', '--pids-limit', '512',
+           '--cpus', str(cpus), '--memory', f'{limit_gb}g', '--memory-swap', f'{limit_gb}g', '--pids-limit', '512',
            '--ulimit', 'nofile=1024:1024', '--ulimit', 'core=0:0',
-           '--ulimit', f'fsize={50 * 1024**3}:{50 * 1024**3}',
+           '--ulimit', f'fsize={disk_gb * 1024**3}:{disk_gb * 1024**3}',
            '--log-opt', 'max-size=5m', '--log-opt', 'max-file=2',
            '--tmpfs', '/tmp:rw,nosuid,nodev,noexec,size=64m',
-           '--mount', f'type=bind,src={OUT / "disk.raw"},dst=/disk.raw',
-           '--mount', f'type=bind,src={OUT / "seed.iso"},dst=/seed.iso,readonly',
+           '--mount', f'type=bind,src={out / "disk.raw"},dst=/disk.raw',
+           '--mount', f'type=bind,src={out / "seed.iso"},dst=/seed.iso,readonly',
            '--mount', f'type=bind,src={QEMU / "rootfs"},dst=/qemu,readonly',
-           '--mount', f'type=bind,src={OUT / "egress"},dst=/egress,readonly',
+           '--mount', f'type=bind,src={out / "egress"},dst=/egress,readonly',
            '--mount', f'type=bind,src={HERE / "relay.py"},dst=/relay.py,readonly',
            '--entrypoint', '/qemu/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2', IMAGE,
            '--library-path', '/qemu/lib/x86_64-linux-gnu:/qemu/usr/lib/x86_64-linux-gnu',
            '/qemu/usr/bin/qemu-system-x86_64', '-L', '/qemu/usr/share/qemu',
-           '-enable-kvm', '-cpu', 'host', '-m', '8192', '-smp', '4',
+           '-enable-kvm', '-cpu', 'host', '-m', str(memory_gb * 1024), '-smp', str(cpus),
            '-drive', 'file=/disk.raw,format=raw,if=virtio', '-cdrom', '/seed.iso',
            '-display', 'none', '-monitor', 'none', '-serial', 'stdio',
            '-device', 'virtio-net-pci,netdev=net0', '-netdev',
            'user,id=net0,restrict=on,hostfwd=tcp:127.0.0.1:2222-:22,guestfwd=tcp:10.0.2.100:3128-cmd:python3 /relay.py proxy']
-    (OUT / 'launch.json').write_text(json.dumps(cmd, indent=2) + '\n')
+    (out / 'launch.json').write_text(json.dumps(cmd, indent=2) + '\n')
     host(cmd)
     for _ in range(90):
         try:
-            return connect()
+            return connect(name)
         except (OSError, paramiko.SSHException):
             time.sleep(2)
     raise RuntimeError('SSH did not become ready')
