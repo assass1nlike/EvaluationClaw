@@ -36,7 +36,9 @@ def main():
     parser.add_argument("--iterations", type=int, help="Total iterations; defaults to 2 for a new run")
     parser.add_argument("--acc-target", default="0.1--0.3")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--extra-body", default=os.getenv("AUTOBENCHER_EXTRA_BODY", "{}"))
+    parser.add_argument("--extra-body", default=os.getenv("AUTOBENCHER_EXTRA_BODY", '{"thinking":{"type":"enabled"}}'))
+    parser.add_argument("--test-taker", type=json.loads,
+                        help="JSON with model, base_url, api_key_env and extra_body for a separate target")
     parser.add_argument("--resume", type=Path, help="Resume an existing run using its saved configuration")
     parser.add_argument("--output-dir", type=Path, help="Output directory for a new run")
     args = parser.parse_args()
@@ -46,6 +48,7 @@ def main():
         for key in ["model", "base_url", "theme", "acc_target", "seed"]:
             setattr(args, key, saved[key])
         args.extra_body = json.dumps(saved["extra_body"])
+        args.test_taker = saved.get("test_taker")
         if args.iterations is None:
             args.iterations = saved["iterations"]
         if args.iterations < saved["iterations"]:
@@ -56,6 +59,11 @@ def main():
         parser.error("Set AUTOBENCHER_MODEL, AUTOBENCHER_BASE_URL and AUTOBENCHER_API_KEY in .env")
     if args.iterations < 1:
         parser.error("--iterations must be positive")
+    if args.test_taker:
+        if set(args.test_taker) != {"model", "base_url", "api_key_env", "extra_body"}:
+            parser.error("--test-taker requires model, base_url, api_key_env and extra_body")
+        if not os.getenv(args.test_taker["api_key_env"]):
+            parser.error(f"Set {args.test_taker['api_key_env']} in .env")
     if os.getenv("PYTHONHASHSEED") != str(args.seed):
         os.environ["PYTHONHASHSEED"] = str(args.seed)
         os.execv(sys.executable, [sys.executable, "-u", *sys.argv])
@@ -82,12 +90,14 @@ def main():
     command = [str(upstream / "wiki_autobencher.py"),
                "--exp_mode", "autobencher", "--use_helm", "no",
                "--agent_modelname", "gpt-autobencher",
-               "--test_taker_modelname", "gpt-autobencher",
+               "--test_taker_modelname", "gpt-autobencher-target" if args.test_taker else "gpt-autobencher",
                "--tool_modelname", "gpt-autobencher",
                "--theme", args.theme, "--num_iters", str(args.iterations),
                "--acc_target", args.acc_target,
                "--outfile_prefix1", str(run_dir / "wiki.")]
     config["upstream_argv"] = command
+    if args.test_taker:
+        config["roles"]["test_taker"] = args.test_taker["model"]
     if args.resume:
         assert config["upstream_commit"] == saved["upstream_commit"]
         if args.iterations != saved["iterations"]:
@@ -111,8 +121,9 @@ def main():
     print(f"Run directory: {run_dir}", flush=True)
     from api import start_api
 
+    target = args.test_taker | {"api_key": os.environ[args.test_taker["api_key_env"]]} if args.test_taker else None
     url, close = start_api(args.base_url, os.environ["AUTOBENCHER_API_KEY"],
-                           args.model, config["extra_body"], args.seed, run_dir)
+                           args.model, config["extra_body"], args.seed, run_dir, test_taker=target)
     os.environ["OPENAI_BASE_URL"] = url
     os.environ["OPENAI_API_KEY"] = "local-proxy"
     os.environ.pop("OPENAI_ORG_ID", None)

@@ -30,6 +30,7 @@ from ..execution.docker_images import (
 from ..execution.environment_checks import run_environment_checks
 from ..execution.evaluation import parse_evaluator_result
 from ..execution.evidence import EVALUATOR_EVIDENCE_SCHEMA, execution_failure, redact_evidence
+from ..execution.harness_evidence import cli_result, normalize_events
 from ..execution.harness_compatibility import external_harness_issues
 from ..execution.image_acquisition import acquire_image, image_pull_options
 from ..execution.interventions import InterventionController
@@ -311,7 +312,11 @@ def reject_tool_constraints(item: BenchmarkItem, harness: str = "external") -> N
         env,
         [harness],
         has_workflow=item.workflow is not None,
+        workflow=item.workflow,
     )
+    interaction = item.metadata.get("task_agent", {}).get("interaction")
+    if interaction:
+        issues.append("Agent interaction metadata is not executable. Use workflow.stages for follow-up messages or context resets, and environment.interventions for environment events.")
     if issues:
         raise RuntimeError(" ".join(issues))
 
@@ -537,6 +542,9 @@ def _resolve_image_context(
 
 def prepare_docker_task(item: BenchmarkItem, config: BenchmarkConfig) -> tuple[str, Path]:
     """Select/build the task image and write visible files into a host workdir."""
+    from ..execution.evidence import validate_environment_files
+
+    validate_environment_files(item)
     env = _resolve_image_context(item, dict(agent_env(item)), config)
     task_text = item.prompt
     env, _ = apply_docker_image_selection(env, task_text=task_text)
@@ -897,6 +905,7 @@ def _start_model_gateway(
     api_key: str,
     provider: str,
     model: str,
+    extra_body: dict[str, Any] | None = None,
     resource_guard: DockerResourceGuard | None = None,
 ) -> tuple[str, str, str]:
     """Start a model API gateway on an internal network.
@@ -925,13 +934,16 @@ def _start_model_gateway(
             [
                 "run", *image_pull_options(), "-d", "--name", gateway, "--network", network,
                 "-e", "EVALCLAW_UPSTREAM_API_KEY",
+                "-e", "EVALCLAW_UPSTREAM_EXTRA_BODY",
+                "--mount", f"type=bind,src={Path(__file__).resolve().parents[1] / 'execution/model_gateway.py'},dst=/usr/local/bin/model_gateway.py,readonly",
                 gateway_image,
                 "--upstream", upstream,
                 "--provider", provider,
                 "--model", model,
                 "--port", "18080",
             ],
-            extra_env={"EVALCLAW_UPSTREAM_API_KEY": api_key},
+            extra_env={"EVALCLAW_UPSTREAM_API_KEY": api_key,
+                       "EVALCLAW_UPSTREAM_EXTRA_BODY": json.dumps(extra_body or {})},
         )
         if internal:
             _docker(docker, ["network", "create", network + "-egress"])
@@ -980,6 +992,7 @@ def preflight_model_gateways(config: BenchmarkConfig) -> None:
         network, gateway, url = _start_model_gateway(
             docker, upstream, api_key=target.api_key or "",
             provider=provider, model=_harness_model(target, provider),
+            extra_body=target.extra_body,
         )
         probe = "evalclaw-network-probe-" + uuid.uuid4().hex[:12]
         try:
@@ -1026,6 +1039,7 @@ class ManifestHarness:
     preflight: tuple[str, ...] = ()  # commands that verify the runtime before the episode
     allowed_providers: tuple[str, ...] = ()
     failure_markers: tuple[str, ...] = ()  # output that means failure despite exit code 0
+    session_run: str = ""  # command accepting {session_id} and {task}, preserving history
 
 
 class ManifestHarnessRunner:
@@ -1044,6 +1058,7 @@ class ManifestHarnessRunner:
         artifact_dir: Path | None = None,
         preflight_only: bool = False,
     ) -> tuple[str, float, str]:
+        item = item.model_copy(deep=True)
         started_at = datetime.now(timezone.utc)
         started = time.monotonic()
         reject_tool_constraints(item, self.name)
@@ -1090,6 +1105,13 @@ class ManifestHarnessRunner:
                     actor_session.close()
             if actor_session is not None:
                 actor_session.raise_if_failed()
+            if item.workflow is not None:
+                final_stage = item.workflow.stages[-1]
+                env = agent_env(item)
+                if final_stage.test_command:
+                    env["test_command"] = final_stage.test_command
+                if final_stage.evaluation:
+                    env["evaluation"] = final_stage.evaluation
             actor_evidence = actor_session.runtime.evidence() if actor_session else {
                 "summary": {}, "interactions": []
             }
@@ -1103,28 +1125,24 @@ class ManifestHarnessRunner:
                         "provider": target.provider,
                         "harness": self.name,
                     },
-                    "target_execution": {
-                        "final_response": raw,
-                        "raw_output": raw,
-                        "stderr": launch_capture.get("stderr", ""),
-                        "trace": [],
-                        "history": [],
-                        "model_responses": [],
-                        "final_state": {},
-                        "tool_call_count": None,
-                    },
+                    "target_execution": normalize_events(
+                        launch_capture.get("model_events", []), self.name, raw,
+                        launch_capture.get("stderr", ""), stages=launch_capture.get("stages", []),
+                    ),
+                    "evidence_error": launch_capture.get("evidence_error"),
                     "actors": actor_evidence,
                     "environment_checks": {
                         "readiness": launch_capture.get("readiness_checks", []),
                         "preflight": launch_capture.get("environment_checks", []),
                     },
                     "interventions": launch_capture.get("interventions", []),
+                    "stages": launch_capture.get("stages", []),
                     "timing": {
                         "started_at": started_at.isoformat(),
                         "finished_at": datetime.now(timezone.utc).isoformat(),
                         "duration_ms": round((time.monotonic() - started) * 1000),
                     },
-                    "termination": {"status": "preflight" if preflight_only else "completed"},
+                    "termination": {"status": "preflight" if preflight_only else launch_capture.get("termination", "completed")},
                 },
                 [target.api_key, config.actor_api_key],
             )
@@ -1169,7 +1187,7 @@ class ManifestHarnessRunner:
                             "environment": backend.kind,
                             "model": target.model,
                             "provider": target.provider,
-                            "status": "preflight" if preflight_only else "completed",
+                            "status": "preflight" if preflight_only else launch_capture.get("termination", "completed"),
                             "score": score,
                             "started_at": started_at.isoformat(),
                             "finished_at": finished_at.isoformat(),
@@ -1209,17 +1227,19 @@ class ManifestHarnessRunner:
                 "stage": launch_capture.get("stage", "harness_preflight"),
                 "target_started": launch_capture.get("target_started", False),
                 "target_execution": {
+                    **normalize_events(launch_capture.get("model_events", []), self.name, target_output,
+                                       launch_capture.get("stderr", ""), stages=launch_capture.get("stages", [])),
                     "raw_output": target_output,
-                    "final_response": None,
                     "stderr": launch_capture.get("stderr", ""),
-                    "tool_call_count": None,
                     "command": launch_capture.get("target_command"),
                     "returncode": launch_capture.get("returncode"),
                 },
                 "actors": actor_session.runtime.evidence() if actor_session else None,
                 "interventions": launch_capture.get("interventions", []),
+                "stages": launch_capture.get("stages", []),
                 "termination": {"status": "failed", "error_type": type(exc).__name__},
                 "failure": failure,
+                "evidence_error": launch_capture.get("evidence_error"),
                 "artifacts": {"episode": "episode.json", "evidence": "execution-failure.json"},
             }, [target.api_key, config.actor_api_key])
             exc.execution_evidence = failure_evidence
@@ -1395,6 +1415,7 @@ class ManifestHarnessRunner:
         actor_session: "ActorSession | None" = None,
         capture: dict[str, Any] | None = None,
         preflight_only: bool = False,
+        prepare_only: bool = False,
     ) -> str:
         env = agent_env(item)
         max_steps = max(1, int(env.get("max_steps") or 8))
@@ -1434,6 +1455,7 @@ class ManifestHarnessRunner:
                         api_key=target.api_key or "",
                         provider=provider,
                         model=model,
+                        extra_body=target.extra_body,
                     )
                 else:
                     gateway_network, gateway_name, base_url = _start_model_gateway(
@@ -1443,6 +1465,7 @@ class ManifestHarnessRunner:
                         api_key=target.api_key or "",
                         provider=provider,
                         model=model,
+                        extra_body=target.extra_body,
                     )
                 lifecycle["gateway_network"] = gateway_network
                 lifecycle["gateway_name"] = gateway_name
@@ -1578,6 +1601,8 @@ class ManifestHarnessRunner:
                     )
 
             prefix = self._runtime_prefix()
+            if item.workflow is not None and self.name == "openclaw":
+                prefix += "openclaw config set agents.defaults.workspace /workspace && "
             if gateway_name is not None and self._manifest.gateway_setup:
                 prefix += self._manifest.gateway_setup.format(
                     gateway_url=base_url,
@@ -1591,6 +1616,16 @@ class ManifestHarnessRunner:
                     f"openclaw config set models.providers.{self._manifest.gateway_provider}.baseUrl "
                     f"{base_url} 2>/dev/null; "
                 )
+            if prefix:
+                bootstrap = _run_bounded(
+                    _container_exec_command(resolved, container_name, prefix + "true", user=_target_container_user()),
+                    timeout=episode_timeout, env=docker_env,
+                )
+                if bootstrap.returncode:
+                    raise RuntimeError("Harness configuration failed: " + bootstrap.stderr)
+            # Configuration/home copying is preparation, never part of a target action.
+            prefix = (f"export PATH={shlex.quote(self._manifest.path)}:$PATH; export EVALCLAW_HARNESS=1; "
+                      if self._tool_image() else "")
             lifecycle["stage"] = "harness_preflight"
             lifecycle["runtime_prefix"] = prefix
             lifecycle["preflight"] = self._preflight(
@@ -1605,6 +1640,8 @@ class ManifestHarnessRunner:
             lifecycle["readiness_checks"] = run_environment_checks(
                 env.get("readiness_checks", []), check_environment,
             )
+            if prepare_only:
+                return ""
             if preflight_only:
                 lifecycle["environment_checks"] = run_environment_checks(
                     env.get("preflight_commands", []), check_environment,
@@ -1642,27 +1679,36 @@ class ManifestHarnessRunner:
             target_command = _container_exec_command(
                 resolved,
                 container_name,
-                prefix + shell_command,
+                prefix + f"export EVALCLAW_EPISODE_ID={shlex.quote(container_name)}; " + shell_command,
                 user=_target_container_user(),
                 env_names=tuple(self._manifest.model_env.values()),
             )
             proc: subprocess.CompletedProcess[str] | None = None
+            budget = env.get("budget") or {}
+            allowed_time = min(episode_timeout, float(budget.get("wall_time_seconds", episode_timeout)))
+            budget_expired = False
             try:
                 if controller is not None:
                     controller.start()
                 lifecycle["stage"] = "target_execution"
                 lifecycle["target_started"] = None  # Dispatch attempted; startup not yet confirmed.
                 lifecycle["target_command"] = target_command
-                proc = _run_bounded(
-                    target_command,
-                    stdin=subprocess.DEVNULL,
-                    timeout=episode_timeout,
-                    env=docker_env,
-                    failure_markers=self._manifest.failure_markers,
-                )
+                if item.workflow is not None:
+                    proc = self._workflow_turns(item, values, quoted, prefix, lifecycle, resolved,
+                                                container_name, docker_env, allowed_time)
+                else:
+                    proc = _run_bounded(
+                        target_command, stdin=subprocess.DEVNULL, timeout=allowed_time,
+                        env=docker_env, failure_markers=self._manifest.failure_markers,
+                    )
             except subprocess.TimeoutExpired as exc:
                 # Killing docker exec alone does not stop its process inside Docker.
-                _docker(resolved, ["kill", container_name], check=False)
+                budget_expired = bool(budget) and allowed_time == float(budget["wall_time_seconds"])
+                if budget_expired:
+                    self._stop_episode(resolved, container_name)
+                    lifecycle["termination"] = "budget_exhausted"
+                else:
+                    _docker(resolved, ["kill", container_name], check=False)
                 stdout = exc.stdout.decode("utf-8", errors="replace") if isinstance(
                     exc.stdout, bytes
                 ) else exc.stdout or ""
@@ -1671,9 +1717,9 @@ class ManifestHarnessRunner:
                 ) else exc.stderr or ""
                 lifecycle["stdout"] = stdout
                 lifecycle["stderr"] = stderr
-                raise HarnessTimeoutError(
-                    self.name, episode_timeout, stdout, stderr
-                ) from None
+                if not budget_expired:
+                    raise HarnessTimeoutError(self.name, episode_timeout, stdout, stderr) from None
+                proc = subprocess.CompletedProcess(target_command, 124, stdout, stderr)
             except FileNotFoundError as exc:
                 raise RuntimeError(f"Harness command not found for {self.name!r}.") from exc
             finally:
@@ -1681,6 +1727,11 @@ class ManifestHarnessRunner:
                     controller.stop()
                     if capture is not None:
                         capture["interventions"] = list(controller.records)
+                if gateway_name:
+                    try:
+                        lifecycle["model_events"] = self._gateway_evidence(resolved, gateway_name)
+                    except (OSError, subprocess.SubprocessError) as exc:
+                        lifecycle["evidence_error"] = f"{type(exc).__name__}: {exc}"
             lifecycle["stdout"] = proc.stdout
             lifecycle["stderr"] = proc.stderr
             lifecycle["returncode"] = proc.returncode
@@ -1688,20 +1739,15 @@ class ManifestHarnessRunner:
                 lifecycle["target_started"] = True
             if controller is not None:
                 controller.raise_if_failed()
-            cleanup_only_failure = (
-                self.name == "openclaw"
-                and "ended with stopReason=stop" in proc.stderr
-                and "Agent runtime cleanup did not settle" in proc.stderr
-                and bool(proc.stdout.strip())
-            )
-            if proc.returncode != 0 and not cleanup_only_failure:
+            structured = cli_result(self.name, proc.stdout)
+            if not budget_expired and (proc.returncode != 0 or structured["status"] == "failed"):
                 details = _redact_secret(proc.stderr or proc.stdout, target.api_key)
                 raise HarnessExecutionError(
                     f"Harness {self.name!r} failed: {details}",
                     proc.stdout,
                     proc.stderr,
                 )
-            for marker in self._manifest.failure_markers:
+            for marker in (() if budget_expired else self._manifest.failure_markers):
                 if marker in proc.stdout or marker in proc.stderr:
                     details = _redact_secret(proc.stderr or proc.stdout, target.api_key)
                     raise HarnessExecutionError(
@@ -1719,6 +1765,89 @@ class ManifestHarnessRunner:
                 finally:
                     guard.close()
 
+    @staticmethod
+    def _stop_episode(docker: str, container: str) -> None:
+        script = """import os, signal, sys
+from pathlib import Path
+uid = int(sys.argv[1])
+stopped = []
+for entry in Path('/proc').iterdir():
+    if not entry.name.isdecimal():
+        continue
+    try:
+        if entry.stat().st_uid == uid:
+            pid = int(entry.name)
+            os.kill(pid, signal.SIGSTOP)
+            stopped.append(pid)
+    except (OSError, ProcessLookupError):
+        continue
+for pid in stopped:
+    try:
+        os.kill(pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+"""
+        _docker(docker, ["exec", "--user", "0:0", container, "python3", "-c", script, _target_container_user().split(":")[0]])
+
+    def _workflow_turns(self, item, values, quoted, prefix, lifecycle, docker, container, docker_env, timeout):
+        from .workflow import stage_item, _stage_prompt
+
+        deadline = time.monotonic() + timeout
+        session_id = str(uuid.uuid4())
+        results = {}
+        lifecycle["stages"] = []
+        proc = None
+        for stage in item.workflow.stages:
+            if stage.kind == "evaluate":
+                break
+            if stage.context == "fresh":
+                session_id = str(uuid.uuid4())
+            prompt = _harness_prompt(stage_item(item, stage).model_copy(update={"prompt": _stage_prompt(stage, results)}))
+            args = {**quoted, "task": shlex.quote(prompt), "session_id": shlex.quote(session_id),
+                    "max_steps": str(stage.max_steps), "max_tokens": str(stage.max_tokens)}
+            template = self._manifest.session_run or self._manifest.run
+            configs = [token for part in self._manifest.config_args for token in shlex.split(part.format(**args))]
+            command = template.format(**args, config_args=shlex.join(configs))
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise subprocess.TimeoutExpired(command, timeout)
+            record = {"id": stage.id, "session_id": session_id, "context": stage.context,
+                      "prompt": prompt, "started_at": time.time(), "status": "running"}
+            lifecycle["stages"].append(record)
+            proc = _run_bounded(_container_exec_command(
+                docker, container, prefix + f"export EVALCLAW_EPISODE_ID={shlex.quote(container)}; " + command,
+                user=_target_container_user(), env_names=tuple(self._manifest.model_env.values())),
+                timeout=remaining, env=docker_env, failure_markers=self._manifest.failure_markers)
+            envelope = cli_result(self.name, proc.stdout)
+            lifecycle["stdout"], lifecycle["stderr"] = proc.stdout, proc.stderr
+            record.update(output=envelope["final_response"], returncode=proc.returncode,
+                          status=envelope["status"], tool_call_count=envelope.get("tool_call_count"),
+                          finished_at=time.time())
+            if proc.returncode or envelope["status"] == "failed" or any(
+                marker in proc.stdout or marker in proc.stderr for marker in self._manifest.failure_markers
+            ):
+                raise HarnessExecutionError(f"Workflow stage {stage.id} failed", proc.stdout, proc.stderr)
+            results[stage.id] = {"output": envelope["final_response"], "transcript": []}
+        return proc
+
+    @staticmethod
+    def _gateway_evidence(docker: str, gateway: str) -> list[dict]:
+        # Copy outside the target container and read without stdout truncation.
+        with tempfile.TemporaryDirectory(prefix="evalclaw-evidence-") as directory:
+            path = Path(directory) / "events.jsonl"
+            result = _docker(docker, ["cp", f"{gateway}:/tmp/model-events.jsonl", str(path)], check=False)
+            if result.returncode or not path.exists():
+                return []
+            events = []
+            with path.open(encoding="utf-8") as source:
+                for line in source:
+                    try:
+                        events.append(json.loads(line))
+                    except ValueError:
+                        # A terminated stream can leave an incomplete final record.
+                        continue
+            return events
+
     def _preflight(
         self, context: HarnessContext, container_name: str, prefix: str,
     ) -> list[str]:
@@ -1732,6 +1861,8 @@ class ManifestHarnessRunner:
             'test "$(id -u)" -ne 0 && test -r /workspace && test -x /workspace && test -w "$HOME"',
             *self._manifest.preflight,
         ]
+        if agent_env(context.item).get("budget"):
+            commands.append("python3 --version")
         if agent_env(context.item).get("actors"):
             from .environment_actors import CONTACT_COMMAND
 
@@ -1803,6 +1934,7 @@ def load_manifest_harness(path: str | Path) -> str:
             str(provider) for provider in (raw.get("allowed_providers") or [])
         ),
         failure_markers=tuple(str(marker) for marker in (raw.get("failure_markers") or [])),
+        session_run=str(raw.get("session_run") or ""),
     )
     if not manifest.name or not manifest.run:
         raise ValueError("Harness manifest requires name and run.")
@@ -1888,6 +2020,7 @@ _BUILTIN_MANIFESTS: tuple[ManifestHarness, ...] = (
     ),
     ManifestHarness(
         name="openclaw",
+        session_run="openclaw agent --local --json --session-id {session_id} --model {provider}/{model} --timeout {timeout} --message {task}",
         run=(
             "openclaw agent exec --json --timeout {timeout} "
             "--model {provider}/{model} --cwd {workdir} {task}"

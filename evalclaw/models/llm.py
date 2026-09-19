@@ -825,9 +825,11 @@ def _resolve_reasoning_effort(
 ) -> str | None:
     if not _is_reasoning_model(model):
         return None
+    if explicit_effort:
+        return explicit_effort
     if reduce_reasoning_effort:
         return "low"
-    return explicit_effort or os.environ.get("EVALCLAW_REASONING_EFFORT")
+    return os.environ.get("EVALCLAW_REASONING_EFFORT")
 
 
 def _effective_max_tokens(model: str, max_tokens: int) -> int:

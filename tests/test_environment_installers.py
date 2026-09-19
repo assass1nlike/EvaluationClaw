@@ -138,7 +138,7 @@ def test_browser_blueprint_requires_executable_docker_browser_runtime() -> None:
     assert any("environment.browser.enabled=true" in issue for issue in issues)
 
 
-def test_setup_cannot_reference_evaluator_only_hidden_files() -> None:
+def test_setup_dependencies_require_execution_not_text_matching() -> None:
     task = TaskDefinition(
         id="invalid_lifecycle",
         dimension_id="code",
@@ -158,7 +158,9 @@ def test_setup_cannot_reference_evaluator_only_hidden_files() -> None:
 
     issues = task_structure_issues(task)
 
-    assert any("reference evaluator-only hidden_files" in issue for issue in issues)
+    # Static parsing cannot establish whether a shell snippet uses or merely
+    # mentions a path. Actual missing dependencies fail isolated setup preflight.
+    assert not any("reference evaluator-only hidden_files" in issue for issue in issues)
 
 
 def test_browser_file_artifact_requires_write_tool_and_workdir_path() -> None:

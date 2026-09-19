@@ -96,11 +96,18 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 |---|---|---|---|
 | `environment` | `AgentEnvironmentSpec` | 是 | 可执行环境定义（见 §4.4） |
 | `workflow` | `AgentWorkflow` | 否（仅多阶段） | 多阶段工作流（见 §4.5） |
-| `system_prompt` / `interaction` | — | 否 | 同多轮 |
+| `system_prompt` | `str` | 否 | 目标的任务级指令 |
+| `interaction` | `dict` | 否 | 保持为空；追加用户消息和上下文切换使用 `workflow.stages` |
 | `reference_trajectory` | `list[ReferenceTrajectoryStep]` | 是 | 一条按顺序排列、确实可行的参考操作路径；每步含 `action`，可含 `tool`、`arguments`、`expected_observation`；不要求被测模型逐步复现 |
 | `output_contract` / `rubric` / `judge_tools` / `scoring` | — | 否 | 同生成题 |
 
 ## 4. 子结构
+
+单阶段 Docker 题可用 `verify_candidate(task_index=...)` 验证当前候选的验证用例；提交前框架会重新执行。参考解、空/不完整产物、核心违规或合法替代解应有相应分数区间。参考轨迹和已知缺陷并不穷尽所有合法解；开放语义可使用 judge，实际配置和操作使用结构化检查，不用自然语言关键词判定是否执行或同意某行为。
+
+外部 harness 的 workflow 支持同一 Docker 环境内若干 agent 阶段及最后一次 evaluate：首阶段 environment=fresh，之后 reuse；context=fresh 重置对话，continue 保留对话。保留对话要求 manifest 提供 `session_run`，内置 OpenClaw 已提供。外部 workflow 不支持 text 阶段、阶段环境覆盖、文件转交、中途评分及派生 metrics；评分配置只放在最终 evaluate 阶段。非默认的阶段 max_steps/max_tokens 要求 harness 命令提供对应参数；默认值不代表外部 harness 会强制这些限制。后续提示词仅在轮到对应阶段时发送。环境变化使用 interventions。
+
+评估证据中的 availability/provenance 说明记录来源与完整性；空轨迹不代表没有操作。模型 API 轨迹记录模型请求和 harness 报告的工具返回，不等同于系统调用审计。初始化、harness 维护和评审操作不能仅因相同 UID 而归责目标。
 
 ### 4.1 ChoiceOption
 
@@ -145,9 +152,11 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 | `setup_commands` | `list[str]` | 否 | `[]` | 环境初始化命令 |
 | `readiness_checks` | `list[str]` | 否 | `[]` | Docker 初始化后以目标身份执行的只读就绪检查；非零退出阻止启动 |
 | `preflight_commands` | `list[str]` | 否 | `[]` | 只在独立 Docker 预检实例执行的功能自检；非零退出表示环境不合格 |
+| `verification_cases` | `list` | 否 | `[]` | 私有验证用例：`id`、目标身份执行的 `commands`、`final_answer`、`min_score`、`max_score`；可用 `required_interventions` 列出必须成功触发的干预 ID；各用例独立初始化并运行原评分器 |
+| `budget` | `EpisodeBudget` | 否 | `null` | 外部 shell harness 的 `wall_time_seconds`；准备完成后的目标启动开始计时，包含推理、网络等待和各阶段，到期保留产物并评分 |
 | `test_command` | `str` | Docker 脚本或混合评分必填 | `""` | 显式评分命令，放在 environment 下 |
-| `max_steps` | `int` | 否 | `8` | 最大交互步数 |
-| `timeout` | `int` | 否 | `20` | 单步超时 |
+| `max_steps` | `int` | 否 | `8` | 原生运行时最大交互步数；外部 harness 用于计算基础设施超时，不保证工具调用次数限制 |
+| `timeout` | `int` | 否 | `20` | 原生单步超时；外部 harness 与 max_steps 共同决定基础设施超时 |
 | `network` | `str` | 否 | `"none"` | 容器网络策略 |
 | `resource_limits` | `dict` | 否 | `{}` | 资源限制 |
 | `workdir` | `str` | 否 | `"/workspace"` | 容器内工作目录 |
@@ -160,7 +169,7 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 | `vm` / `vm_materialization` / `vm_provisioning` | `dict` | 否 | `{}` | VM 相关定义 |
 | `session` | `dict` | 否 | `{}` | 会话定义 |
 | `evaluation` | `dict` | 否 | `{}` | 评估定义 |
-| `judge` | `AgentJudgeSpec` | 否 | `null` | 单阶段 Docker 题的探索式作答评分；省略时使用脚本 |
+| `judge` | `AgentJudgeSpec` | 否 | `null` | Docker 题的探索式作答评分；省略时使用脚本；外部 workflow 可用于最终评分 |
 | `notes` | `str` | 否 | `""` | 备注 |
 
 外部 shell harness 共用同一套题目初始化、运行检查和评分流程。`setup_commands` 和评分器以 root 执行，目标以非 root 用户执行；初始化时可使用 `EVALCLAW_TARGET_UID`、`EVALCLAW_TARGET_GID` 为需要目标修改的文件设置所有权。声明结构化评分时，即使尚无作答也必须返回合法分数，不能把评分器异常当作答错。
@@ -171,7 +180,7 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 
 `judge` 模式不要求 `test_command`。`hybrid` 模式要求脚本和显式 `script_weight`，按 `script_weight × 脚本分 + (1-script_weight) × judge分` 汇总；可设 `script_gate=true`，使脚本分不足 1 时总分为 0。脚本与 judge 执行异常均作为评估错误。
 
-Judge 审阅本次作答后的文件系统副本和保存的执行证据，命令以评审权限运行并单独留痕。副本保留文件及目录挂载的权限，不保留原进程、内存或外部网络。可选 `judge.setup_commands` 用于在副本中恢复本地服务，不得重新初始化、修复或代做目标的产物。需要判定历史行为时，应在环境中留下相应日志。VM 和多阶段 workflow 暂不支持这一评分方式。
+Judge 审阅本次作答后的文件系统副本和保存的执行证据，命令以评审权限运行并单独留痕。副本保留文件及目录挂载的权限，不保留原进程、内存或外部网络。可选 `judge.setup_commands` 用于在副本中恢复本地服务，不得重新初始化、修复或代做目标的产物。需要判定历史行为时，应在环境中留下相应日志。VM 和原生多阶段 workflow 暂不支持这一评分方式。
 
 角色通过 `environment.actors` 定义，各自提供 `id`、`system_prompt`，以及可选的 `description`、`actor_toolsets` 中的 `toolset` 名称。各个外部 shell harness 均通过 `python3 /run/evalclaw-contacts/contacts.py list` 列出联系人，通过 `python3 /run/evalclaw-contacts/contacts.py send CONTACT_ID 'message'` 联系角色；任务镜像须包含 Python 3，客户端和使用说明由框架提供。角色的历史、工具权限和私有角色知识由框架管理，模型接口凭据不进入题目容器。
 

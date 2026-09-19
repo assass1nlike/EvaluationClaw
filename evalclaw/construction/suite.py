@@ -226,6 +226,9 @@ def _preflight_builder_environments(
             from ..runners.harness import preflight_harness_environments
 
             harness_outcomes = preflight_harness_environments(item, config, artifact_dir=item_trace_dir)
+            from .verification import verify_agent_cases
+
+            verify_agent_cases(item, config, directory=item_trace_dir / "verification" if item_trace_dir else None)
             if harness_outcomes and all(target.harness for target in config.targets):
                 if item_trace_dir is not None:
                     write_json(item_trace_dir / "result.json", {"harnesses": harness_outcomes})
@@ -1353,7 +1356,7 @@ def build_task_suite(
                         require_builder_references=True,
                         builder_work_dir=builder_work_dir,
                         target_harnesses=(
-                            target.harness for target in config.targets if target.harness
+                            target.harness or "" for target in config.targets
                         ),
                     )
                 )
@@ -1561,7 +1564,7 @@ def build_task_suite(
                     status="response_received",
                     raw_response=raw,
                 )
-                parsed = extract_json(raw)
+                parsed = extract_json(raw, allow_repair=False)
                 if not isinstance(parsed, dict):
                     raise ValueError(f"expected a JSON object, got {type(parsed).__name__}")
                 parsed_keys = sorted(str(key) for key in parsed)

@@ -578,6 +578,29 @@ class AgentJudgeSpec(BaseModel):
         return self
 
 
+class AgentVerificationCase(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
+    commands: list[StrictStr] = Field(default_factory=list)
+    final_answer: str = ""
+    required_interventions: list[str] = Field(default_factory=list)
+    min_score: float = Field(ge=0, le=1, allow_inf_nan=False)
+    max_score: float = Field(ge=0, le=1, allow_inf_nan=False)
+
+    @model_validator(mode="after")
+    def score_interval(self):
+        if self.min_score > self.max_score:
+            raise ValueError("Verification min_score must not exceed max_score.")
+        return self
+
+
+class EpisodeBudget(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    wall_time_seconds: float = Field(gt=0, allow_inf_nan=False)
+
+
 class AgentEnvironmentSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -594,6 +617,8 @@ class AgentEnvironmentSpec(BaseModel):
     setup_commands: list[StrictStr] = Field(default_factory=list)
     readiness_checks: list[StrictStr] = Field(default_factory=list)
     preflight_commands: list[StrictStr] = Field(default_factory=list)
+    verification_cases: list[AgentVerificationCase] = Field(default_factory=list)
+    budget: EpisodeBudget | None = None
     test_command: StrictStr = ""
     max_steps: StrictInt = 8
     timeout: StrictInt = 20
@@ -619,6 +644,12 @@ class AgentEnvironmentSpec(BaseModel):
 
     @model_validator(mode="after")
     def validate_actors(self) -> "AgentEnvironmentSpec":
+        if self.verification_cases or self.budget:
+            if self.type != AgentEnvironmentType.docker_workspace:
+                raise ValueError("Verification cases and episode budgets require docker_workspace.")
+        case_ids = [case.id for case in self.verification_cases]
+        if len(case_ids) != len(set(case_ids)):
+            raise ValueError("Verification case ids must be unique.")
         if (self.readiness_checks or self.preflight_commands) and self.type != AgentEnvironmentType.docker_workspace:
             raise ValueError("Command-based environment checks require docker_workspace.")
         if any(not command.strip() for command in [*self.readiness_checks, *self.preflight_commands]):
@@ -638,6 +669,9 @@ class AgentEnvironmentSpec(BaseModel):
         intervention_ids = [intervention.id for intervention in self.interventions]
         if len(intervention_ids) != len(set(intervention_ids)):
             raise ValueError("Environment intervention ids must be unique.")
+        for case in self.verification_cases:
+            if not set(case.required_interventions) <= set(intervention_ids):
+                raise ValueError(f"Verification case {case.id} references an unknown intervention.")
         for name in self.actor_toolsets:
             if (
                 not name

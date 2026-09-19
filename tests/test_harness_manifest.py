@@ -292,7 +292,7 @@ def test_manifest_runner_launches_and_scores(monkeypatch) -> None:
     assert calls["events"] == ["score", "remove_container", "stop_gateway"]
     assert target_exec[target_exec.index("--user") + 1] == harness_module._target_container_user()
     assert target_exec[-2] == "-lc"
-    assert shlex.split(target_exec[-1]) == [
+    assert shlex.split(target_exec[-1].split("; ")[-1]) == [
         "my-agent", "--key", "evalclaw-gateway", "--task", "Write a function.",
         "--image", "img", "--workdir", "/workspace",
     ]
@@ -541,7 +541,7 @@ def test_manifest_failure_redacts_credentials(monkeypatch) -> None:
     assert "[REDACTED]" in str(caught.value)
 
 
-def test_openclaw_accepts_cleanup_error_after_successful_stop(monkeypatch) -> None:
+def test_openclaw_preserves_cleanup_error_after_successful_stop(monkeypatch) -> None:
     def fake_run(command, **kwargs):
         if command[1] == "exec" and "openclaw agent exec" in command[-1]:
             return type(
@@ -568,11 +568,11 @@ def test_openclaw_accepts_cleanup_error_after_successful_stop(monkeypatch) -> No
         name="openclaw", run="openclaw agent exec {task}", model_env={}
     )
 
-    output = harness_module.ManifestHarnessRunner(manifest)._launch(
-        _item(), _target(), BenchmarkConfig(), "img", Path("/tmp/work")
-    )
-
-    assert output == '{"status":"ok"}'
+    with pytest.raises(harness_module.HarnessExecutionError) as caught:
+        harness_module.ManifestHarnessRunner(manifest)._launch(
+            _item(), _target(), BenchmarkConfig(), "img", Path("/tmp/work")
+        )
+    assert caught.value.stdout == '{"status":"ok"}'
 
 
 def test_builtin_harnesses_registered() -> None:
@@ -619,7 +619,7 @@ def test_config_args_rendered_into_command(monkeypatch) -> None:
         command for command in calls["commands"]
         if command[1] == "exec" and "codex exec" in command[-1]
     )
-    assert shlex.split(target_exec[-1]) == [
+    assert shlex.split(target_exec[-1].split("; ")[-1]) == [
         "codex",
         "exec",
         "-c",
@@ -657,7 +657,8 @@ def test_manifest_launch_runs_in_container(monkeypatch) -> None:
     )
     assert create[create.index("-w") + 1] == "/workspace"
     assert "/tmp/work:/workspace" in create
-    assert target_exec[-2:] == ["-lc", shlex.join(["my-agent", "Write a function."])]
+    assert target_exec[-2] == "-lc"
+    assert target_exec[-1].split("; ")[-1] == shlex.join(["my-agent", "Write a function."])
 
 
 def test_manifest_runs_setup_as_root_and_target_as_host_user(monkeypatch) -> None:
@@ -753,7 +754,9 @@ def test_manifest_launch_mounts_harness_image(monkeypatch) -> None:
     )
     assert "--mount" in create
     assert "type=image,src=evalclaw-openclaw:latest,dst=/opt/harness,readonly" in create
-    assert target_exec[-1].startswith('cp -a /opt/harness/root/.openclaw "$HOME/"')
+    bootstrap = next(command for command in calls["commands"] if command[-1].startswith('cp -a /opt/harness/root/.openclaw "$HOME/"'))
+    assert calls["commands"].index(bootstrap) < calls["commands"].index(target_exec)
+    assert 'cp -a' not in target_exec[-1]
     assert "export PATH=/opt/harness/usr/local/bin:$PATH;" in target_exec[-1]
 
 
@@ -995,7 +998,8 @@ def test_manifest_launch_overrides_provider_baseurl_via_config(monkeypatch) -> N
         command[-1] for command in calls["commands"]
         if command[1] == "exec" and "openclaw agent exec" in command[-1]
     )
-    assert "openclaw config set models.providers.deepseek.baseUrl http://evalclaw-gw:18080" in shell
+    configuration = next(command[-1] for command in calls["commands"] if "openclaw config set models.providers.deepseek.baseUrl http://evalclaw-gw:18080" in command[-1])
+    assert configuration != shell
     assert calls["stopped"] == ("evalclaw-net", "evalclaw-gw")
 
 

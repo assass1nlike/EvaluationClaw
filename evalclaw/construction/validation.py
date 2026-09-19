@@ -774,7 +774,7 @@ def task_structure_issues(
     require_challenge_effort_self_assessment: bool = False,
     require_builder_references: bool = False,
     builder_work_dir: Path | None = None,
-    target_harnesses: Iterable[str] = (),
+    target_harnesses: Iterable[str] | None = None,
 ) -> list[str]:
     """Return blocking structural issues that should be fixed before global QC.
 
@@ -782,6 +782,8 @@ def task_structure_issues(
     has the fields needed for its task type and optional execution capabilities.
     """
     issues: list[str] = []
+    target_harnesses = tuple(target_harnesses) if target_harnesses is not None else None
+    has_native_target = target_harnesses is not None and (not target_harnesses or "" in target_harnesses)
     if not _has_text(task.id):
         issues.append("Task id is empty.")
     issues.extend(_metadata_runtime_evaluator_issues(task.metadata))
@@ -921,6 +923,8 @@ def task_structure_issues(
     elif _has_text(task.reference_answer):
         issues.append("reference_answer is only valid for generation tasks.")
     if task.task_type == TaskType.agent:
+        if task.interaction:
+            issues.append("Agent interaction is descriptive and cannot deliver turns. Leave it empty; use workflow.stages for executable follow-ups/context changes and environment.interventions for events.")
         if require_builder_references and not task.reference_trajectory:
             issues.append("agent tasks must provide a non-empty reference_trajectory.")
         if any(not _has_text(step.action) for step in task.reference_trajectory):
@@ -1010,11 +1014,16 @@ def task_structure_issues(
         expected_environment = task.environment.type
 
     env = task.environment
+    if env.budget and has_native_target:
+        issues.append("Episode wall-clock budgets require external shell harness targets.")
+    if env.verification_cases and task.workflow is not None:
+        issues.append("Command verification_cases require a single-stage task.")
     issues.extend(
         external_harness_issues(
             env.model_dump(mode="json"),
-            target_harnesses,
+            target_harnesses or (),
             has_workflow=task.workflow is not None,
+            workflow=task.workflow,
         )
     )
     if env.type != expected_environment:
@@ -1080,7 +1089,7 @@ def task_structure_issues(
             if task_design is not None
             else None
         )
-        if env.actors and task.workflow is not None:
+        if env.actors and task.workflow is not None and has_native_target:
             issues.append("Environment actors cannot be combined with workflow stages.")
         if env.actors and env.runtime_files:
             issues.append(
@@ -1097,7 +1106,7 @@ def task_structure_issues(
             issues.append(
                 "TaskDesign requests environment actors, but the environment defines none."
             )
-        if env.judge and task.workflow is not None:
+        if env.judge and task.workflow is not None and has_native_target:
             issues.append("Environment judge agents cannot be combined with workflow stages.")
         if not env.judge and not _has_text(env.test_command):
             issues.append("docker_workspace tasks must include test_command or environment.judge.")
