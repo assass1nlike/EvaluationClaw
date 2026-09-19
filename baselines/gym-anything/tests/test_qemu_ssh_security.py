@@ -68,7 +68,7 @@ def test_provisioning_uses_matching_private_key_and_disables_passwords(tmp_path,
 
 
 @pytest.mark.parametrize("arch", ["x86_64", "aarch64"])
-def test_management_ports_bind_only_loopback(runner, tmp_path, arch):
+def test_management_ports_preserve_official_bindings(runner, tmp_path, arch):
     runner._guest_arch = arch
     runner._accel_type = "tcg"
     runner.resolution = (1920, 1080)
@@ -81,5 +81,5 @@ def test_management_ports_bind_only_loopback(runner, tmp_path, arch):
     with mock.patch("gym_anything.runtime.runners.qemu_native._find_aarch64_firmware", return_value=Path("firmware.fd")):
         cmd = runner._build_qemu_cmd(tmp_path / "disk.qcow2", 5901, 2267, tmp_path)
     net = cmd[cmd.index("-netdev") + 1]
-    assert net.split("hostfwd=", 1)[1] == "tcp:127.0.0.1:2267-:22"
-    assert cmd[cmd.index("-vnc") + 1] == "127.0.0.1:1,password=on"
+    assert net.split("hostfwd=", 1)[1] == "tcp::2267-:22"
+    assert cmd[cmd.index("-vnc") + 1] == ":1,password=on"
