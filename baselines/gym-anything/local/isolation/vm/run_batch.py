@@ -77,12 +77,17 @@ print(json.dumps(checks))
 def copy_observations(client,job,key):
     with client.open_sftp() as sftp:
         for entry in sftp.listdir_attr(GUEST_JOB):
+            if Path(entry.filename).name != entry.filename or entry.filename in ('.', '..'):
+                raise RuntimeError('Invalid filename from guest SFTP')
             if not stat.S_ISREG(entry.st_mode) or not entry.filename.endswith(('.json','.jsonl','.stderr','.log')):
                 continue
             if entry.st_size>128*1024**2:
                 continue  # The complete log remains on the guest disk and in the final archive.
             with sftp.file(GUEST_JOB+'/'+entry.filename,'rb') as f:
-                content=f.read().replace(key,b'[REDACTED]')
+                content=f.read(128*1024**2+1)
+            if len(content)>128*1024**2:
+                raise RuntimeError('Guest output exceeded the transfer limit')
+            content=content.replace(key,b'[REDACTED]')
             target=job/entry.filename
             target.write_bytes(content)
 
@@ -125,6 +130,8 @@ def worker(batch,index,item,barrier,api):
         verify.guest(client,'cloud-init status --wait',timeout=240)
         verify.guest(client,'mkdir -m 700 /home/ga/job')
         with client.open_sftp() as sftp:
+            sftp.put(str(ROOT/'local/runtime/tools/uv'),'/home/ga/.local/bin/uv')
+            sftp.chmod('/home/ga/.local/bin/uv',0o755)
             for p in ['guest_run.py','guest_launch.py','provision_job.py','screenshot_mcp.py']:
                 sftp.put(str(verify.HERE/p),str(ROOT/'local/isolation/vm'/p))
             sftp.put(str(job/'config.json'),GUEST_JOB+'/config.json')
