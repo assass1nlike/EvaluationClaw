@@ -1,4 +1,4 @@
-本轮生成暂停，不恢复现有特权容器。批次为 local/outputs/seeds10_clean_20260918T104248Z。10 个容器均已冻结并断开 gym-seed-isolated 网络，启动器已暂停，宿主代理转接已停止。原始代码、任务产物、日志、容器及私有 Docker 卷保留用于核查。local/seed_batch.py 和 local/isolation/run_batch.py 的命令行入口已禁用，防止按旧命令误启动；这不构成对有权限用户手工执行历史快照的安全限制。
+本轮生成暂停，不恢复现有特权容器。批次为 local/outputs/seeds10_clean_20260918T104248Z。10 个旧容器已终止，保留磁盘、日志和卷；宿主代理转接已停止。原始代码、任务产物、日志、容器及私有 Docker 卷保留用于核查。local/seed_batch.py 和 local/isolation/run_batch.py 的命令行入口已禁用，防止按旧命令误启动；这不构成对有权限用户手工执行历史快照的安全限制。
 
 确认的问题：
 
@@ -20,3 +20,5 @@
 2026-09-18 SSH 加固：管理员截图指向 QEMU 对所有网卡开放的 2267 转发端口，来宾允许 publickey,password。宿主 SSH 服务未改动。Linux QEMU 客户端改用公钥、禁用密码回退；新基础镜像配置禁止密码、交互式认证及 root SSH，管理端口只监听 127.0.0.1。旧实验工作副本、基础镜像与快照未修改，不能直接恢复运行。
 
 独立密钥及离线迁移配置位于 local/runtime/qemu/ssh 和 secure-cache，具体流程见 local/runtime/qemu/README.md。用户同意在避开截图告警条件的范围内验证。无网卡 VM 已配置副本，串口确认有效 SSH 策略及公钥匹配后，才启动 restrict=on、仅回环端口的验证 VM。验证确认仅提供 publickey、拒绝密码、公钥登录及文件往返正常、VNC 桌面正常；实际监听 127.0.0.1:2250 和 127.0.0.1:6063。secure-cache/verification.json、desktop.png、provision.log 和 READY 保存证据。临时 VM 全部退出，2250、6063、2267 均无监听，10 个生成容器仍为 Paused 且已断网。测试结果：317 passed、22 skipped、7 subtests passed。本次无模型调用或新的 benchmark 实验；SSH 加固不解除实验隔离禁用。
+
+用户要求保持无虚拟机进程后，直接终止全部 10 个已冻结的旧生成容器，没有恢复模型执行。4 个旧 QEMU 进程全部退出；可见进程列表中未发现虚拟机进程。旧容器均 exited，restart policy 为 no，两个正式批量入口继续禁用。记录见 local/outputs/vm_process_status.json 及旧批次 security_shutdown.json。未经用户重新要求，不启动新的验证或实验虚拟机。

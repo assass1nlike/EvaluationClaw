@@ -1,4 +1,4 @@
-2026-09-18：单个生成 VM 的隔离与基础功能验证通过。正式 100 题没有启动，旧批量入口仍禁用。
+2026-09-18：单个生成 VM 的隔离与基础功能验证通过。正式 100 题没有启动，旧批量入口仍禁用。旧机器全部 VM 已退出，后续在新机器接续，见 [迁移说明](../../migration.md)。
 
 模型执行器、Docker daemon、软件容器和嵌套 QEMU 都位于来宾内。外层 QEMU 放在非特权容器中：独立网络命名空间且 network=none，不发布端口，cap-drop=ALL、no-new-privileges、只读根文件系统；仅传入 /dev/kvm、只读 QEMU 文件/配置和一块可写虚拟磁盘。没有宿主 Docker socket、共享源码、宿主凭据或宿主块设备。源码和依赖通过 SSH 复制，输出按指定文件取回。
 
@@ -13,7 +13,7 @@ SSH 仅接受公钥，管理连接通过 docker exec 的固定转接器进入外
 - 直接访问宿主网关及绕过代理的连接被阻断；经代理访问回环、私网、元数据地址和未许可域名被拒绝。DeepSeek 返回预期未认证 401，GitHub 返回 200；内部 Docker 容器也经受控代理取得 GitHub 200。
 - 来宾 Docker 29.1.3 成功运行特权容器；嵌套 KVM 返回 API 12，并实际启动来宾。框架 Docker 和 QEMU 运行器均完成命令执行、1920×1080 桌面截图；嵌套 QEMU 使用来宾内独立生成的私钥，不复制宿主管理私钥。
 - deepseek-flash 经 https://api.deepseek.com/anthropic 和 Claude Code 2.1.229 完成一次工具操作，产物包含来宾主机名 gym-isolation 和检查值 42。调用使用官方 run_claude，最大 3 轮、超时 180 秒，实际 2 轮；不生成 benchmark。仅提供本次必需 API 配置，临时凭据文件删除，导出响应做凭据替换。
-- 验证结束，外层容器已退出，代理 socket 已删除；旧 10 个实验容器仍冻结且断网，告警端口 2267 无监听。
+- 验证结束，外层容器已退出，代理 socket 已删除；旧 10 个实验容器也已终止，告警端口 2267 无监听。
 
 证据位于 ../../outputs/vm_isolation_check/：verification.json 汇总结果，container-inspect.json 保存实际外层配置，outer-guardrails.json 和 same-path-write-check.json 保存写入检查，docker-desktop.png 与 qemu.png 保存截图，model-response.json 保存脱敏响应，attempts 保留准备过程中失败的记录。完整回归 334 passed、22 skipped、7 subtests passed；其中代理规则测试 17 项。
 
