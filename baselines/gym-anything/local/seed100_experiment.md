@@ -70,3 +70,7 @@ Nuxeo、WordPress 阶段 2 各发生一次 terminal_reason=api_error、状态为
 2026-09-19 21:20（北京时间）进度：运行约 4 小时 5 分钟，6 款软件四阶段均 rc=0/completed：ERPNext 10、Redmine 10、Nuxeo 14、VS Code 10、Rancher 14、RStudio 11，最终清单合计 69 道新题。Moodle/Writer/QGIS 位于阶段 3，WordPress 位于阶段 2，4 路均有近期日志和工具活动；当前新增完整候选目录 123 个，不等于最终题数或实机验证通过数。快照 progress_20260919T1320.json。
 
 Nuxeo 阶段 2 的第一次重试已经 completed/rc=0；WordPress 同阶段第一次重试仍在执行，未出现额外重试、耗尽或阶段超时。截图 API 累计 108 次均成功返回。最终会话仍存在实机验证未完就自然结束的情况：Nuxeo 阶段 4 自报第二轮检查仅到 2/13，Rancher 最终回复仍等安装/启动监控，RStudio 自报一个后台任务的 README/证据收尾未完成。VS Code 还自报截图 MCP 两次虚构工具调用、随后用直接读图交叉检查；该内容异常尚未逐条独立核实，不能用 API 成功率表示视觉正确率。本次仅检查和记录，没有人工补跑或修改。可用内存约 928 GiB，/data1 剩余约 4.5 TiB。
+
+2026-09-19 23:09（北京时间）进度：运行约 5 小时 53 分钟，9 款软件四阶段均已 rc=0/completed，最终清单合计 103 道新题（ERPNext 10、Moodle 11、Redmine 10、Nuxeo 14、VS Code 10、Writer 13、Rancher 14、QGIS 10、RStudio 11）。仅 WordPress 仍在阶段 3，有近期实际截图 MCP 调用、逐题实机结果读取；其候选 11 道，清单尚混有 5 个旧种子，不作最终计数。全部新增完整候选共 124 个。快照 progress_20260919T1509.json。
+
+WordPress 阶段 2 第一次重试已 completed/rc=0；连同 Nuxeo，本轮两次 API 中断均经一次重试完成阶段，没有重试耗尽或阶段超时。新增结束的软件中，Moodle 自报 11 道实机初始化/导出及不操作评分均检查过，QGIS 自报 10 道初始截图、真实导出和离线场景检查过；这些是模型运行记录的结论，未逐题独立复核。Writer 最终回复仍说 5 道统一路径实机复跑未结束，故仍不能将退出码 0 视作全部验证完毕。可用内存约 919 GiB，/data1 剩余约 4.5 TiB。本次只观察记录，未修改框架或补跑。
