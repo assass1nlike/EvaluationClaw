@@ -19,10 +19,16 @@ def inputs(tmp_path):
     return requirement, env
 
 
-def test_official_pipeline_passes_requirement_and_preserves_other_commands(tmp_path):
+@pytest.mark.parametrize("deepseek", [False, True])
+def test_official_pipeline_passes_requirement_and_preserves_other_commands(tmp_path, monkeypatch, deepseek):
     requirement, env = inputs(tmp_path)
     output = tmp_path / "output"
     commands, prompts = [], []
+    monkeypatch.setattr(generate, "ROOT", tmp_path)
+    (tmp_path / ".env").write_text(
+        "DEEPSEEK_API_KEY=test-key\nDEEPSEEK_BASE_URL=https://api.deepseek.com\n"
+        "DEEPSEEK_MODEL=deepseek-flash\n"
+    )
 
     def claude(binary, args, **kwargs):
         prompts.append(args)
@@ -36,6 +42,7 @@ def test_official_pipeline_passes_requirement_and_preserves_other_commands(tmp_p
             patch.object(method.propose_cc, "run_claude", side_effect=claude), \
             patch.object(method, "_run_subprocess", side_effect=subprocess) as launcher:
         assert generate.main([
+            *(["--deepseek"] if deepseek else []),
             "--requirement-file", str(requirement), "--software", "Demo",
             "--env-dir", str(env), "--workspace", str(tmp_path),
             "--output-dir", str(output), "--amplify-count", "1",
@@ -46,6 +53,11 @@ def test_official_pipeline_passes_requirement_and_preserves_other_commands(tmp_p
     for args in prompts:
         assert args[-2:] == ["--append-system-prompt",
                             generate.requirement_prompt(requirement.read_text())]
+        if deepseek:
+            assert args[args.index("--settings") + 1] == str(tmp_path / "deepseek-settings.json")
+            assert args[args.index("--effort") + 1] == "high"
+        else:
+            assert "--settings" not in args and "--effort" not in args
     assert [cmd[1:3] for cmd in commands] == [
         [str(Path(generate.__file__).resolve()), "--readme-stage"],
         ["-m", "extras.research.task_generation.propose_and_amplify.pipeline.main_files_any_app_enhanced"],
