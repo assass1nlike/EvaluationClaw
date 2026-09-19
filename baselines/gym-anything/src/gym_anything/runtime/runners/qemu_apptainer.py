@@ -68,7 +68,7 @@ def _find_free_port(start: int = 5900) -> int:
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                s.bind(("127.0.0.1", port))
+                s.bind(("0.0.0.0", port))
                 return port
         except OSError:
             continue
@@ -86,7 +86,7 @@ def _find_free_qemu_hostfwd_port(start: int = 45500) -> int:
             port = start + (i % 300)
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(("127.0.0.1", port))
+                s.bind(("0.0.0.0", port))
                 return port
         except OSError:
             continue
@@ -1086,14 +1086,14 @@ class QemuApptainerRunner(BaseRunner):
 
         # Build netdev with port forwards
         if self.is_android:
-            port_forwards = f"hostfwd=tcp:127.0.0.1:{self.adb_port}-:{self._adb_guest_port}"
+            port_forwards = f"hostfwd=tcp::{self.adb_port}-:{self._adb_guest_port}"
         else:
-            port_forwards = f"hostfwd=tcp:127.0.0.1:{ssh_port}-:22"
+            port_forwards = f"hostfwd=tcp::{ssh_port}-:22"
             if self.is_windows:
-                port_forwards += f",hostfwd=tcp:127.0.0.1:{self.pyautogui_port}-:5555"
+                port_forwards += f",hostfwd=tcp::{self.pyautogui_port}-:5555"
             fast_input_host_port = getattr(self, "_fast_input_host_port", None)
             if self._fast_uinput_keyboard_enabled() and fast_input_host_port:
-                port_forwards += f",hostfwd=tcp:127.0.0.1:{fast_input_host_port}-:{self._fast_input_guest_port}"
+                port_forwards += f",hostfwd=tcp::{fast_input_host_port}-:{self._fast_input_guest_port}"
 
         netdev_options = f"user,id=net0,{port_forwards}"
         if getattr(getattr(getattr(self, "spec", None), "resources", None), "net", None) is False:
@@ -1121,7 +1121,7 @@ class QemuApptainerRunner(BaseRunner):
                 "-drive", f"file={disk_abs},format=qcow2,if=virtio",
                 "-cdrom", str(iso_path),
                 "-device", f"virtio-vga,xres={width},yres={height}",
-                "-vnc", f"127.0.0.1:{vnc_display},password=on",
+                "-vnc", f":{vnc_display},password=on",
                 "-display", display_backend,
                 "-monitor", "stdio",
                 "-device", "virtio-net-pci,netdev=net0",
@@ -1163,7 +1163,7 @@ class QemuApptainerRunner(BaseRunner):
                 "-drive", f"file={disk_abs},format=qcow2,if=virtio",
                 # Display with virtio-vga
                 "-device", "virtio-vga",
-                "-vnc", f"127.0.0.1:{vnc_display},password=on",
+                "-vnc", f":{vnc_display},password=on",
                 "-display", display_backend,
                 "-monitor", "stdio",
                 # Network with virtio
@@ -1185,7 +1185,7 @@ class QemuApptainerRunner(BaseRunner):
             cmd.extend([
                 "-drive", f"file={disk_abs},format=qcow2,if=virtio",
                 "-device", display_device,
-                "-vnc", f"127.0.0.1:{vnc_display},password=on",
+                "-vnc", f":{vnc_display},password=on",
                 "-display", display_backend,
                 "-monitor", "stdio",
                 "-device", "virtio-net-pci,netdev=net0",
