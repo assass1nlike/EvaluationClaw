@@ -1,6 +1,6 @@
-本轮目标 100 道种子题：D1 ERPNext、Moodle；D2 Redmine、Nuxeo Platform；D3 Visual Studio Code、LibreOffice Writer；D4 WordPress、Rancher；D6 QGIS、RStudio。每软件同一会话生成 10 道，最大 10 并行，只执行官方 propose 四阶段，不扩增。每阶段超时 36000 秒（10 小时）。旧批次已停止，正式安全构建迁往新机器，接续步骤见 [迁移说明](migration.md)。
+本轮目标 100 道种子题：D1 ERPNext、Moodle；D2 Redmine、Nuxeo Platform；D3 Visual Studio Code、LibreOffice Writer；D4 WordPress、Rancher；D6 QGIS、RStudio。每软件同一会话生成 10 道，最大 10 并行，只执行官方 propose 四阶段，不扩增。每阶段超时 36000 秒（10 小时）。旧批次已停止，新机批次为 `local/outputs/s100_0919`，使用独立安全 VM 构建。
 
-新机器正式构建使用 deepseek-flash，thinking 开启，DeepSeek 和 Claude Code 的 effort 均为 high，配置保存在 `local/deepseek-settings.json`。单 VM 参数与工具链检查见 [新机配置](setup.md)。下文保留旧批次实际使用的配置与运行记录。
+新机器正式构建任务类型为 enterprise，Claude Code 固定 2.1.229，所有模型使用 deepseek-flash，thinking 开启，DeepSeek 和 Claude Code 的 effort 均为 high，配置保存在 `local/deepseek-settings.json`。所有可设置的本地随机种子均为 42；API 不设置 seed，用户接受远端输出的随机性。启动后检查官方截图 MCP 的真实图片调用、thinking/high 参数及返回结果，记录异常；目前主模型工具链已验证，截图模型调用仍待实测。单 VM 参数与工具链检查见 [新机配置](setup.md)。下文保留旧批次实际使用的配置与运行记录。
 
 需求以主仓库 user-inputs.txt 前 15 行为准，本批使用第 1、2、3、4、6 行，完整文件快照保存在本批 user-inputs.txt。四阶段均注入需求原文和已批准的统一说明：以需求中的能力与限制条件作为设计目标，任务情境、初始状态和成功判据应检验它们，官方示例用于实现参考而不能替代评测目标。不提供具体题目、解法或评分规则。
 
@@ -22,3 +22,11 @@
 
 
 2026-09-18 独立 VM 验证：单 VM 的宿主文件/内核隔离、网络限制、CPU/内存/PID/磁盘限制，以及内部 Docker、嵌套 QEMU 的实际运行检查通过。deepseek-flash 经官方 CLI 调用完成一次来宾内工具操作，最大 3 轮、180 秒，实际 2 轮；仅为基础链路检查，不产生正式题目。运行器 seed=42、远端模型无 seed，采样使用 CLI/provider 默认。完整配置、输入版本、失败记录与验证范围见 local/isolation/vm/README.md，证据在 local/outputs/vm_isolation_check。旧批次已终止，正式 100 题未启动；批量 VM 接入、各软件下载链路及容量规划仍待完成。
+
+2026-09-19 新机批次 `local/outputs/s100_0919`：用户批准启动正式 100 题。入口为 `source local/runtime/activate.sh` 后执行 `.venv/bin/python -u local/isolation/vm/run_batch.py --batch local/outputs/s100_0919`。十台生成 VM 各分配 8 vCPU、24 GiB 内存、200 GiB 预分配工作盘；外层限制 8 CPU、28 GiB 内存、无额外 swap、512 PID/线程。合计 80 CPU 配额、280 GiB 内存上限、2000 GiB 工作盘，各软件内部资源仍使用官方 env.json。受限网络、SSH 公钥、非特权只读外层及不发布宿主端口的边界沿用已验证方案。全部 VM 预检通过后一起进入官方四阶段；每阶段 36000 秒，官方进程退出、超时及继续下一阶段的逻辑原样保留。外层服务以 145200 秒限制异常残留，超出四阶段的总预算。
+
+生成初始镜像从原公钥基础镜像的新副本构建，只安装 Docker/QEMU 和已锁定的运行依赖、原桌面镜像与官方源码，不运行模型、不含历史题目或会话。镜像 `local/outputs/vm_base/generator.qcow2`，SHA256 `482b5b22eb4726aa9a235b5831daaad7e2703bd4ef00f5a44303707d773f97b8`。每个软件另建嵌套 VM 密钥，在断网配置过程中写入嵌套基础镜像；宿主管理私钥不传入来宾。软件 VM 的代理设置属于网络适配，访问仍由宿主侧域名/IP 白名单约束。安装域名根据官方脚本加入白名单，被拒绝的主机名和端口记录到各软件 egress.jsonl，不记录 URL 或认证头。
+
+截图 MCP 的外部入口仅为官方 OpenAI 客户端请求加入 `thinking.type=enabled` 和 `reasoning_effort=high`，保留官方提示、图片缩放、max_tokens=4096、响应文本和错误行为；记录是否成功、输出长度与 usage，不记录思考正文或认证信息。正式主模型调用仍由官方 Claude Code 执行。运行源码、依赖锁及 SHA256 清单保存至批次 source，需求原文及各软件配置另存；每 30 秒导出阶段日志与状态并替换实际 API key。完整原始状态保留在各 VM 私有磁盘，最终软件产物只作为压缩包取回，不在宿主执行模型产物。
+
+启动前回归为 345 passed、22 skipped、7 subtests passed；另有 VM 边界参数和截图 API 传输测试 19 passed（其中 17 项代理测试与前者重合）。准备过程中只出现 Unix socket 路径过长导致的启动前失败及 VM SSH 尚未就绪的握手重试，缩短目录后完成干净镜像构建，没有生成模型任务。
