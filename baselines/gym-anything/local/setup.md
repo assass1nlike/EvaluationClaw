@@ -1,5 +1,7 @@
 # 新机器配置
 
+正式 100 题批次已于 2026-09-19 15:24（北京时间）启动，10 款软件并行运行在独立安全 VM 中。当前配置、运行证据及截图检查异常见 [100 题实验记录](seed100_experiment.md)。下文为机器恢复和单 VM 验证记录。
+
 2026-09-19，宿主 `TSingSV`，目录 `/data1/zangyihe/EvaluationClaw/baselines/gym-anything`，代码保持在 `main`。迁移文件夹已从 `/data1/zangyihe/resume/` 移入 `local/outputs/migration_20260918/`；完整校验通过。恢复的是原始镜像与运行依赖，实验配置见 [迁移说明](migration.md)。
 
 在 Gym 根目录激活基础设施工具：

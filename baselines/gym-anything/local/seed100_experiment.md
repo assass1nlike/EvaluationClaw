@@ -29,4 +29,8 @@
 
 截图 MCP 的外部入口仅为官方 OpenAI 客户端请求加入 `thinking.type=enabled` 和 `reasoning_effort=high`，保留官方提示、图片缩放、max_tokens=4096、响应文本和错误行为；记录是否成功、输出长度与 usage，不记录思考正文或认证信息。正式主模型调用仍由官方 Claude Code 执行。运行源码、依赖锁及 SHA256 清单保存至批次 source，需求原文及各软件配置另存；每 30 秒导出阶段日志与状态并替换实际 API key。完整原始状态保留在各 VM 私有磁盘，最终软件产物只作为压缩包取回，不在宿主执行模型产物。
 
-启动前回归为 345 passed、22 skipped、7 subtests passed；另有 VM 边界参数和截图 API 传输测试 19 passed（其中 17 项代理测试与前者重合）。准备过程中只出现 Unix socket 路径过长导致的启动前失败及 VM SSH 尚未就绪的握手重试，缩短目录后完成干净镜像构建，没有生成模型任务。
+启动前回归为 345 passed、22 skipped、7 subtests passed；另有 VM 边界参数、来宾输出路径约束和截图 API 传输测试 20 passed（其中 17 项代理测试与前者重合）。准备过程中只出现 Unix socket 路径过长导致的启动前失败及 VM SSH 尚未就绪的握手重试，缩短目录后完成干净镜像构建，没有生成模型任务。
+
+正式放行时间为北京时间 2026-09-19 15:24:51（UTC 07:24:51）。10/10 VM 通过预检，全部进入官方第一阶段并收到 deepseek-flash 响应，visual-grounding MCP 均为 connected。启动检查保存于 `startup-check.json`，后台调度 PID 见 `process.json`，总体日志为 `supervisor.log`；01–10 对应上文软件顺序，每目录保存 config、preflight、state、phase_N 输入/输出/结果。宿主未发布管理端口，启动时 199 个导出文本文件扫描无实际 API key。旧准备监督进程在任何 VM 启动前停止过一次，用于补充来宾输出文件名/读取大小限制及固定版本 uv 传输；9 份已完成的干净磁盘保留，记录在 `local/outputs/s100_prep_0919/preparation-restart.json`，未发生模型会话重跑。
+
+截图检查在 Writer 生成 VM 内另行执行 `check_screenshot.py`，不参与正式任务设计：白底、左红方块与右蓝圆形，询问颜色、位置及中心坐标。DeepSeek OpenAI 接口调用成功，thinking enabled、effort high，返回 108 个 reasoning tokens；正文却是要求执行 Bash 的文本工具标记，没有直接回答视觉问题。官方 MCP 原样返回了该正文和坐标缩放说明，因此只能确认接口接受图片及思考参数，不能将本次检查记为视觉定位成功。证据在 `06/screenshot-smoke.json`、`06/screenshot-smoke-api.jsonl`；保留此异常，没有更改官方提示、解析或增加自动执行/重试逻辑。后台 snap 更新访问 api.snapcraft.io 被代理拒绝，已记录；启动检查本身通过，实际软件安装是否受影响以阶段日志为准。

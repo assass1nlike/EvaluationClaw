@@ -1,4 +1,4 @@
-当前批量生成入口因宿主隔离问题已禁用，实验暂停；检查结果和恢复条件见 [安全核查](isolation/security.md)。
+安全批量生成入口为 `local/isolation/vm/run_batch.py`，每款软件在独立生成 VM 中运行。旧宿主/特权容器批量入口保持禁用。配置与批次记录见 [100 题实验](seed100_experiment.md)。
 
 `generate.py` 是官方 Propose-and-Amplify 流程的外部入口，新增 `--requirement-file` 参数，读取 UTF-8 评测需求。用户的五条原始需求保存在 `requirements/goal_1.txt` 至 `goal_5.txt`。
 
@@ -12,7 +12,7 @@
 .venv/bin/python local/generate.py --help
 ```
 
-使用本机 DeepSeek 配置运行某个环境的提题阶段：
+以下单软件命令只在生成 VM 内执行，读取来宾内的 DeepSeek 配置：
 
 ```bash
 .venv/bin/python local/generate.py \
@@ -26,11 +26,11 @@
 
 `--deepseek` 从 `local/.env` 读取 `DEEPSEEK_API_KEY`、`DEEPSEEK_BASE_URL` 和 `DEEPSEEK_MODEL`，通过 `https://api.deepseek.com/anthropic` 为提题 CLI 和扩增子进程配置服务，两个阶段默认使用 `deepseek-flash`。显式传入的 `--proposer-model` 和 `--amplifier-model` 优先。凭据仅通过进程环境传递，不写入运行配置；未指定 `--deepseek` 时使用官方模型与服务配置方式。
 
-本轮种子构建的四次 Claude Code 调用均加载 `local/deepseek-settings.json`：`alwaysThinkingEnabled=true`、`effortLevel=high`、`CLAUDE_CODE_EFFORT_LEVEL=high`，并显式传入 `--effort high`。Claude Code 2.1.229 实际发送 `thinking.type=adaptive` 和 `output_config.effort=high`；DeepSeek 返回了思考内容并完成工具调用。按 [DeepSeek 参数说明](https://api-docs.deepseek.com/guides/thinking_mode)，Anthropic 协议的 `output_config.effort=high` 对应 OpenAI 协议的 `reasoning_effort=high`。配置不覆盖正常 MCP 发现或官方阶段逻辑。其它 SDK 调用不读取这个 CLI 配置；官方截图 MCP 和扩增客户端的 effort 沿用 DeepSeek 当前文档规定的默认 high，本轮不运行扩增。
+本轮种子构建的四次 Claude Code 调用均加载 `local/deepseek-settings.json`：`alwaysThinkingEnabled=true`、`effortLevel=high`、`CLAUDE_CODE_EFFORT_LEVEL=high`，并显式传入 `--effort high`。Claude Code 2.1.229 实际发送 `thinking.type=adaptive` 和 `output_config.effort=high`；DeepSeek 返回了思考内容并完成工具调用。按 [DeepSeek 参数说明](https://api-docs.deepseek.com/guides/thinking_mode)，Anthropic 协议的 `output_config.effort=high` 对应 OpenAI 协议的 `reasoning_effort=high`。配置不覆盖正常 MCP 发现或官方阶段逻辑。其它 SDK 调用不读取这个 CLI 配置。批量生成的截图 MCP 使用外部入口显式加入 `thinking.type=enabled`、`reasoning_effort=high`，保留官方图像处理、提示、输出解析和 4096 token 上限；本轮不运行扩增。
 
 本机依赖锁定 Anthropic SDK 0.84.0，兼容官方 `messages.stream()` 调用及其 `temperature` 参数。官方客户端继续原样发送 `temperature=1.0`、`max_tokens=40000`、开启 thinking 且 `budget_tokens=16384`，并沿用流式解析、对话保存和重试逻辑。没有删减请求参数或改写官方 API 调用代码。
 
-官方提题原定 5 道，本轮改为每软件 10 道种子题，共 100 道；每阶段超时 10 小时，使用 `isolation/run_batch.py` 最多 10 并行，在各软件独立的文件系统、临时目录、Claude 会话、Docker 和 QEMU 缓存中调用 `seed_batch.py`，仅运行提题。配置与产物位置见 `seed100_experiment.md`。上一轮记录见 `seed_experiment.md`。扩增默认 75 道，本轮不运行。
+官方提题原定 5 道，本轮改为每软件 10 道种子题，共 100 道；每阶段超时 10 小时，使用 `isolation/vm/run_batch.py` 最多 10 并行，在各软件独立的文件系统、临时目录、Claude 会话、Docker 和 QEMU 缓存中调用 `seed_batch.py`，仅运行提题。配置与产物位置见 `seed100_experiment.md`。上一轮记录见 `seed_experiment.md`。扩增默认 75 道，本轮不运行。
 
 此次验证覆盖完整官方阶段调度下的需求传递、扩增提示保留、原始需求快照，以及空需求和混用需求的拒绝行为。模型调用和外部进程执行在测试中替换，不生成实验题目。
 
