@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import time
 import yaml
 
@@ -88,6 +89,7 @@ def main():
     for k in ['ANTHROPIC_DEFAULT_OPUS_MODEL','ANTHROPIC_DEFAULT_SONNET_MODEL','ANTHROPIC_DEFAULT_HAIKU_MODEL','CLAUDE_CODE_SUBAGENT_MODEL']:
         env[k]='deepseek-flash'
     (JOB/'environment.json').write_text(json.dumps(env,indent=2)+'\n')
+    run(sys.executable,str(ROOT/'local/isolation/vm/claude_retry.py'),'--install')
     (JOB/'prepared.json').write_text(json.dumps({'seed':42,'time':time.time(),'model_calls':0,'original_tasks':config['original_tasks']},indent=2)+'\n')
 
 
