@@ -13,8 +13,7 @@ def run(client, root, out, guest, record, docker_only=False):
             sftp.put(str(out/'framework.tar'), '/home/ga/framework.tar')
         guest(client, 'sudo tar -xf /home/ga/framework.tar -C / && rm /home/ga/framework.tar', timeout=180)
     py=str(root/'.venv/bin/python')
-    guest(client, "sudo ln -sfn cpython-3.12.13-linux-x86_64-gnu /home/zangyihe/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu && "
-          f"sudo chown -R ga:ga {shlex.quote(str(root))} /home/ga/.local && "
+    guest(client, f"sudo chown -R ga:ga {shlex.quote(str(root))} /home/ga/.local && "
           "sudo usermod -aG docker,kvm ga && mkdir -p /home/ga/smoke /home/ga/qemu-cache")
     prefix = f'cd {shlex.quote(str(root))} && PYTHONPATH={shlex.quote(str(root))}:{shlex.quote(str(root/"src"))} '
     record('framework_import', guest(client,prefix+shlex.quote(py)+" -c 'import gym_anything; print(gym_anything.__file__)'")[1].strip())

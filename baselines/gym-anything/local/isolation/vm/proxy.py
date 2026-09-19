@@ -1,6 +1,7 @@
 """Public download/API proxy over a Unix socket; never forwards to private IPs."""
 import ipaddress
 import json
+import os
 import select
 import socket
 import socketserver
@@ -57,7 +58,8 @@ class Handler(BaseHTTPRequestHandler):
             return
         try:
             # Pin the resolved public IP even when using the local upstream proxy.
-            remote = socket.create_connection(('127.0.0.1', 7890), timeout=20)
+            remote = socket.create_connection(
+                ('127.0.0.1', int(os.environ.get('GYM_VM_UPSTREAM_PROXY_PORT', '7890'))), timeout=20)
             authority = f'[{ip}]:{port}' if ':' in ip else f'{ip}:{port}'
             remote.sendall(f'CONNECT {authority} HTTP/1.1\r\nHost: {authority}\r\n\r\n'.encode())
             head = bytearray()

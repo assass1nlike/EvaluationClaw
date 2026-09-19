@@ -88,7 +88,7 @@ def prepare():
 def launch():
     cmd = ['docker', 'run', '-d', '--init', '--name', NAME, '--network', 'none', '--read-only',
            '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges=true',
-           '--user', f'{os.getuid()}:109', '--device', '/dev/kvm',
+           '--user', f'{os.getuid()}:{os.stat("/dev/kvm").st_gid}', '--device', '/dev/kvm',
            '--cpus', '4', '--memory', '10g', '--memory-swap', '10g', '--pids-limit', '512',
            '--ulimit', 'nofile=1024:1024', '--ulimit', 'core=0:0',
            '--ulimit', f'fsize={50 * 1024**3}:{50 * 1024**3}',
@@ -177,7 +177,10 @@ print(json.dumps(r))
     guest(client, 'sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq docker.io qemu-system-x86 qemu-utils', timeout=900)
     guest(client, 'sudo systemctl daemon-reload && sudo systemctl restart docker')
     record('docker_server', guest(client, 'sudo docker version --format "{{.Server.Version}}"')[1].strip())
-    guest(client, "sudo modprobe kvm_intel && sudo chmod 666 /dev/kvm")
+    modules = [name for name in ('kvm_amd', 'kvm_intel') if Path('/sys/module', name).exists()]
+    if len(modules) != 1:
+        raise RuntimeError(f'Expected one host KVM CPU module, found {modules}')
+    guest(client, f"sudo modprobe {modules[0]} && sudo chmod 666 /dev/kvm")
     record('nested_kvm', guest(client, "python3 -c \"import os,fcntl; f=os.open('/dev/kvm',os.O_RDWR); assert fcntl.ioctl(f,0xAE00,0)==12; print('KVM API 12')\"")[1].strip())
     print('Transferring original desktop Docker image into guest', flush=True)
     with client.open_sftp() as sftp:
