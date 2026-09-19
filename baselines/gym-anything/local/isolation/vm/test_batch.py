@@ -51,3 +51,17 @@ def test_batch_launch_keeps_only_disk_writable_and_no_host_network(tmp_path,monk
     assert [m for m in mounts if 'readonly' not in m]==[f'type=bind,src={tmp_path / "disk.raw"},dst=/disk.raw']
     assert [cmd[i+1] for i,arg in enumerate(cmd) if arg=='--device']==['/dev/kvm']
     assert not any(arg in ('-p','--publish','--pid=host','--ipc=host') for arg in cmd)
+
+
+def test_guest_output_cannot_write_outside_its_job(tmp_path):
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+    import pytest
+    from local.isolation.vm.run_batch import copy_observations
+    client=MagicMock()
+    sftp=client.open_sftp.return_value.__enter__.return_value
+    sftp.listdir_attr.return_value=[SimpleNamespace(filename='../outside.json')]
+    with pytest.raises(RuntimeError,match='Invalid filename'):
+        copy_observations(client,tmp_path/'job',b'test-key')
+    sftp.file.assert_not_called()
+    assert not (tmp_path/'outside.json').exists()
