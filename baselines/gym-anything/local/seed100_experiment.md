@@ -1,4 +1,4 @@
-本轮目标 100 道种子题：D1 ERPNext、Moodle；D2 Redmine、Nuxeo Platform；D3 Visual Studio Code、LibreOffice Writer；D4 WordPress、Rancher；D6 QGIS、RStudio。每软件同一会话生成 10 道，最大 10 并行，只执行官方 propose 四阶段，不扩增。每阶段超时 36000 秒（10 小时）。旧 VM 批次 `local/outputs/s100_0919` 已停止并保留；新批次为 `local/outputs/s100_host_0919`，使用普通 Docker 运行环境和官方网络设置，当前正在验证，尚未启动模型构建。
+本轮目标 100 道种子题：D1 ERPNext、Moodle；D2 Redmine、Nuxeo Platform；D3 Visual Studio Code、LibreOffice Writer；D4 WordPress、Rancher；D6 QGIS、RStudio。每软件同一会话生成 10 道，最大 10 并行，只执行官方 propose 四阶段，不扩增。每阶段超时 36000 秒（10 小时）。旧 VM 批次 `local/outputs/s100_0919` 已停止并保留；新批次为 `local/outputs/s100_host_0919`，使用普通 Docker 运行环境和官方网络设置，已启动模型构建。
 
 新机器正式构建任务类型为 enterprise，Claude Code 固定 2.1.229，所有模型使用 deepseek-flash，thinking 开启，DeepSeek 和 Claude Code 的 effort 均为 high，配置保存在 `local/deepseek-settings.json`。所有可设置的本地随机种子均为 42；API 不设置 seed，用户接受远端输出的随机性。启动后检查官方截图 MCP 的真实图片调用、thinking/high 参数及返回结果，记录异常；目前主模型工具链已验证，截图模型调用仍待实测。单 VM 参数与工具链检查见 [新机配置](setup.md)。下文保留旧批次实际使用的配置与运行记录。
 
@@ -56,3 +56,5 @@ QEMU 的监听地址恢复官方默认，Linux SSH 仅公钥；软件 Docker 使
 预检证据在新批次 validation/：KVM API=12，Docker daemon=29.1.3，CLI=2.1.229；运行容器和宿主共用网络命名空间。官方 QEMU 启动、公钥登录、服务端仅提供 publickey、命令执行及 1920×1080 截图通过；官方 Docker 默认 bridge 下的命令执行和桌面截图通过，截图已查看。验证无模型调用，seed=42，临时 VM/容器均清理。验证脚本初次误把 Docker 返回的默认网络名断言为 default，实际为 bridge；另将截图路径移至运行器要求的 artifacts 目录后才取得宿主截图，这两项仅修正测试输入，原日志保留。回归 364 passed、22 skipped、7 subtests passed，见 regression.log。
 
 启动命令：在 gym-anything 目录执行 `source local/runtime/activate.sh`，为本次进程设置 `http_proxy=http://127.0.0.1:17891`、`https_proxy=http://127.0.0.1:17891`、`all_proxy=http://127.0.0.1:17891`，再运行 `.venv/bin/python -u local/seed_batch.py --runtime docker --batch local/outputs/s100_host_0919`。各软件 config.json、phase_N.input.json、phase_N.jsonl、phase_N.result.json、api-retries.jsonl 和截图 API 元数据记录实际执行；monitor.jsonl 每 30 秒记录阶段状态与可用磁盘。日志观察不能保证提前阻止宿主操作。
+
+正式启动：2026-09-19 17:16:14（北京时间），监督进程 PID 559322。10 路均进入阶段 1，使用 10 个不同 session；首轮均返回 deepseek-flash 响应和 thinking 内容，已执行工具调用，启动核查时没有结构化终止错误。high 参数、设置文件、宿主网络及 KVM 映射逐路核对通过，证据见 startup-audit.json 和 startup-progress.json。抽查的近期工具调用以读取官方说明/示例、查询本地镜像及软件下载连通性为主；该抽查不是所有后续操作的安全保证。运行环境镜像 ID 为 sha256:54bb8b5bc737c055962facbf16dadada21af9ebe85d6101968e3af1c506b4169。代码提交 82cde50cf，精确源码哈希见 source.json。
