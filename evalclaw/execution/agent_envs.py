@@ -48,10 +48,15 @@ def build_agent_environment(
     item: BenchmarkItem,
     config: BenchmarkConfig | None = None,
 ) -> DockerWorkspaceAgentEnvironment | DesktopBridgeAgentEnvironment:
+    from .evidence import validate_environment_files
+
+    validate_environment_files(item)
     env_config = item.metadata.get("agent_env")
     if not isinstance(env_config, dict):
         raise ValueError("Agent task is missing metadata.agent_env.")
     env_config = copy.deepcopy(env_config)
+    if env_config.get("budget"):
+        raise ValueError("Episode wall-clock budgets currently require an external shell harness.")
     env_type = str(env_config.get("type") or "docker_workspace")
     if env_config.get("judge"):
         from .agent_judge import judge_spec

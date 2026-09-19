@@ -7,6 +7,19 @@ EVALUATOR_EVIDENCE_PATH = "/evalclaw-evidence/episode.json"
 EVALUATOR_EVIDENCE_SCHEMA = "evalclaw.evaluator_evidence.v1"
 
 
+def validate_environment_files(item) -> None:
+    from hashlib import sha256
+
+    expected = item.metadata.get("environment_file_sha256")
+    if expected is None:
+        return
+    env = item.metadata.get("agent_env", {})
+    actual = {group: {path: sha256(content.encode("utf-8")).hexdigest()
+                      for path, content in env.get(group, {}).items()} for group in expected}
+    if actual != expected:
+        raise ValueError("Packaged environment files changed after construction; repackage and validate the task before execution.")
+
+
 def execution_failure(exc: BaseException) -> dict[str, Any]:
     def text(value: Any) -> str:
         return value.decode("utf-8", errors="replace") if isinstance(value, bytes) else str(value or "")

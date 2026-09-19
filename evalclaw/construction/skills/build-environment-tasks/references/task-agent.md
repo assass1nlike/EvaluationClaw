@@ -1,6 +1,6 @@
 # Task-Agent Interaction Contract
 
-Use `system_prompt` and `interaction` to describe task-specific agent behavior. EvaluationClaw packages them into canonical `metadata.task_agent`.
+Use `system_prompt` for target instructions. Agent tasks leave `interaction` empty and use executable `workflow.stages` for follow-ups/context changes; descriptive metadata cannot deliver messages. Dialogue `multi_turn` tasks use `interaction` as described below. EvaluationClaw packages task fields into canonical `metadata.task_agent`.
 
 - Keep `system_prompt` concise: role, non-disclosure rules, and high-level turn policy only.
 - Put initial files, scenario state, session configuration, evaluator rules, and large structured content in their dedicated fields.

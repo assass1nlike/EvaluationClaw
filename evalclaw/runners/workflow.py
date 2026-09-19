@@ -93,6 +93,7 @@ def stage_item(item: BenchmarkItem, stage: WorkflowStage) -> BenchmarkItem:
     metadata = copy.deepcopy(item.metadata)
     if stage.environment_spec is not None:
         metadata["agent_env"] = stage.environment_spec.model_dump(mode="json")
+        metadata.pop("environment_file_sha256", None)
     # Only the current stage's public prompt is sent to the target.
     metadata["task_agent"] = {"system_prompt": stage.system_prompt or task_agent_system_prompt(item, "You are the target agent.")}
     return item.model_copy(update={"workflow": None, "prompt": stage.prompt, "metadata": metadata})

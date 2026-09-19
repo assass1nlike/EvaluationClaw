@@ -48,6 +48,8 @@ async def main():
             for key in ["model", "base_url", "iterations", "seed", "acc_target", "extra_body"]:
                 value = json.dumps(config[key]) if key == "extra_body" else str(config[key])
                 command.extend(["--" + key.replace("_", "-"), value])
+            if config.get("test_taker"):
+                command.extend(["--test-taker", json.dumps(config["test_taker"])])
         with (batch_dir / f"{name}.log").open("a" if args.resume else "w") as log:
             process = await asyncio.create_subprocess_exec(
                 *command, cwd=ROOT, stdout=log, stderr=asyncio.subprocess.STDOUT)

@@ -395,7 +395,7 @@ def test_docker_workspace_builds_from_persisted_context_dir(monkeypatch, tmp_pat
         if command[1] == "build":
             build_calls.append(command)
             assert command[-1] == str(context_dir.resolve())
-            assert "-f" not in command
+            assert command[command.index("-f") + 1] == str(context_dir / "Dockerfile")
             return subprocess.CompletedProcess(command, 0, stdout="built\n", stderr="")
         return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
 

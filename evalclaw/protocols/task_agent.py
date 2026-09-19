@@ -23,6 +23,8 @@ _RUNNER_PRIVATE_INITIAL_CONTENT_KEYS = frozenset(
         "bridge_url",
         "evaluation",
         "hidden_files",
+        "verification_cases",
+        "preflight_commands",
         "hidden_file_names",
         "initial_state_checks",
         "provider_api_key",
@@ -155,6 +157,8 @@ Fields:
   the VM installs task software at first boot.
 - interaction: max_turns, optional initial_user_message, optional deterministic
   user_turns, followup_instruction, and stop_condition for multi-turn execution.
+  These fields apply to multi_turn dialogue tasks only. Agent tasks leave interaction
+  empty and use workflow.stages for actual follow-up turns or context resets.
 - scoring: scoring method plus instructions. For agent_judge, define 1-5 score
   levels. For deterministic or simulated pass/fail tasks, define pass, partial,
   and fail standards.

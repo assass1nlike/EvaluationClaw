@@ -46,6 +46,11 @@ task_designs and treat it as the Planner's authoritative construction contract.
 Check that the concrete task implements its required inputs, interaction,
 environment, outputs, scoring evidence, sources, and construction requirements.
 Do not accept a field merely because it contains plausible prose.
+For agent tasks, distinguish an actual context reset or delivered follow-up from a story
+about one. Inspect public actor descriptions for leaked private truth. Check that graders
+measure operations rather than mentions or refusals, and allow demonstrated valid alternatives
+in open-ended work. A missing trace is not proof of no action. Report concrete contradictions;
+do not demand extra mechanisms when the existing task already measures its intended behavior.
 
 Apply task-type requirements according to what the runner actually consumes:
 - choice needs at least two distinct id/text choices and one or more valid

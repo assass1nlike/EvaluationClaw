@@ -7,6 +7,6 @@ FROM python:3.11-slim
 
 RUN pip install --no-cache-dir aiohttp==3.14.3
 
-COPY scripts/model_gateway.py /usr/local/bin/model_gateway.py
+COPY evalclaw/execution/model_gateway.py /usr/local/bin/model_gateway.py
 
 ENTRYPOINT ["python", "/usr/local/bin/model_gateway.py"]

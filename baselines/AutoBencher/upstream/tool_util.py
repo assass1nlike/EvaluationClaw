@@ -207,9 +207,8 @@ def get_page_obs(page):
 
 
 def search_step(entity, output_more=False):
-    entity_ = entity.replace(" ", "+")
-    search_url = f"https://en.wikipedia.org/w/index.php?search={entity_}"
-    response_text = _wiki_session.get(search_url, headers={"User-Agent": "AutoBencher/1.0 (https://github.com/XiangLi1999/AutoBencher)"}, timeout=30).text
+    search_url = "https://en.wikipedia.org/w/index.php"
+    response_text = _wiki_session.get(search_url, params={"search": entity}, headers={"User-Agent": "AutoBencher/1.0 (https://github.com/XiangLi1999/AutoBencher)"}, timeout=30).text
     soup = BeautifulSoup(response_text, features="html.parser")
     result_divs = soup.find_all("div", {"class": "mw-search-result-heading"})
     if result_divs:  # mismatch

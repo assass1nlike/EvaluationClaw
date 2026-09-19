@@ -13,9 +13,15 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from .build_sources import prepare_build_sources
 from .docker import docker_subprocess_env, resolve_docker_executable
 from .errors import EvaluationExecutionError
-from .image_acquisition import acquire_image, image_pull_options
+from .image_acquisition import (
+    ImageAcquisitionError,
+    acquire_image,
+    configured_mirrors,
+    image_pull_options,
+)
 from .installers import apt_packages, render_install_commands
 from .process import run_bounded
 from .resource_guard import DockerResourceGuard
@@ -443,11 +449,29 @@ def _build_tag(env_config: dict[str, Any], dockerfile: str, *, task_text: str = 
     return f"evalclaw-{slug}:{digest}"
 
 
-def _run_image_build(command: list[str], *, image: str, docker_executable: str, timeout_s: int) -> str:
+def _run_image_build(
+    command: list[str], *, image: str, docker_executable: str, timeout_s: int,
+    dockerfile_path: Path, build_args: dict[str, str], unavailable_images: set[str] | None = None,
+) -> str:
     log_root = _build_context_root() / "logs"
     log_root.mkdir(parents=True, exist_ok=True)
     log_dir = Path(tempfile.mkdtemp(prefix="build-", dir=log_root))
     env = docker_subprocess_env(docker_executable)
+    if configured_mirrors():
+        try:
+            policy = prepare_build_sources(
+                dockerfile_path, build_args, docker=command[0], docker_executable=docker_executable,
+                env=env, log_dir=log_dir, unavailable_images=unavailable_images,
+            )
+        except (ImageAcquisitionError, ValueError) as exc:
+            (log_dir / "dependency-failure.json").write_text(json.dumps({
+                "image": image, "error_type": type(exc).__name__, "error": str(exc),
+            }, indent=2), encoding="utf-8")
+            message = f"{exc}\nBuild dependency logs: {log_dir}"
+            if isinstance(exc, ImageAcquisitionError):
+                raise ImageAcquisitionError(message) from exc
+            raise DockerImageBuildError(image, message) from exc
+        env["EXPERIMENTAL_BUILDKIT_SOURCE_POLICY"] = str(policy)
     record = {"image": image, "timeout_s": timeout_s, "exit_code": None, "timed_out": False}
     fatal = ""
     cause = None
@@ -556,12 +580,14 @@ def build_docker_image_if_requested(
             context_dir,
             build_config.get("context_files") or build_config.get("build_context_files"),
         )
-    command = [resolved, "build"]
-    for key, value in _docker_build_args(build_config).items():
+    command = [resolved, "build", "-f", str(dockerfile_path)]
+    args = _docker_build_args(build_config)
+    for key, value in args.items():
         command.extend(["--build-arg", f"{key}={value}"])
     command.extend(["-t", tag, str(context_dir)])
     output = _run_image_build(
         command, image=tag, docker_executable=docker_executable, timeout_s=timeout_s,
+        dockerfile_path=dockerfile_path, build_args=args,
     )
     env["image"] = tag
     env["pull_image"] = False
@@ -605,6 +631,7 @@ def build_docker_image_from_context(
     network: str = "default",
     docker_executable: str = "docker",
     timeout_s: int = DEFAULT_DOCKER_BUILD_TIMEOUT_S,
+    unavailable_images: set[str] | None = None,
 ) -> DockerImageBuildResult:
     """Build an image from a framework-managed, already materialized context."""
     context_root = context_dir.expanduser().resolve()
@@ -624,11 +651,13 @@ def build_docker_image_from_context(
         raise ValueError("Docker image tag must not be empty.")
     build_config = {"build_args": build_args or {}}
     command = [resolved, "build", "--network", network, "-f", str(dockerfile_path)]
-    for key, value in _docker_build_args(build_config).items():
+    args = _docker_build_args(build_config)
+    for key, value in args.items():
         command.extend(["--build-arg", f"{key}={value}"])
     command.extend(["-t", image_tag, str(context_root)])
     output = _run_image_build(
         command, image=image_tag, docker_executable=docker_executable, timeout_s=int(timeout_s),
+        dockerfile_path=dockerfile_path, build_args=args, unavailable_images=unavailable_images,
     )
     return DockerImageBuildResult(
         image=image_tag,

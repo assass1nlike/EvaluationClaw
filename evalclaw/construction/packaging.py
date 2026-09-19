@@ -486,6 +486,12 @@ def pack_task_item(
         agent_env = _environment_for_runner(task)
         metadata["task_agent"] = _task_agent_metadata_for_task(task, agent_env)
         metadata["agent_env"] = agent_env
+        from hashlib import sha256
+
+        metadata["environment_file_sha256"] = {
+            group: {path: sha256(content.encode("utf-8")).hexdigest() for path, content in agent_env.get(group, {}).items()}
+            for group in ("visible_files", "runtime_files", "hidden_files")
+        }
         task_package = _agent_task_package_for_task(task, agent_env)
         metadata[AGENT_TASK_PACKAGE_METADATA_KEY] = task_package
     item_source = _item_source_for_task(task, task_package)

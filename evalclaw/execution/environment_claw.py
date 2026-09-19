@@ -479,6 +479,7 @@ def _check_external_harness_compatibility(
             _agent_env(item),
             harnesses,
             has_workflow=item.workflow is not None,
+            workflow=item.workflow,
         )
         if not issues:
             continue
