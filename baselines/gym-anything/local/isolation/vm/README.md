@@ -22,6 +22,7 @@ SSH 仅接受公钥，管理连接通过 docker exec 的固定转接器进入外
 在 gym-anything 根目录，首次验证使用：
 
 ```bash
+source local/runtime/activate.sh
 .venv/bin/python local/isolation/vm/payload.py
 .venv/bin/python -u local/isolation/vm/verify.py
 # 确认 ga-vm-isolation-check 已退出后，删除这个验证容器以复用名称。

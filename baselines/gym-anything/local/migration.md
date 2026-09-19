@@ -1,5 +1,7 @@
 # 在新机器继续 100 道种子题实验
 
+新机器已完成依赖与镜像恢复、外部脚本适配和静态检查，实际状态及验证入口见 [新机器配置](setup.md)。
+
 源码在 `assass1nlike/EvaluationClaw` 的 `main` 分支，工作目录是 `baselines/gym-anything`。本次迁移文件夹为 `local/outputs/migration_20260918`，整体复制到新机器同一相对位置即可。文件夹含 API 凭据和 VM 管理私钥，权限保持 0700；不上传 GitHub。用户已同意为保留原始镜像超过 1 GB。
 
 ## 接续位置
