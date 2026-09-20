@@ -48,7 +48,7 @@
 \emergencystretch=2em
 
 
-\title{EvalClaw: Demand-Driven Benchmark Construction and Capability Diagnosis}
+\title{EvalScientist: Autonomous Benchmark Construction, Evaluation, and Evidence-Based Reporting}
 
 \author{Anonymous authors}
 % Keep the submission anonymous; supply author details for the final version.
@@ -66,12 +66,12 @@
 		alternative, but inadequate resource utilization, restrictive generation
 		paradigms, and iteration driven by proxy metrics limit existing frameworks'
 		success beyond conventional evaluation needs with extensive benchmark coverage.
-		We introduce \textsc{EvalClaw}, a fully automated framework that connects
+		We introduce \textbf{EvalScientist}, a fully automated framework that connects
 		natural-language evaluation demands to benchmark construction and autonomous
 		iteration guided by model capability weaknesses. We evaluate it on 15 custom
 		demands derived from authoritative documents on LLM evaluation, comparing
 		against automated construction frameworks and expert-built benchmarks on the
-		closest available scopes. \textsc{EvalClaw} constructs high-quality benchmarks
+		EvalScientist constructs high-quality benchmarks
 		for these demands, where existing automated frameworks fall substantially short
 		and no existing benchmark matches the full requested scope. Across eight
 		conventional evaluation areas, it also achieves quality comparable to
@@ -84,84 +84,33 @@
 	\end{abstract}
 	
 	\section{Introduction}\label{sec:intro}
-	Large language models (LLMs) have demonstrated remarkable capabilities in
-	language understanding, reasoning, and code generation, with applications
-	extending to increasingly complex agentic tasks. Benchmarks are central to
-	measuring these capabilities, identifying limitations, and guiding further
-	model development. As the capabilities and applications of LLMs expand,
-	constructing reliable benchmarks that reflect diverse evaluation needs
-	becomes increasingly important.
+	With the rapid advancement of LLMs, evaluation demands have surged in both volume and complexity. However, conventional evaluation relies heavily on expert curation, which is prohibitively expensive, labor-intensive, and quickly rendered obsolete by benchmark saturation. Moreover, a rigorous evaluation demands more than just tabulating raw test scores; it requires translating execution metrics into actionable conclusions about model behavior. Automated benchmark construction promises to scale this process, translating natural-language requirements into evidence-supported reports for specialized domains and complex interactions. The fundamental hurdle remains effectively steering strong generative models to synthesize high-fidelity tasks and rigorous evaluators~\citep{benchagents2025,benchbench2026}.
+
+Existing source-driven methods ground benchmark construction in external resources, ranging from document-conditioned generation to dataset transformation and research-assisted synthesis~\citep{shashidhar2025yourbench,xiong2026benchmarkagent,dong2026agentworld}. While this reduces reliance on parametric model knowledge and provides concrete task material, these approaches largely treat retrieved data merely as content seeds. For customized evaluation demands, however, domain resources are far more critical for shaping the evaluation design itself: defining target capabilities, bounding observable test conditions, and justifying scoring criteria. Therefore, resource acquisition should be guided by its functional role in the measurement process, informing framework rather than simply dictating instance templates.
+
+Agentic orchestration frameworks further expand the construction space from static questions to executable and interactive benchmarks. Spanning domains from agentic coding to embodied environments, these systems can autonomously synthesize coordinated suites of instructions, execution states, verifiers, and interaction protocols~\citep{benchagents2025,embodiedbenchclaw2026,aggarwal2026gymanything,anchor2026,benchforge2026}. However, such generative flexibility makes it harder to ensure that all components implement the same intended measurement, as a verifier may reward superficial proxy behaviors rather than the target capability, and an environment may leak unintended clues. General-purpose evaluation therefore requires principled mechanisms that enforce strict alignment among high-level intent, execution environments, and scoring rubrics across diverse task settings.
+
+Another direction adapts evaluation to observed model behavior, leveraging performance feedback to calibrate task difficulty, probe capability frontiers, or conduct behavioral audits~\citep{li2025autobencher,betal2025,benchevolver2026,dong2026agentworld,fronsdal2025petri,bloom2025}. While this moves evaluation beyond static testbeds, adaptation alone does not yield diagnostic clarity. The same failure can admit competing explanations, and repeatedly inducing low scores may demonstrate persistent failure without identifying the underlying capability limitation. To guide actionable downstream decisions, automated evaluation should undertake an inferential process that actively formulates hypotheses, resolves competing failure modes via targeted testing, and establishes credible, auditable claims about model capabilities.
 	
-	Traditional benchmark construction typically relies on domain experts to
-	design tasks, curate data, and validate reference answers and scoring
-	criteria~\citep{rein2024gpqa,phang2025hle}. This process is costly and
-	time-consuming, while the resulting benchmarks can rapidly saturate after
-	release as models improve, limiting their ability to distinguish further
-	capability gains~\citep{white2024livebench}. These challenges motivate automated
-	benchmark construction frameworks that use generative LLMs to synthesize tasks
-	and evaluation materials, offering a promising route to scaling construction
-	and keeping pace with evolving evaluation
-	needs~\citep{li2025autobencher,shashidhar2025yourbench,xiong2026benchmarkagent}.
 	
-	However, existing automated benchmark construction frameworks face three major
-	limitations that confine their strong performance to conventional evaluation
-	needs already supported by abundant established benchmarks.
-	\textbf{(i) Inadequate resource utilization.} Beyond conventional evaluation
-	needs, existing frameworks struggle to use resources appropriately. Transforming
-	existing benchmark items constrains coverage to the available data and
-	transformation rules, potentially misaligning the generated tasks with the
-	requested capability. Relying entirely on the generator's own knowledge instead
-	forgoes external resources and can produce insufficiently challenging tasks or
-	require costly generation to achieve adequate quality.
-	\textbf{(ii) Restrictive generation paradigms.} Frameworks typically organize
-	LLM calls around a fixed procedure, such as converting documents into questions,
-	perturbing environments to create repair tasks, or deriving task instructions
-	from sampled tool trajectories. These procedures constrain both task content
-	and format; additional search or evolutionary loops still repeat the same
-	underlying paradigm. This limits support for complex agent tasks, particularly
-	those involving interaction with other agents.
-	\textbf{(iii) Iteration driven by proxy metrics.} Optimizing target-model
-	failure rates or score gaps between models does not necessarily reveal the
-	capability weaknesses behind their performance. Such objectives can conflate
-	task defects with model weaknesses, degrading task quality during iteration.
-	They also yield fragmented evidence, inefficiently discovering tasks that
-	differ in content but expose the same underlying weakness, and provide limited
-	actionable guidance for model improvement.
-	Together, these limitations make it difficult for existing frameworks to
-	extend their success beyond familiar evaluation settings with extensive
-	benchmark coverage.
+We introduce \textbf{EvalScientist}, an autonomous framework for demand-driven end-to-end model evaluation. EvalScientist operationalizes natural-language evaluation requirements into structured measurement specifications, systematically linking capabilities, conditions, and rubrics. Central to this pipeline are three coordinated modules:
+Our \emph{Research-assisted Planner} retrieves external evidence to inform the evaluation design, assigning suitable resources for construction. 
+A \emph{Builder} instantiates these specifications under \emph{EvalScientist-Harness}, using a unified task schema that jointly couples environments, participating agents, and verification code, enforcing consistency through modular synthesis and semantic checks.
+Finally, a \emph{Hypothesis-driven Analyzer} resolves ambiguous model failures by formulating targeted capability hypotheses and triggering differential follow-up probes through the same pipeline. By closing the loop between failure diagnosis and evidence gathering, EvalScientist connects initial requirements to auditable, evidence-backed evaluation reports.
 	
-	To address these limitations, we introduce \textsc{EvalClaw}, a fully automated
-	benchmark construction framework that provides an end-to-end pipeline from
-	natural-language evaluation demands to benchmark construction and autonomous
-	iteration guided by model capability weaknesses. Our \emph{Research-assisted
-		Planner} refines task designs through an iterative research loop, using
-	retrieved evidence to identify and assign suitable resources for construction.
-	To accommodate diverse task formats and interaction requirements, we introduce
-	a unified task representation that integrates task content, data, environments,
-	participant agents, and evaluation criteria. The accompanying
-	\emph{EvalClaw-Harness} equips the Builder with component-specific tools and
-	integrated quality checks to construct, validate, and repair these tasks.
-	Finally, our \emph{Hypothesis-driven Analyzer} examines tasks and model responses
-	to formulate hypotheses about underlying capability weaknesses, then invokes
-	the construction pipeline to generate new tasks that test those hypotheses.
-	The resulting evidence informs subsequent iterations and refines the diagnosis,
-	enabling systematic investigation of shared weaknesses across diverse task
-	contents and settings.
-	
-	To evaluate \textsc{EvalClaw} beyond conventional domains with extensive
-	benchmark coverage, we derive 15 custom evaluation demands from a broad set of
+	We evaluate EvalScientist beyond conventional domains with extensive
+	benchmark coverage. We derive 15 custom evaluation demands from a broad set of
 	authoritative documents on LLM evaluation. These demands capture capabilities
 	and interaction requirements that existing benchmarks cover only partially.
 	We compare against multiple automated construction frameworks and expert-built
 	benchmarks, using the closest available comparisons for each demand.
-	Extensive experiments show that \textsc{EvalClaw} constructs high-quality
+	Extensive experiments show that EvalScientist constructs high-quality
 	benchmarks for these demands, where existing automated frameworks fall
 	substantially short and no existing benchmark matches the full requested scope.
-	We further evaluate \textsc{EvalClaw} across eight conventional LLM evaluation
+	We further evaluate EvalScientist across 8 conventional LLM evaluation
 	areas, selecting automated construction frameworks and expert-built benchmarks
 	that most directly correspond to the evaluation demands. In these established
-	domains, \textsc{EvalClaw} achieves benchmark quality comparable to expert-built
+	domains, EvalScientist achieves benchmark quality comparable to expert-built
 	benchmarks, while its design enables the construction of more diverse and
 	challenging tasks.
 	More importantly, autonomous iteration progressively focuses the benchmark on
@@ -171,180 +120,70 @@
 	diagnosis, providing actionable guidance for model improvement.
 	
 	Comprehensive ablation experiments and case studies further demonstrate how
-	\textsc{EvalClaw}'s component designs contribute to benchmark quality.
+	EvalScientist's component designs contribute to benchmark quality.
 	Ablations isolate the benefits of resource selection, construction support,
 	and hypothesis-driven iteration, while detailed case analyses reveal how
 	these components guide task construction and refinement in practice.
 	The observed mechanisms align with the intuitions motivating our design,
 	explaining how the components help produce better benchmarks.
 	
-	\section{Related Work}
+	\section{Related Work}\label{sec:related-work}
 	
-	\paragraph{Benchmarks and evaluation scope.}
-	Established benchmarks cover broad knowledge and reasoning
-	\citep{hendrycks2021mmlu,wang2024mmlupro,rein2024gpqa,phang2025hle}, executable
-	software and computer-use tasks
-	\citep{jimenez2024swebench,xie2024osworld}, and specialized agent behaviors
-	\citep{zhang2025whowhen,debenedetti2024agentdojo}.
-	LiveBench and LiveCodeBench refresh evaluation material to address changing
-	model capabilities and potential contamination
-	\citep{white2024livebench,jain2024livecodebench}.
-	These resources establish useful task designs and scoring protocols, but a
-	user demand may span several of their capabilities or require a different
-	interaction setting. Our reference comparisons use the overlapping scope;
-	they do not treat any one suite as a complete measure of a compound demand.
+	\paragraph{Automated benchmark construction.}
+Recent work increasingly frames benchmark creation as an automated generation problem. AutoBencher searches for task distributions with targeted empirical properties, whereas YourBench conditions task generation on user-provided documents~\citep{li2025autobencher,shashidhar2025yourbench}. More comprehensive agentic pipelines automate broader stages of this workflow: BenchAgents coordinates end-to-end task generation and verification, Benchmark Agent decomposes high-level intents into dataset discovery and transformation operations, and Embodied-BenchClaw operationalizes requirements across data acquisition, simulation synthesis, and reporting~\citep{benchagents2025,xiong2026benchmarkagent,embodiedbenchclaw2026}. While these systems significantly reduce manual curation costs, they predominantly treat external material as task seeds. EvalScientist extends this paradigm by allowing external resources to actively govern the evaluation design itself, tailoring the functional role of retrieved evidence to the underlying measurement specification.
+
+\paragraph{Executable and verifiable benchmark construction.}
+Transitioning from static question answering to interactive environments requires coordinating executable contexts, interaction protocols, and scoring rubrics. General-purpose harnesses such as Inspect provide unified abstractions for tool integration, sandboxing, and evaluation execution, while systems like Gym-Anything automate the synthesis of executable environments and programmatic verifiers~\citep{inspect2024,aggarwal2026gymanything}. To enforce coherence across generated artifacts, Anchor derives environment states, solutions, and verifiers from shared constraint specifications, and Embodied-BenchForge models inter-component dependencies to enable targeted artifact repair~\citep{anchor2026,benchforge2026}. These frameworks establish benchmark construction as the synchronized assembly of interdependent components. EvalScientist adopts a unified representation across diverse task paradigms, enforcing structural, operational, and semantic consistency before executing the resulting specification on target models.
+
+\paragraph{Adaptive evaluation and diagnosis.}
+Adaptive evaluation methodologies pursue several related directions. One line utilizes target-model performance to calibrate benchmark utility: AutoBencher and BeTaL tune task distributions to desired difficulty profiles, while BenchEvolver iteratively mutates executable tasks toward capability frontiers~\citep{li2025autobencher,betal2025,benchevolver2026}. The second line focuses on behavioral auditing; Petri conducts interactive audits to probe specific behaviors, whereas Bloom samples targeted scenarios to quantify behavioral prevalence across contexts~\citep{fronsdal2025petri,bloom2025}. A third direction steers subsequent data or task generation based on observed performance. For instance, Agent-World leverages failure patterns to guide environment synthesis, and Open Evaluation Agent dynamically updates evaluation trajectories from intermediate visual evidence~\citep{dong2026agentworld,openevaluationagent2026}. EvalScientist is closest to this final class, but uses adaptation specifically to examine candidate explanations of failures: observed failures motivate testable capability hypotheses, which our pipeline resolves through targeted follow-up probes before compiling auditable claims into the final report.
+
+\paragraph{Meta-evaluation of benchmarks and generators.}
+A parallel line of research investigates formal standards for assessing evaluation quality. BetterBench establishes criteria across the benchmark lifecycle, identifying pervasive limitations in validity, reproducibility, and statistical reporting~\citep{reuel2024betterbench}. Benchmark$^2$ characterizes benchmark quality through model-level metrics, including ranking stability, discriminability, and capability alignment, while BenchBench audits benchmark generation pipelines via item validation and psychometric assessments~\citep{benchmark2_2026,benchbench2026}. These studies demonstrate that high evaluation fidelity requires multidimensional validation beyond difficulty metrics alone. Accordingly, our experiments evaluate generated benchmarks across demand alignment, task correctness, behavioral diversity, and the evidential validity of downstream diagnostic claims.
 	
-	\paragraph{Automated construction.}
-	Language-model examiners generate and assess questions
-	\citep{bai2023lmexam}. AutoBencher optimizes declared properties of a benchmark,
-	including difficulty and novel model-performance patterns
-	\citep{li2025autobencher}. YourBench builds source-grounded questions from
-	documents, while Benchmark-Agent translates natural-language goals into
-	subtasks and dataset transformations
-	\citep{shashidhar2025yourbench,xiong2026benchmarkagent}.
-	For interactive tasks, Gym-Anything constructs software environments and
-	verifiers; Petri generates adaptive audits; and AutoControl Arena synthesizes
-	programmatic safety environments
-	\citep{aggarwal2026gymanything,fronsdal2025petri,li2026autocontrol}.
-	\textsc{EvalClaw} builds on the need for grounded, verifiable generation but
-	organizes construction around task components that can vary with the demand.
-	
-	\paragraph{Diagnostic evaluation.}
-	Who\&When evaluates attribution of failures in multi-agent traces, and
-	Agent-World uses failure diagnosis to guide environment and task generation
-	\citep{zhang2025whowhen,dong2026agentworld}. Petri also supports adaptive
-	investigation of model behavior~\citep{fronsdal2025petri}.
-	Thus, adaptive generation and diagnostic feedback are not unique to our work.
-	Our focus is the link between an explicit capability hypothesis, a new
-	evaluation demand, and the evidence obtained by constructing and running its
-	probes. The Analyzer comparison tests this link against generating more tasks
-	from recurring patterns in observed errors.
-	
-	\section{EvalClaw: Construction and Diagnosis}\label{sec:design}
-	
-	\textsc{EvalClaw} takes a natural-language evaluation demand and constructs a
-	benchmark whose tasks specify both what the target model must do and how its
-	behavior will be assessed. 
-	Construction has two stages: the Planner develops task designs and assigns supporting resources, and the Builder realizes those
-	designs with the EvalClaw-Harness. The resulting tasks are run on target models.
-	The Analyzer then uses their responses and execution evidence to propose
-	capability hypotheses and request further tests. 
-	Thus, EvalClaw finally produces a benchmark tailored to the user's evaluation needs, accompanied by a subset organized according to the model's capability weaknesses, providing suggestions for the model's subsequent improvement.
-	Figure~\ref{fig:pipeline} shows our full framework.
-	
-	\begin{figure}[t]
-		\centering
-		\includegraphics[width=\linewidth]{pipeline.pdf}
-		\caption{\textsc{EvalClaw} overview. 
-			The Research-assisted Planner designs the evaluation and assigns resources. 
-			The Builder uses EvalClaw-Harness to construct and check task components in a unified representation. 
-			After model evaluation, the Hypothesis-driven Analyzer requests further construction to investigate candidate capability weaknesses and incorporates the resulting evidence into its diagnostic report.}
-		\label{fig:pipeline}
-	\end{figure}
-	
-	\subsection{Research-assisted Planner}
-	\label{sec:planner}
-	The Planner translates the user's demand into task designs that specify the
-	capability to test, the required task format, and the conditions needed to
-	observe it. It decomposes the demand into multiple capability dimensions,
-	allocates item quotas across these dimensions and task formats, and organizes
-	the construction workload into manageable assignments for the Builder.
-	
-	During planning, the Planner can call a research tool with a question; the
-	search backend returns a synthesized answer and URLs of relevant sources.
-	Research serves two purposes: clarifying unfamiliar concepts and content
-	involved in the evaluation goal, and identifying resources that can support
-	subsequent task construction. The Planner uses these findings to refine its
-	designs and can ask further questions as new needs emerge, subject to the
-	research budget.
-	
-	Resource recommendations are selective. Given modern LLMs' strong generative
-	capabilities and the contamination risk associated with reusing existing
-	material, the Planner recommends a resource only when it expects that resource
-	to substantially improve the Builder's construction efficiency and enable more
-	challenging tasks. Each recommendation specifies its intended use, such as
-	providing factual evidence for a reference answer, realistic data to transform,
-	or an artifact to initialize an environment. The resulting plan combines task
-	requirements, item allocations, and relevant resource guidance for the Builder.
-	
-	\subsection{Unified Task Representation and EvalClaw-Harness}
-	\label{sec:harness}
-	
-	\paragraph{Task representation.}
-	Existing automated benchmark construction frameworks typically rely on fixed
-	generation paradigms, such as converting source documents into questions,
-	perturbing software environments to create repair tasks, or generating
-	natural-language instructions from sampled tool trajectories. Each paradigm
-	constrains the content and format of the resulting tasks, limiting the
-	framework's ability to accommodate evaluation demands beyond its predefined
-	construction procedure.
-	
-	To address this limitation, we introduce \emph{EvalClaw TaskDefinition}, a
-	general benchmark task representation serialized as JSON. By jointly specifying
-	task content, execution conditions, and evaluation criteria, it can in principle
-	express a wide range of task formats and content, from multiple-choice questions
-	to multi-turn interactions and environment-based agent tasks. It also supports
-	multi-agent tasks, tasks requiring repeated model invocations across multiple
-	stages, and tasks evaluated by an agent judge rather than a scoring script,
-	providing comprehensive coverage of task structures and evaluation mechanisms
-	for highly customized demands. This flexibility also substantially
-	increases the components that the Builder must configure and coordinate.
-	We therefore design \emph{EvalClaw-Harness}, a harness dedicated to benchmark
-	construction that helps the Builder decompose this work, construct individual
-	components, and check their integration into a coherent, executable task.
-	
-	Overall, EvalClaw-Harness supports the Builder's task construction in multiple aspects:
-	
-	\paragraph{Task construction state management.}
-	The Harness manages the evolving task around the shared EvalClaw TaskDefinition
-	contract. It provides tools to add, remove, and modify individual parts of the
-	JSON specification, allowing the Builder to develop the task incrementally.
-	It also links entries in the specification to externally stored resources,
-	such as data files, images, and environment assets, maintaining the connection
-	between the task's declared requirements and the materials used to realize them.
-	
-	\paragraph{Component-specific tools.}
-	The Harness provides dedicated tools for efficiently constructing individual
-	task components, including code execution, resource retrieval and processing,
-	image synthesis, and commands for configuring task environments. These tools
-	allow the Builder to carry out the operations required by each component
-	within the construction workflow.
-	
-	\paragraph{Feasibility and correctness checks.}
-	Quality Check (QC) first validates the task contract's fields and associated
-	external resources for structural validity and usability. When these checks
-	fail, the Builder receives error feedback and must repair the affected
-	components, iterating until the task passes the executability checks.
-	Once executability is established, an LLM-based QC reviews the correctness of
-	the task content, reference solutions, and evaluation criteria. Detected errors
-	are returned to the Builder for revision and subsequent rechecking.
-	For environment-based agent tasks, the QC model is equipped with agentic tools
-	to inspect files, execute commands, and interact directly with the task
-	environment. This access provides detailed evidence of the environment's actual
-	behavior, supporting more accurate judgments and actionable repair feedback.
-	
-	\subsection{Hypothesis-driven Analyzer}
-	\label{sec:analyzer}
-	
-	The Analyzer considers all tasks and evaluation results from target model accumulated throughout the initial evaluation and subsequent iterations, including task specifications, responses, scores, and available execution evidence. 
-	It examines this evidence jointly to formulate hypotheses about the model's capability weaknesses.
-	
-	To test a hypothesis, the Analyzer acts as a user of the framework: 
-	it expresses the desired probe as a natural-language evaluation demand and invokes the whole pipeline. 
-	Beyond specifying the demand, it reviews the tasks returned by the Builder and can request fine-grained revisions to ensure that they test the intended hypothesis. 
-	This refinement supports adding, removing, and modifying tasks. 
-	The resulting tasks are evaluated on the same target model, and the Analyzer uses its performance to assess whether the hypothesis is supported.
-	
-	\paragraph{Exclusions and differences.} Even in rare scenarios where the task itself contains errors and consequently the corresponding results are unreliable, by observing the target model's responses and run artifacts, the analyzer can distinguish the model's poor behavior from task or infrastructure problems.
-	Moreover, this approach differs from repeatedly reusing existing failure cases to construct similar problems so as to maximize the error rate. Instead, it seeks to uncover the overall capability weaknesses underlying the model's poor performance, and can thus generalize to identify the model's failures more broadly.
-	
-	The Analyzer's ultimate objective is to produce a final benchmark selected from the tasks constructed and refined across the initial run and all subsequent iterations. 
-	Every retained task must align with the original user demand,
-	within this scope, the Analyzer aims to identify each distinct
-	capability weakness and include sufficiently diverse tasks to characterize the full range of failure modes associated with that weakness. 
-	What's more, analyzer is demanded to give a report that summarizes the identified weaknesses, their failure modes, and the evidence from hypothesis testing. 
-	It guides the directions for the model's subsequent capability improvement.
-	
+\section{EvalScientist: Demand-Driven Automated Evaluation}\label{sec:design}
+
+Given a natural-language evaluation demand, configured target models, and resource limits, EvalScientist produces an executable benchmark, model execution and scoring records, and an evidence-supported report. The Research-assisted Planner translates the demand into measurement specifications; the Builder realizes them through EvalScientist-Harness; and the Hypothesis-driven Analyzer interprets the resulting observations and requests further tests when evidence is insufficient. Follow-up requests reuse the same planning, construction, and execution pipeline, linking the initial demand to successive diagnostic investigations. Figure~\ref{fig:pipeline} summarizes this workflow.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{pipeline.pdf}
+    \caption{EvalScientist overview. The Planner develops task designs and assigns supporting resources. The Builder uses EvalScientist-Harness to construct and validate tasks under a shared specification that also governs execution and scoring. The Analyzer examines the resulting evidence, requests follow-up tests of candidate capability weaknesses, and incorporates their outcomes into its report.}
+    \label{fig:pipeline}
+\end{figure}
+
+\subsection{Research-assisted Planner}\label{sec:planner}
+
+The Planner operationalizes the user's demand as evaluation dimensions, each specifying a measurement target, a scope boundary, and an approach for eliciting the relevant behavior. Within each dimension, it develops task designs that specify formats, item counts, input and interaction requirements, and scoring criteria. Each design defines one construction assignment for the Builder, ranging from a group of related questions to an individually specified environment-based task. The resulting plan separates decisions about what to measure from the operations needed to construct the tests.
+
+Research is interleaved with these design decisions. When external evidence is needed, the Planner issues focused queries and receives synthesized findings with source URLs; it can inspect individual sources and refine the plan as further questions arise. Retrieved evidence can clarify unfamiliar concepts, inform observable test conditions and difficulty factors, or support the choice of scoring criteria. Research therefore contributes to the measurement design rather than serving only to retrieve examples for transformation.
+
+The plan distinguishes source material used in task content from resources used to support construction. A document may substantiate a reference answer, a dataset may supply task inputs, and software documentation or a reusable artifact may facilitate environment setup. Construction resources are recommended selectively when they are expected to reduce implementation effort or enable more demanding tasks. Their use does not require the task itself to be adapted from an existing benchmark. These assignments connect each resource to its intended role in realizing the evaluation demand.
+
+\subsection{Unified Task Representation and EvalScientist-Harness}\label{sec:harness}
+
+\paragraph{Shared task specification.}
+EvalScientist represents each task as a structured specification linking target-visible content, execution conditions, and evaluation criteria. The schema supports multiple-choice, short-answer, open-generation, multi-turn, and environment-based agent tasks, with type-specific requirements. Environment specifications describe initial state, available actions, assets, and scoring mechanisms, while keeping target-visible material separate from setup and evaluator-only information. Multi-stage tasks explicitly specify whether conversation context and environment state are retained and which outputs pass between stages. Container-backed tasks can additionally configure model-backed participants with designated tools and permissions, as well as runtime interventions. These components support varied evaluation protocols within the capabilities of the implemented container and virtual-machine runtimes.
+
+\paragraph{Incremental construction.}
+EvalScientist-Harness maintains the task specification and associated artifacts throughout construction. The Builder can inspect and edit individual components rather than regenerate the entire specification after each change. Component-specific tools support computation, resource retrieval and processing, image inspection and synthesis, and environment construction. This separation allows components to be developed incrementally while retaining a common task contract: instructions must refer to accessible inputs, actions must operate on the declared state, and evaluators must assess the outputs or behavior required by the task.
+
+\paragraph{Quality control and repair.}
+Quality control combines programmatic validation with model-based review. Structural checks validate task fields, references, and type-specific constraints; suite-level checks examine duplication and coverage. For container-backed tasks, pre-execution checks exercise the environment and evaluator, including supplied verification cases. When configured, an LLM reviewer examines sampled task specifications, references, rubrics, and serialized environment information for substantive inconsistencies. Detected blocking issues are returned to the Builder for targeted repair within configured limits, preserving accepted tasks. Tasks with unresolved blocking errors are excluded, or construction fails when complete delivery is required. These checks support task validity but do not establish semantic correctness by themselves.
+
+\paragraph{Execution and evidence.}
+The accepted specification also determines how a target receives inputs, interacts with the environment or other participants, and is scored. Depending on the task, evaluation uses answer checks, executable validators, rubric-based judging, or a configured combination of script and agent judging. Responses, interaction traces, evaluator outputs, and execution errors are retained for analysis. Sharing the specification across construction and execution makes the intended measurement and its observed outcome available to the same downstream investigation.
+
+\subsection{Hypothesis-driven Analyzer}\label{sec:analyzer}
+
+The Analyzer uses task specifications and results from the initial evaluation and completed follow-up runs to formulate candidate explanations of model weaknesses. It considers responses, scores, judge reasoning, and available execution evidence jointly rather than treating a low score as sufficient evidence of a capability limitation. When the supplied summaries are insufficient, read-only tools provide access to saved task details, trajectories, quality-control records, and evaluator outputs. This inspection supports distinguishing model behavior from ambiguous tasks, scoring defects, and infrastructure failures.
+
+To investigate an unresolved explanation, the Analyzer expresses the required test as a new natural-language evaluation demand. The Planner and Builder then construct probes through the same pipeline used for the initial benchmark. Before execution, the Analyzer reviews the generated tasks against the hypothesis and can request additions, removals, or modifications within the probe budget. This step checks whether the constructed test addresses the intended question, rather than assuming that a successfully generated task is a suitable probe. Follow-up tasks are evaluated on the same configured target models, and their outcomes become evidence for the next analysis round.
+
+The purpose of this feedback is to examine the scope and support of an explanation, not merely to increase the target model's failure rate. A follow-up request can change task content, format, or interaction conditions to investigate a suspected limitation beyond the original failed instances. The Analyzer incorporates the new observations into its assessment, identifying supported patterns and remaining uncertainty. Hypotheses are expressed and assessed in natural language; the procedure provides evidence-based investigation rather than a formal guarantee of causal identification. Analysis ends when the Analyzer elects to conclude or the configured probe limits are reached.
+
+The final output combines a diagnostic report with a subset of executed tasks organized by the weaknesses they are judged to support. Each selected item references a specific task, target model, and evaluation iteration; the framework checks that the cited result exists, completed without an execution error, and was not rejected by quality control. The Analyzer is instructed to retain only tasks aligned with the original demand and to exclude invalid or ambiguous evidence. The report explains the observed failure patterns and the support obtained from follow-up tests, while stating unresolved questions. Its conclusions provide evidence for prioritizing further evaluation and model improvement, conditional on the tasks and conditions actually examined.
+
 	\section{Experiments}
 	\label{sec:exp}
 	
