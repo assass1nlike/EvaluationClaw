@@ -59,6 +59,9 @@ def _task_payload(pkg: BenchmarkPackage) -> dict[str, Any]:
         scoring = _definition_value(item, "scoring") or task_agent.get("scoring") or {}
         interaction = _definition_value(item, "interaction") or task_agent.get("interaction") or {}
         prompt = item.prompt
+        if item.content is not None:
+            prompt = json.dumps(item.content.model_dump(mode="json"), ensure_ascii=False, indent=2)
+            scoring = item.evaluation.model_dump(mode="json")
         if item.task_type != TaskType.agent:
             description = replace_non_agent_asset_references(description, item.assets)
             content_summary = replace_non_agent_asset_references(content_summary, item.assets)
@@ -97,7 +100,7 @@ def _task_payload(pkg: BenchmarkPackage) -> dict[str, Any]:
                 "environment": environment or {},
                 "source": source,
                 "resource_ids": _definition_value(item, "resource_ids") or [],
-                "challenge_effort": item.challenge_effort.value,
+                "challenge_effort": item.effort_label,
                 "tags": list(item.tags),
             }
         )

@@ -11,6 +11,7 @@ from ..types import BenchmarkConfig, BenchmarkItem
 from .desktop_agent_env import DesktopBridgeAgentEnvironment
 from .docker_agent_env import DockerWorkspaceAgentEnvironment
 from .docker_images import apply_docker_image_selection
+from .evaluation import require_valid_evaluator_execution
 
 
 def _resolve_builder_image_context(
@@ -82,6 +83,12 @@ def build_agent_environment(
         if config is not None:
             env_config.setdefault("pull_timeout", config.docker_pull_timeout_s)
             env_config.setdefault("docker_executable", config.docker_executable)
+            image_build = env_config.get("image_build") if isinstance(env_config.get("image_build"), dict) else {}
+            env_config["build_timeout"] = max(
+                config.docker_build_timeout_s,
+                int(env_config.get("build_timeout") or env_config.get("image_build_timeout")
+                    or image_build.get("build_timeout") or 0),
+            )
     if env_type == "vm" and config is not None:
         requires_vm = bool(env_config.get("requires_vm") or env_config.get("vm"))
         env_config = {
@@ -112,14 +119,7 @@ def build_agent_environment(
                 def deterministic():
                     details = environment._evaluate_script_with_evidence(evidence)
                     result = environment.last_test
-                    evaluation = environment.evaluation
-                    structured_required = bool(
-                        evaluation.get("result_path") or evaluation.get("score_path")
-                        or evaluation.get("result_format") == "json_on_stdout"
-                        or evaluation.get("allow_stdout_score")
-                    )
-                    if result["returncode"] not in {0, 1} or (structured_required and not result["evaluator"]["structured"]):
-                        raise RuntimeError(f"Evaluator did not return a valid result: {result['stderr'] or result['stdout']}")
+                    require_valid_evaluator_execution(result, environment.evaluation)
                     return environment.score(), details
 
                 score, details = score_with_agent(

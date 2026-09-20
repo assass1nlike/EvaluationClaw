@@ -102,7 +102,7 @@ def build_report(
     item_source_counts: Counter[str] = Counter()
     for item in used_items:
         task_counts[item.task_type.value] += 1
-        challenge_effort_counts[item.challenge_effort.value] += 1
+        challenge_effort_counts[item.effort_label] += 1
         item_source_counts[item.source.kind.value] += 1
     deduped_sources = _dedupe_sources(suite.resources)
     lines.append(
@@ -298,13 +298,22 @@ def build_report(
                 _markdown_table(
                     ["Criterion", "Score (1-5)", "Reasoning"],
                     [
-                        [label, f"{metric.score:.1f}", _escape_cell(metric.reasoning, 320)]
+                        [label, f"{metric.score:.1f}" if metric else "Not assigned",
+                         _escape_cell(metric.reasoning, 320) if metric else "Incomplete quality evaluation."]
                         for label, metric in metrics
                     ],
                 ),
                 "",
             ]
         )
+        if laaj.item_errors or laaj.overall_error:
+            lines.extend([
+                f"Quality evaluation incomplete: {len(laaj.item_errors)} failed task judgments. "
+                "Per-task means are withheld if any sampled task judgment failed.", "",
+                *[f"- `{item_id}`: {_escape_cell(error, 320)}" for item_id, error in laaj.item_errors.items()],
+                *([f"- Overall judgment: {_escape_cell(laaj.overall_error, 320)}"] if laaj.overall_error else []),
+                "",
+            ])
         if laaj.item_results:
             lines.extend([
                 "Correctness and faithfulness are equally weighted per-task means. "
@@ -371,8 +380,8 @@ def build_report(
                       "Contamination scores are conditional on confirmed matches.", ""])
         for number, result in sorted(laaj.iteration_reports.items()):
             rows = [
-                [name.capitalize(), f"{getattr(result, name).score:.2f}",
-                 _escape_cell(getattr(result, name).reasoning, 320)]
+                [name.capitalize(), f"{getattr(result, name).score:.2f}" if getattr(result, name) else "Not assigned",
+                 _escape_cell(getattr(result, name).reasoning, 320) if getattr(result, name) else "Incomplete quality evaluation."]
                 for name in ("correctness", "faithfulness", "diversity")
             ]
             contamination = result.contamination
@@ -388,6 +397,8 @@ def build_report(
             lines.extend([
                 f"#### Iteration {number}", "",
                 f"Evaluated items: {len(result.evaluated_item_ids)}/{result.total_item_count}", "",
+                f"Failed task judgments: {len(result.item_errors)}; overall error: "
+                f"{_escape_cell(result.overall_error, 320) if result.overall_error else 'none'}.", "",
                 _markdown_table(["Criterion", "Score (1-5)", "Reasoning"], rows), "",
             ])
 

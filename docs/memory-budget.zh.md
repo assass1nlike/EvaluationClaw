@@ -24,7 +24,14 @@ Builder、Runner、逐题 LaaJ、整体 LaaJ 环境探索和污染研究均在�
 
 Python 配置对应 `memory_budget_gib=600`、`memory_cgroup="/sys/fs/cgroup/evalclaw.slice"`、`task_builder_max_workers=0`、`runner_max_workers=0`。未启用预算时，默认并发保持为 4。
 
-所有参与预算的运行必须由同一账号启动在这个系统级 slice 内。需要本机 rootful Docker、systemd cgroup v2 和默认 Docker BuildKit；框架会在调用模型前检查条件，不满足就报错。Docker 命令固定使用本机默认 context。
+所有参与预算的运行必须由同一账号启动在这个系统级 slice 内。需要本机 rootful Docker、systemd cgroup v2 和内置 Docker BuildKit；框架会在调用模型前检查条件，不满足就报错。
+
+两种模式均按照启动时的 Docker context、`DOCKER_HOST` 或指定 Docker 可执行程序解析本地 Unix socket，并将检查、构建、执行和内存统计固定到该地址。同一预算的活动进程必须使用相同地址；不同地址会明确报错，不拆分预算或遗漏另一实例的容器。专用 Docker 可在实验启动终端设置：
+
+```bash
+export DOCKER_HOST=unix:///run/evaluationclaw/docker.sock
+unset DOCKER_CONTEXT DOCKER_TLS_VERIFY DOCKER_CERT_PATH
+```
 
 管理员在仓库目录执行一次：
 

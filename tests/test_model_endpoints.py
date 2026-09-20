@@ -546,7 +546,8 @@ def test_orchestrator_tools_forward_reasoning_effort_to_openai_compatible_endpoi
     assert captured["body"]["tools"][0]["function"]["name"] == "run_python"
 
 
-def test_orchestrator_deepseek_json_recovery_disables_thinking(monkeypatch) -> None:
+@pytest.mark.parametrize("model", ["deepseek-v4-flash", "deepseek-flash", "custom-compatible-model"])
+def test_orchestrator_json_recovery_requests_json(monkeypatch, model) -> None:
     captured: dict = {}
 
     def fake_stream(url, headers, body, **kwargs):
@@ -565,7 +566,7 @@ def test_orchestrator_deepseek_json_recovery_disables_thinking(monkeypatch) -> N
 
     response = llm.call_orchestrator_with_tools(
         [{"role": "user", "content": "Return the final task JSON."}],
-        model="deepseek-v4-flash",
+        model=model,
         api_key="test-key",
         base_url="https://api.deepseek.com",
         tools=[],
@@ -656,6 +657,19 @@ def test_openai_responses_provider_uses_responses_api(monkeypatch) -> None:
     assert captured["body"]["input"] == [{"role": "user", "content": "Return JSON."}]
 
 
+def test_explicit_reasoning_effort_survives_unrecognized_model_name(monkeypatch) -> None:
+    requests = []
+    def respond(url, headers, body, **kwargs):
+        requests.append(body)
+        return {"status": "completed", "output_text": "OK", "output": []}
+    monkeypatch.setattr(llm, "_post_streaming_responses", respond)
+    llm.call_orchestrator_with_tools([{"role":"user", "content":"Hello"}],
+        model="custom-reasoning-deployment", provider="openai_responses",
+        base_url="https://model.example/v1", api_key="test-key", reasoning_effort="high")
+    assert requests[0]["reasoning"] == {"effort":"high"}
+    assert llm._resolve_reasoning_effort("custom-reasoning-deployment", None, False) is None
+
+
 def test_responses_stream_returns_completed_response(monkeypatch) -> None:
     completed = {"status": "completed", "output_text": "done", "output": []}
     stream_lines = [
@@ -715,6 +729,7 @@ def test_openai_responses_provider_preserves_tool_output(monkeypatch) -> None:
     raw_output = [
         {
             "type": "function_call",
+            "id": "fc_output_item_1",
             "call_id": "call_1",
             "name": "lookup",
             "arguments": '{"query":"test"}',

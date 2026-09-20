@@ -48,7 +48,8 @@ LAAJ_READ_TASK_FILE_TOOL = ToolSpec(
     description=(
         "Read a declared text file from a sampled agent task. Areas visible, runtime, and hidden "
         "refer to agent_env; session refers to session.asset_files; image_build refers to "
-        "image_build.context_files; asset refers to a top-level task asset."
+        "image_build.context_files; asset refers to a top-level task asset. "
+        "definition reads any complete task field via a JSON Pointer (empty path reads the full definition)."
     ),
     parameters={
         "type": "object",
@@ -56,9 +57,9 @@ LAAJ_READ_TASK_FILE_TOOL = ToolSpec(
             "item_id": {"type": "string", "minLength": 1},
             "area": {
                 "type": "string",
-                "enum": ["visible", "runtime", "hidden", "session", "image_build", "asset"],
+                "enum": ["visible", "runtime", "hidden", "session", "image_build", "asset", "definition"],
             },
-            "path": {"type": "string", "minLength": 1},
+            "path": {"type": "string"},
             "offset": {"type": "integer", "minimum": 0},
             "max_chars": {
                 "type": "integer",
@@ -252,6 +253,9 @@ def agent_environment_overview(item: BenchmarkItem) -> dict[str, Any]:
 
 
 def _environment_contract(suite: TaskSuite, item: BenchmarkItem) -> dict[str, Any]:
+    if item.content is not None:
+        from ..protocols.task_view import definition_view
+        return redact_secrets(definition_view(item))
     environment = json.loads(json.dumps(_agent_env(item)))
     for key, area in (
         ("visible_files", "visible"),
@@ -341,6 +345,9 @@ def inspect_agent_environment(call: ToolCall, suite: TaskSuite) -> ToolResult:
 
 
 def _declared_text(item: BenchmarkItem, area: str, path: str) -> str | None:
+    if area == "definition":
+        from ..protocols.task_view import definition_text
+        return definition_text(item, path)
     if area != "asset":
         value = _declared_files(item, area).get(path)
         if value is None:
@@ -351,15 +358,16 @@ def _declared_text(item: BenchmarkItem, area: str, path: str) -> str | None:
         (
             asset
             for asset in item.assets
-            if path in {asset.path, Path(asset.path).name}
+            if path in {asset.id, asset.path, Path(asset.path).name}
         ),
         None,
     )
     if asset is None:
         return None
     try:
-        return Path(asset.path).read_text(encoding="utf-8")
-    except (OSError, UnicodeError):
+        from ..execution.components import asset_bytes
+        return asset_bytes(asset).decode("utf-8")
+    except (OSError, UnicodeError, ValueError):
         return None
 
 
@@ -377,7 +385,10 @@ def read_task_file(call: ToolCall, suite: TaskSuite) -> ToolResult:
         return ToolResult(
             tool_call_id=call.id, name=call.name, content="Unknown item id.", error="item_not_found"
         )
-    content = _declared_text(item, area, path)
+    try:
+        content = _declared_text(item, area, path)
+    except (KeyError, IndexError, TypeError, ValueError):
+        content = None
     if content is None:
         return ToolResult(
             tool_call_id=call.id,

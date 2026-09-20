@@ -99,7 +99,9 @@ def openai_tool_call_to_evalclaw(raw_call: Any) -> ToolCall:
     use this adapter.
     """
     function = _get(raw_call, "function", {}) or {}
-    call_id = _get(raw_call, "id") or _get(raw_call, "call_id") or ""
+    # Responses items have an item id as well as the tool invocation's call_id.
+    call_id = (_get(raw_call, "call_id") if _get(raw_call, "type") == "function_call"
+               else _get(raw_call, "id")) or ""
     name = _get(function, "name") or _get(raw_call, "name") or ""
     raw_arguments = _get(function, "arguments")
     if raw_arguments is None:

@@ -112,12 +112,14 @@ def normalize_platform(platform: str) -> str:
 
 def acquire_image(
     image: str, *, docker_executable: str = "docker", timeout_s: int = 300, allow_pull: bool = True,
-    platform: str | None = None,
+    platform: str | None = None, import_timeout_s: int = 1800,
 ) -> str:
     """Return a local image reference; preserve legacy behavior without a policy.
 
     Pinned digests are downloaded unchanged and cached under a deterministic local
     tag because docker load does not preserve registry RepoDigests.
+    timeout_s applies to registry operations; import_timeout_s allows local
+    unpacking to wait for storage independently of network transfer.
     """
     mirrors = configured_mirrors()
     if not mirrors:
@@ -136,8 +138,8 @@ def acquire_image(
         result = run_bounded(command, timeout=30, env=env)
         return result.returncode == 0 and (not platform or normalize_platform(result.stdout.strip()) == platform)
 
-    def checked(args):
-        result = run_bounded(args, timeout=timeout_s, env=env)
+    def checked(args, *, timeout=timeout_s):
+        result = run_bounded(args, timeout=timeout, env=env)
         if result.returncode:
             raise ImageAcquisitionError(
                 f"Image acquisition failed: {result.stderr or result.stdout}"
@@ -215,7 +217,8 @@ def acquire_image(
                                     output.addfile(
                                         member, tar.extractfile(member) if member.isfile() else None
                                     )
-                    checked([docker, "load", "-i", str(imported)])
+                    # Local unpacking competes for disk I/O independently of registry transfer.
+                    checked([docker, "load", "-i", str(imported)], timeout=import_timeout_s)
                     if not local(cached):
                         raise ImageAcquisitionError(f"Image import did not materialize {cached!r}.")
                     print(

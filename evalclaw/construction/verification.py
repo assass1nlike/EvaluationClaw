@@ -10,10 +10,11 @@ from ..types import AgentVerificationCase, BenchmarkConfig, BenchmarkItem
 
 
 def verify_agent_cases(item: BenchmarkItem, config: BenchmarkConfig, *, directory: Path | None = None) -> list[dict]:
-    from ..quality.laaj_exploration import TaskExperiment
+    from ..quality.laaj_exploration import _experiment
 
     cases = [AgentVerificationCase.model_validate(case)
-             for case in item.metadata.get("agent_env", {}).get("verification_cases", [])]
+             for case in (item.environment.verification_cases if item.content is not None else
+                          item.metadata.get("agent_env", {}).get("verification_cases", []))]
     if not cases:
         return []
     if item.workflow is not None:
@@ -26,8 +27,8 @@ def verify_agent_cases(item: BenchmarkItem, config: BenchmarkConfig, *, director
     for target in targets:
         for case in cases:
             name = f"{target.id if target else 'native'}-{case.id}"
-            experiment = TaskExperiment(item, config, target.id if target else "",
-                                        directory / name if directory else None)
+            experiment = _experiment(item, config, target.id if target else "",
+                                     directory / name if directory else None)
             try:
                 for command in case.commands:
                     result = experiment.perform({"operation": "command", "command": command})
@@ -37,11 +38,16 @@ def verify_agent_cases(item: BenchmarkItem, config: BenchmarkConfig, *, director
                         raise ValueError(f"Verification case {name}: command failed: {result}")
                 result = experiment.perform({"operation": "evaluate", "final_answer": case.final_answer})
                 if case.required_interventions:
-                    completed = {event["id"] for event in experiment.controller.records
-                                 if event["status"] == "completed"} if experiment.controller else set()
+                    runtime = getattr(experiment, "workspace_trial", None) or experiment
+                    controller = (experiment.runtime.interventions if item.content is not None and runtime is experiment
+                                  else runtime.controller)
+                    completed = {event["id"] for event in controller.records
+                                 if event["status"] == "completed"} if controller else set()
                     missing = set(case.required_interventions) - completed
                     if missing:
                         raise ValueError(f"Verification case {name}: interventions not triggered successfully: {sorted(missing)}")
+                if result["score"] is None:
+                    raise ValueError("Command verification cases require evaluation.scalar")
                 passed = case.min_score <= result["score"] <= case.max_score
                 outcomes.append({"case": name, "task_sha256": fingerprint, "passed": passed, **result})
                 if not passed:

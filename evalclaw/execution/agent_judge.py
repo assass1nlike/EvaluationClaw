@@ -19,6 +19,7 @@ from ..protocols.tool import ToolResult, ToolSpec
 from ..types import AgentJudgeSpec, BenchmarkConfig, BenchmarkItem
 from .errors import EvaluationExecutionError, JudgeResponseError
 from .evidence import execution_failure, redact_evidence
+from .judge_calls import call_judge_model
 from .judge_sandbox import JudgeSandbox
 
 JUDGE_PROMPT = """You score the target's completed agent task against the supplied scoring contract.
@@ -172,17 +173,15 @@ def score_with_agent(
             inspected = False
             used, repairs = 0, 0
             while True:
-                try:
-                    response = call_orchestrator_with_tools(
-                        messages, system_prompt=JUDGE_PROMPT, model=model.model, provider=model.provider,
-                        api_key=model.api_key, base_url=model.base_url, extra_body=model.extra_body,
-                        backend=config.llm_backend, tools=TOOLS if used < config.agent_judge_tool_max_calls else [],
-                        max_tokens=DEFAULT_MAX_OUTPUT_TOKENS, retry_on_truncation=True,
-                        expect_json=used >= config.agent_judge_tool_max_calls,
-                        trace_dir=root / "llm", trace_name="agent-judge", failover=config.failover_endpoint,
-                    )
-                except Exception as exc:
-                    raise EvaluationExecutionError(f"Judge model call failed: {exc}") from exc
+                response = call_judge_model(
+                    call_orchestrator_with_tools,
+                    messages, system_prompt=JUDGE_PROMPT, model=model.model, provider=model.provider,
+                    api_key=model.api_key, base_url=model.base_url, extra_body=model.extra_body,
+                    backend=config.llm_backend, tools=TOOLS if used < config.agent_judge_tool_max_calls else [],
+                    max_tokens=DEFAULT_MAX_OUTPUT_TOKENS, retry_on_truncation=True,
+                    expect_json=used >= config.agent_judge_tool_max_calls,
+                    trace_dir=root / "llm", trace_name="agent-judge", failover=config.failover_endpoint,
+                )
                 if not response.tool_calls:
                     try:
                         data = extract_json(response.content)

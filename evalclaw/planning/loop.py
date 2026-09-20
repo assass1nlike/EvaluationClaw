@@ -141,7 +141,7 @@ def _item_excerpt(item: BenchmarkItem, *, truncate: bool = True) -> dict[str, ob
         "id": item.id,
         "dimension_id": item.dimension_id,
         "task_type": item.task_type.value,
-        "challenge_effort": item.challenge_effort.value,
+        "challenge_effort": item.effort_label,
         "prompt": item.prompt[:700] if truncate else item.prompt,
         "assets": [asset.model_dump(mode="json") for asset in item.assets],
         "choices": [choice.model_dump(mode="json") for choice in item.choices],
@@ -170,7 +170,7 @@ def _item_excerpt(item: BenchmarkItem, *, truncate: bool = True) -> dict[str, ob
             ],
             "system_prompt": definition.system_prompt,
             "resource_ids": definition.resource_ids,
-            "interaction": definition.interaction,
+            "interaction": definition.interaction.model_dump(mode="json") if hasattr(definition.interaction, "model_dump") else definition.interaction,
             "environment": (
                 definition.environment.model_dump(
                     mode="json",
@@ -181,6 +181,9 @@ def _item_excerpt(item: BenchmarkItem, *, truncate: bool = True) -> dict[str, ob
             ),
             "scoring": definition.scoring.model_dump(mode="json"),
         }
+    if item.content is not None:
+        excerpt["content"] = item.content.model_dump(mode="json")
+        excerpt["evaluation"] = item.evaluation.model_dump(mode="json")
     return excerpt
 
 
@@ -614,7 +617,7 @@ def format_human_review_overview(
                 f"### `{item.id}`",
                 f"- Dimension: `{item.dimension_id}`",
                 f"- Type: `{item.task_type.value}`",
-                f"- Challenge effort: `{item.challenge_effort.value}`",
+                f"- Challenge effort: `{item.effort_label}`",
                 f"- QC status: {'passed' if item.id in ready_ids else 'not passed'}",
                 f"- Source: `{item.source.kind.value}`"
                 + (f" - {item.source.uri}" if item.source.uri else ""),
@@ -681,7 +684,7 @@ def format_human_review_overview(
                 [
                     "- Interaction:",
                     "```json",
-                    json.dumps(source_definition.interaction, ensure_ascii=False, indent=2),
+                    json.dumps(source_definition.model_dump(mode="json")["interaction"], ensure_ascii=False, indent=2),
                     "```",
                 ]
             )

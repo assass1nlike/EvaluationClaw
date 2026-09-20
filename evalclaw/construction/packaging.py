@@ -44,7 +44,9 @@ def _environment_for_runner(task: TaskDefinition) -> dict[str, Any]:
             if value
         )
         env, _ = apply_docker_image_selection(env, task_text=task_text)
-        if not env.get("test_command") and not env.get("judge"):
+        if task.content is not None and not any(s.kind == "environment" for s in task.evaluation.scorers):
+            env.update(expose_test_tool=False, auto_evaluate_on_final=False)
+        elif not env.get("test_command") and not env.get("judge"):
             env["test_command"] = "pytest -q"
     if env_type == "vm":
         if not isinstance(env.get("session"), dict):
@@ -449,15 +451,10 @@ def pack_task_item(
     blueprint: TaskBlueprint | None = None,
     task_design: TaskDesign | None = None,
 ) -> BenchmarkItem:
-    """Convert one constructed TaskDefinition into a runner-ready BenchmarkItem.
+    """Attach suite provenance and derived compatibility views to a task.
 
-    This is the single point where a TaskDefinition (the TaskBuilder's output
-    shape) becomes the runnable BenchmarkItem stored in the TaskSuite. It is pure
-    code: it attaches structural-validation metadata, a stable content summary,
-    a normalized rubric, runtime task_agent/agent_env/agent_task_package metadata
-    for interactive tasks, and a standard provenance source. The original
-    TaskDefinition is preserved on item.source_definition so repair loops can
-    hand it back to the TaskBuilder as previous_tasks.
+    BenchmarkItem inherits the entire definition; no independent source copy
+    is needed for execution, repair, or serialization.
     """
     metadata = dict(task.metadata)
     validation_blueprint = (
@@ -480,7 +477,9 @@ def pack_task_item(
     metadata[TASK_CONTENT_SUMMARY_METADATA_KEY] = _task_content_summary(task)
     metadata.setdefault("builder_job_id", task.metadata.get("builder_job_id") or "")
     task_package: dict[str, Any] | None = None
-    if task.task_type == TaskType.multi_turn:
+    if task.content is not None:
+        pass  # Explicit contracts already carry their complete execution semantics.
+    elif task.task_type == TaskType.multi_turn:
         metadata["task_agent"] = _task_agent_metadata_for_task(task, {})
     elif task.environment is not None:
         agent_env = _environment_for_runner(task)
@@ -505,26 +504,9 @@ def pack_task_item(
                 notes=resource.content_summary,
             )
     return BenchmarkItem(
-        id=task.id,
-        dimension_id=task.dimension_id,
-        task_type=task.task_type,
-        workflow=task.workflow,
-        prompt=task.prompt,
-        assets=task.assets,
-        choices=task.choices,
-        correct_choice_ids=task.correct_choice_ids,
-        expected_texts=task.expected_texts,
-        reference_answer=task.reference_answer,
-        reference_trajectory=task.reference_trajectory,
-        rubric=task.rubric or task.scoring.instructions or (
+        **{**task.model_dump(), "rubric": task.rubric or task.scoring.instructions or (
             f"{task.scoring.pass_criteria} {task.scoring.partial_criteria} {task.scoring.fail_criteria}".strip()
             or None
-        ),
-        judge_tools=task.judge_tools,
-        output_contract=task.output_contract,
-        challenge_effort=task.challenge_effort,
+        ), "metadata": metadata},
         source=item_source,
-        tags=task.tags,
-        metadata=metadata,
-        source_definition=task,
     )

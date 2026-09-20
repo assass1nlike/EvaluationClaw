@@ -3714,8 +3714,8 @@ def test_complex_code_smoke_requires_second_repair(monkeypatch) -> None:
 def test_llm_qc_receives_agent_env_metadata(monkeypatch) -> None:
     captured_payload = {}
 
-    def fake_call_llm(messages, **kwargs):
-        captured_payload.update(json.loads(messages[0].content))
+    def fake_call_llm(request, *args, **kwargs):
+        captured_payload.update(request)
         return json.dumps(
             {
                 "issues": [
@@ -3731,7 +3731,7 @@ def test_llm_qc_receives_agent_env_metadata(monkeypatch) -> None:
             }
         )
 
-    monkeypatch.setattr("evalclaw.quality.llm_checks.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.quality.laaj._run_laaj_tool_loop", fake_call_llm)
     dimension = EvalDimension(
         id="code_agent",
         name="Code agent",

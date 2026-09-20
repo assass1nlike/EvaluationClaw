@@ -66,6 +66,19 @@ If your question is simply "does this support caching?" or "can I use savevm her
 
 This reflects our current runner behavior.
 
+## Concurrent QEMU Instances
+
+QEMU reserves each forwarded port with a file lock for the VM's lifetime.
+Workers sharing a network namespace must also share the lock directory. For
+workers in separate containers, bind-mount a common directory and set
+`GYM_ANYTHING_QEMU_PORT_LOCK_DIR` to that directory in every worker. The default
+is `gym-anything-ports-<uid>` under the system temporary directory. Do not remove
+lock files while workers are running.
+
+Cold boots and checkpoint restores use the same reservations. Failed or stopped
+VMs reject remote commands and file transfers; an environment whose reset failed
+is closed without running post-task hooks or grading.
+
 ## QEMU Fast I/O
 
 QEMU supports `fast_io=True` for low-latency screenshot observations and fast

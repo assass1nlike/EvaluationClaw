@@ -66,7 +66,9 @@ def test_item_failure_preserves_other_concurrent_results(monkeypatch, tmp_path, 
             raise RuntimeError("item failed")
 
     def judge(messages, **kwargs):
-        evaluate(json.loads(messages[0].content))
+        request = json.loads(messages[0].content)
+        if "item" in request:
+            evaluate(request)
         return _response()
 
     def research(request, *args, **kwargs):
@@ -76,8 +78,11 @@ def test_item_failure_preserves_other_concurrent_results(monkeypatch, tmp_path, 
     monkeypatch.setattr(laaj, "call_llm", judge)
     monkeypatch.setattr(contamination, "_run_laaj_tool_loop", research)
     if stage == "laaj":
-        with pytest.raises(RuntimeError, match="item_1"):
-            laaj.evaluate_with_laaj("Goal", suite, None, config, trace_dir=tmp_path)
+        report = laaj.evaluate_with_laaj("Goal", suite, None, config, trace_dir=tmp_path)
+        assert set(report.item_errors) == {"item_1"}
+        assert set(report.evaluated_item_ids) == {"item_2", "item_3"}
+        assert report.correctness is None and report.faithfulness is None
+        assert report.diversity is not None and report.overall_error is None
         assert attempts == {"item_1": 3, "item_2": 1, "item_3": 1}
         assert (tmp_path / "items/item-0001/error.json").exists()
         paths = [tmp_path / "items" / f"item-{i:04d}/result.json" for i in (2, 3)]

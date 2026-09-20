@@ -45,7 +45,8 @@ def _analysis(suite, strategy="hypothesis_driven"):
 
 
 @pytest.mark.parametrize("ablation", ["none", "similar_tasks"])
-def test_pipeline_adds_iteration_judgments_to_existing_main_report(monkeypatch, tmp_path, ablation):
+@pytest.mark.parametrize("incomplete", [False, True])
+def test_pipeline_adds_iteration_judgments_to_existing_main_report(monkeypatch, tmp_path, ablation, incomplete):
     suite = _suite()
     qc = QcReport(passed_item_ids=[item.id for item in suite.tasks])
     run = EvalRun(suite=suite, qc_report=qc, results=[
@@ -84,6 +85,10 @@ def test_pipeline_adds_iteration_judgments_to_existing_main_report(monkeypatch, 
         assert kwargs["artifact_dir"] == root / "analysis" / f"iteration-{number:02d}"
         assert kwargs["trace_dir"] == kwargs["artifact_dir"] / "laaj"
         calls.append(("quality", number))
+        if incomplete:
+            return LaajReport(model="judge", total_item_count=len(current.tasks),
+                              item_errors={current.tasks[0].id: "invalid judgment"},
+                              overall_error="invalid overall judgment")
         return _quality(current)
 
     def contamination(goal, current, config, **kwargs):
@@ -106,6 +111,9 @@ def test_pipeline_adds_iteration_judgments_to_existing_main_report(monkeypatch, 
     assert set(package.laaj.iteration_reports) == {1, 2}
     assert package.laaj.iteration_reports[2].total_item_count == 2
     assert package.laaj.iteration_reports[2].contamination.total_item_count == 2
+    if incomplete:
+        assert package.laaj.iteration_reports[2].correctness is None
+        assert package.laaj.iteration_reports[2].item_errors
     assert "#### Iteration 2" in package.report.markdown
     assert '"iteration_reports"' in build_report_viewer_html(package)
     restored = LaajReport.model_validate_json((root / "laaj.json").read_text())

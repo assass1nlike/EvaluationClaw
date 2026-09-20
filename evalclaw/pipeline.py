@@ -106,6 +106,9 @@ def _evaluate_iteration_quality(
                 trace_dir=root / "laaj" if root is not None else None,
             )
         laaj.iteration_reports[iteration.iteration] = report
+        if report.item_errors or report.overall_error:
+            log(f"  Iteration {iteration.iteration} LaaJ incomplete: {len(report.item_errors)} failed task judgments; "
+                f"overall judgment failed: {bool(report.overall_error)}. Saved valid results and errors.")
         if root is not None:
             write_json(root / "laaj.json", report.model_dump(mode="json"))
             write_json(debug_run_dir / "laaj.json", laaj.model_dump(mode="json"))
@@ -214,7 +217,11 @@ def _load_construction_resume(
                         continue
                     source_definitions[task.id] = task
         for task in suite.tasks:
-            task.source_definition = source_definitions.get(task.id)
+            source = source_definitions.get(task.id)
+            if source is not None:
+                for field in TaskDefinition.model_fields:
+                    if field not in task.model_fields_set:
+                        setattr(task, field, getattr(source, field))
         if plan is not None:
             plan = plan.model_copy(
                 update={
@@ -816,7 +823,10 @@ def _run_pipeline(
         if debug_run_dir is not None:
             write_json(debug_run_dir / "laaj.json", laaj.model_dump(mode="json"))
     elif laaj is not None:
-        _live_emit("  LaaJ: resumed completed benchmark-quality evaluation.")
+        _live_emit("  LaaJ: resumed saved benchmark-quality results.")
+    if laaj is not None and (laaj.item_errors or laaj.overall_error):
+        log(f"  LaaJ incomplete: {len(laaj.item_errors)} failed task judgments; "
+            f"overall judgment failed: {bool(laaj.overall_error)}. Saved valid results and errors.")
     mark_stage("laaj", "done")
 
     if laaj is not None and config.contamination_enabled and laaj.contamination is None:

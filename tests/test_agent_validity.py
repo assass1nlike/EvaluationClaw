@@ -324,7 +324,9 @@ def test_real_openclaw_workflow_gateway_and_session_history(tmp_path):
     server = ThreadingHTTPServer(('0.0.0.0', 0), Provider)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    bridge = json.loads(subprocess.check_output(['docker', 'network', 'inspect', 'bridge'], text=True))[0]['IPAM']['Config'][0]['Gateway']
+    bridge = os.environ.get('EVALCLAW_TEST_HOST_ADDRESS') or json.loads(
+        subprocess.check_output(['docker', 'network', 'inspect', 'bridge'], text=True)
+    )[0]['IPAM']['Config'][0]['Gateway']
     target = TargetModelConfig(id='local', provider='openai_compatible', model='deepseek-flash',
         api_key='test-only-key', base_url=f'http://{bridge}:{server.server_port}', harness='openclaw')
     task = item()

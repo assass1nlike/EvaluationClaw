@@ -66,6 +66,7 @@ class GymAnythingEnv:
         self._session_info: Optional[SessionInfo] = None
         self._traj_log: Optional[JSONLWriter] = None
         self._finalized: bool = False
+        self._reset_complete = False
         self._env_root: Optional[Path] = None
         self._task_root: Optional[Path] = None
         self._verifier = VerifierRunner()
@@ -353,6 +354,7 @@ class GymAnythingEnv:
             self.close()
 
         self._step_idx = 0
+        self._reset_complete = False
         self._finalized = False
         self._reward_fn = None
         self._recorder = None
@@ -675,7 +677,9 @@ class GymAnythingEnv:
         logger.info("Session: %s", self._session_info.to_dict())
 
         # First observation (capture initial screen/audio as frame_00000)
-        return self._capture_observation()
+        observation = self._capture_observation()
+        self._reset_complete = True
+        return observation
 
     def step(
         self,
@@ -937,7 +941,7 @@ class GymAnythingEnv:
         return apply_post_reset_setup(self, setup_code=setup_code, steps=steps, env_dir=env_dir)
 
     def close(self) -> None:
-        if not self._finalized:
+        if self._reset_complete and not self._finalized:
             try:
                 self._complete_episode()
             except Exception:
@@ -953,6 +957,7 @@ class GymAnythingEnv:
             self._ensure_recording_artifact()
         except Exception:
             pass
+        self._reset_complete = False
         self._runner.stop()
         self._recorder = None
         self._rec_handle = None

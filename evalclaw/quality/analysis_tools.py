@@ -349,11 +349,18 @@ def _find_task_design(suite_payload: Any, task: dict[str, Any] | None) -> dict[s
     return None
 
 
-def _item_qc(qc_payload: Any, item_id: str) -> dict[str, Any]:
+def _item_qc(qc_payload: Any, item_id: str, task=None) -> dict[str, Any]:
     qc = qc_payload if isinstance(qc_payload, dict) else {}
+    from ..protocols.task_view import task_revision
+    reviewed = qc.get("task_digests", {}).get(item_id)
+    current = task_revision(task) if task is not None else None
+    match = "unversioned" if not reviewed or not current else "matched" if reviewed == current else "stale"
     return {
-        "passed": item_id in qc.get("passed_item_ids", []),
-        "rejected": item_id in qc.get("rejected_item_ids", []),
+        "revision_status": match,
+        "reviewed_digest": reviewed,
+        "current_digest": current,
+        "passed": item_id in qc.get("passed_item_ids", []) if match != "stale" else None,
+        "rejected": item_id in qc.get("rejected_item_ids", []) if match != "stale" else None,
         "issues": [
             issue
             for issue in qc.get("issues", [])
@@ -444,6 +451,11 @@ def read_item_evidence(call: ToolCall, run_dir: Path | None) -> ToolResult:
         ),
     }
     if kind in {"trajectory", "both", "all"}:
+        if result and result.get("episode") is not None:
+            text, truncated, next_offset = _text_evidence_page(
+                json.dumps(result["episode"], ensure_ascii=False), offset, max_chars)
+            evidence.update(episode=text, episode_offset=offset,
+                            episode_truncated=truncated, episode_next_offset=next_offset)
         raw, truncated, next_offset = _text_evidence_page(
             result.get("raw_response") if result is not None else "", offset, max_chars
         )
@@ -487,7 +499,7 @@ def read_item_evidence(call: ToolCall, run_dir: Path | None) -> ToolResult:
             "task_next_offset": next_offset,
         })
     if kind in {"qc", "all"}:
-        evidence["qc"] = _item_qc(construction.get("qc_report"), item_id)
+        evidence["qc"] = _item_qc(construction.get("qc_report"), item_id, task)
     return ToolResult(
         tool_call_id=call.id,
         name=call.name,

@@ -12,14 +12,17 @@ if [ ! -d upstream ]; then
   git clone https://github.com/XiangLi1999/AutoBencher.git upstream
   git -C upstream checkout a05be9f1f776e4658de77e28c6bf22606cea01ab
 fi
-if ! git -C upstream apply --reverse --check ../patches/wikipedia-search-encoding.patch 2>/dev/null; then
-  if ! git -C upstream apply --reverse --check ../patches/wikipedia-retries.patch 2>/dev/null; then
-    if ! git -C upstream apply --reverse --check ../patches/wikipedia-user-agent.patch 2>/dev/null; then
-      git -C upstream apply ../patches/wikipedia-user-agent.patch
+if ! git -C upstream apply --reverse --check ../patches/wikipedia-search-cycle.patch 2>/dev/null; then
+  if ! git -C upstream apply --reverse --check ../patches/wikipedia-search-encoding.patch 2>/dev/null; then
+    if ! git -C upstream apply --reverse --check ../patches/wikipedia-retries.patch 2>/dev/null; then
+      if ! git -C upstream apply --reverse --check ../patches/wikipedia-user-agent.patch 2>/dev/null; then
+        git -C upstream apply ../patches/wikipedia-user-agent.patch
+      fi
+      git -C upstream apply ../patches/wikipedia-retries.patch
     fi
-    git -C upstream apply ../patches/wikipedia-retries.patch
+    git -C upstream apply ../patches/wikipedia-search-encoding.patch
   fi
-  git -C upstream apply ../patches/wikipedia-search-encoding.patch
+  git -C upstream apply ../patches/wikipedia-search-cycle.patch
 fi
 if [ ! -x .venv/bin/python ]; then
   .tools/bin/uv venv --python /usr/bin/python3.10 .venv

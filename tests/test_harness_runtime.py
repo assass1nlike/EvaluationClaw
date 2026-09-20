@@ -16,6 +16,52 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+@pytest.mark.parametrize("termination", ["completed", "budget_exhausted"])
+def test_real_submission_and_episode_end_match_reviewer_trial(monkeypatch, tmp_path, termination):
+    from evalclaw.quality.laaj_exploration import TaskExperiment
+    runner = ManifestHarnessRunner(ManifestHarness(name="fixture", run="python3 solve.py {task}", model_env={}))
+    target = TargetModelConfig(provider="openai", model="test", harness="openclaw")
+    monkeypatch.setattr("evalclaw.runners.harness.get_harness", lambda name: runner)
+    contract = {"schema_version": "evalclaw.output.v1", "artifacts": [
+        {"id": "report", "path": "deliverables/report.json", "format": "json"}]}
+    item = BenchmarkItem(id="settlement", task_type="agent", prompt="Write the report.", output_contract=contract,
+        metadata={"agent_env": {"type": "docker_workspace", "image": "python:3.11", "auto_select_image": False,
+        "network": "none", "visible_files": {"solve.py": """import json, sys
+from pathlib import Path
+manifest = json.loads(sys.argv[1].split('Submission requirements:\\n')[1])
+path = Path(manifest['artifact_paths']['report'])
+path.parent.mkdir(parents=True, exist_ok=True)
+path.write_text(json.dumps({'done': True}))
+print('submitted')
+"""}, "hidden_files": {"grade.py": """import json
+from pathlib import Path
+e = json.loads(Path('/evalclaw-evidence/episode.json').read_text())
+path = Path(e['submission_contract']['artifact_paths']['report'])
+settled = [r for r in e['interventions'] if r['id'] == 'close' and r['status'] == 'completed']
+assert len(settled) == 1
+assert Path('/workspace/settled').read_text() == 'closed'
+score = int(path.is_file() and json.loads(path.read_text()) == {'done': True})
+print(json.dumps({'score': score}))
+"""}, "test_command": "python3 grade.py", "evaluation": {"result_format": "json_on_stdout"},
+        "interventions": [{"id": "close", "trigger": {"type": "episode_end"},
+                           "action": {"command": "printf closed > /workspace/settled"}}]}})
+    config = BenchmarkConfig(targets=[target])
+    if termination == "budget_exhausted":
+        item.metadata["agent_env"]["budget"] = {"wall_time_seconds": 5}
+        item.metadata["agent_env"]["visible_files"]["solve.py"] += "\nimport time; time.sleep(60)\n"
+    _, score, _ = runner.run(item, target, config, artifact_dir=tmp_path / "run")
+    assert score == 1
+    evidence = json.loads((tmp_path / "run/evaluator-evidence.json").read_text())
+    assert evidence["termination"]["status"] == termination
+    trial = TaskExperiment(item, config, target.id, tmp_path / "trial")
+    try:
+        result = trial.perform({"operation": "command", "command": "mkdir -p deliverables && printf '{\"done\":true}' > deliverables/report.json"})
+        assert result["returncode"] == 0
+        assert trial.perform({"operation": "evaluate"})["score"] == score
+    finally:
+        trial.close()
+
+
 def _task():
     return BenchmarkItem(
         id="portable", dimension_id="tools", task_type=TaskType.agent,

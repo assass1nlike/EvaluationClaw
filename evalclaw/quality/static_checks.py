@@ -61,6 +61,10 @@ def _task_structure_prevalidated(item: BenchmarkItem) -> bool:
 
 
 def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
+    if item.content is not None:
+        from ..execution.task_runtime import contract_issues
+        return [_issue(item.id, QcSeverity.error, QcCategory.schema, message)
+                for message in contract_issues(item)]
     issues: list[QcIssue] = []
     if not item.prompt.strip():
         issues.append(_issue(item.id, QcSeverity.error, QcCategory.schema, "Prompt is empty."))
@@ -230,7 +234,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
             if item.task_type == TaskType.agent
             else asset_label(index)
         )
-        if prompt_path not in item.prompt and not any(
+        if item.task_type != TaskType.agent and prompt_path not in item.prompt and not any(
             prompt_path in choice.text for choice in item.choices
         ):
             issues.append(
@@ -239,7 +243,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                     QcSeverity.error,
                     QcCategory.clarity,
                     f"Prompt or choices do not reference asset {prompt_path!r}.",
-                    "Refer to each image asset by its Image N label in the prompt or choices; agent tasks use the environment path.",
+                    "Refer to each image asset by its Image N label in the prompt or choices.",
                 )
             )
         if not Path(path).is_file():

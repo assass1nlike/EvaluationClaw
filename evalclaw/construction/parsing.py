@@ -42,6 +42,11 @@ def _task_from_raw(
     default_task_type: TaskType = TaskType.generation,
 ) -> TaskDefinition:
     """Normalize Builder content while keeping identity framework-owned."""
+    if raw.get("content") is not None:
+        return TaskDefinition.model_validate({
+            **raw, "id": fallback_id, "dimension_id": default_dimension_id,
+            "task_type": raw.get("task_type") or default_task_type,
+        })
     scoring = raw.get("scoring") if isinstance(raw.get("scoring"), dict) else {}
     task_type = TaskType(str(raw.get("task_type") or default_task_type.value))
     choices, correct_choice_ids = _choice_data(raw)

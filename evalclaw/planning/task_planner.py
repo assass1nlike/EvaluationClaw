@@ -128,6 +128,8 @@ def _instruction_resource(
             if not external_harness_issues({"type": environment}, harnesses)
         ],
     }
+    from ..execution.contract_capabilities import runtime_capabilities
+    constraints["task_runtime_capabilities"] = runtime_capabilities(config)
     if harnesses:
         constraints["selected_external_harnesses"] = sorted(set(harnesses))
         constraints["environment_policy"] = (

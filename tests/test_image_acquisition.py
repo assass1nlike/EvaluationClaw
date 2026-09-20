@@ -123,6 +123,20 @@ def test_mirror_alias_reuses_downloaded_image(registry):
     assert len([c for c in calls if c[0] == "/crane"]) == 1
 
 
+def test_import_and_registry_transfer_have_independent_timeouts(registry, monkeypatch):
+    run = acquisition.run_bounded
+    timeouts = {}
+
+    def capture(args, *, timeout, env):
+        timeouts[args[1]] = timeout
+        return run(args, timeout=timeout, env=env)
+
+    monkeypatch.setattr(acquisition, "run_bounded", capture)
+    acquisition.acquire_image("node:20", timeout_s=31, import_timeout_s=1800)
+    assert timeouts["pull"] == 31
+    assert timeouts["load"] == 1800
+
+
 def test_platform_scoped_acquisition_and_digest_alias_cache(registry):
     _, calls, _ = registry
     digest = "sha256:" + "b" * 64

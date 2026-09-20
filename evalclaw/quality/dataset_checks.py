@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import difflib
+import json
 import re
 from collections import Counter
 
@@ -23,6 +24,8 @@ def _prompt_fingerprint(prompt: str) -> str:
 
 
 def _duplicate_content(item: BenchmarkItem) -> str:
+    if item.content is not None:
+        return json.dumps(item.model_dump(mode="json", include={"content", "environment", "interaction", "assets"}), ensure_ascii=False, sort_keys=True)
     parts = [item.prompt, *(asset.path for asset in item.assets)]
     if item.task_type == TaskType.choice:
         parts.extend(choice.text for choice in item.choices)
@@ -89,7 +92,7 @@ def _duplicate_issues(items: list[BenchmarkItem], *, near_duplicate_limit: int |
                 )
     return issues
 
-def _coverage_issues(suite: TaskSuite, large_scale_threshold: int) -> list[QcIssue]:
+def _coverage_issues(suite: TaskSuite, large_scale_threshold: int, *, retained: bool = False) -> list[QcIssue]:
     issues: list[QcIssue] = []
     item_count = len(suite.tasks)
     dimension_ids = {dimension.id for dimension in suite.spec.dimensions}
@@ -105,6 +108,14 @@ def _coverage_issues(suite: TaskSuite, large_scale_threshold: int) -> list[QcIss
                 )
             )
     task_counts = Counter(item.task_type for item in suite.tasks)
+    relations = {design.id: design.content_design.get("measurement", {}).get("relation")
+                 for blueprint in suite.blueprints for design in blueprint.task_designs
+                 if isinstance(design.content_design.get("measurement"), dict)}
+    auxiliary = sum(relations.get(item.metadata.get("task_design_id")) == "auxiliary" for item in suite.tasks)
+    if retained and item_count and auxiliary / item_count > 0.25:
+        issues.append(_issue(None, QcSeverity.warning, QcCategory.coverage,
+            f"{auxiliary}/{item_count} retained tasks are declared auxiliary measurements, exceeding 25%.",
+            "Preserve direct opportunities to exercise the user's requested behavior; inspect actual tasks before reclassifying."))
     for dimension in suite.spec.dimensions:
         dim_items = [item for item in suite.tasks if item.dimension_id == dimension.id]
         if not dim_items:

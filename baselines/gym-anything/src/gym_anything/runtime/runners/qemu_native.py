@@ -244,6 +244,9 @@ class QemuNativeRunner(QemuApptainerRunner):
 
     def _scp_to_vm(self, port: int, host_src: str, vm_dst: str) -> bool:
         """Copy file/directory to VM via SFTP, preserving file permissions."""
+        self._require_live_vm()
+        if port != self.ssh_port:
+            raise RuntimeError("SSH endpoint does not belong to this VM")
         import paramiko as _paramiko
 
         try:

@@ -136,6 +136,7 @@ def test_openai_response_api_function_call_converts_to_evalclaw_tool_call() -> N
             {"type": "message", "content": [{"type": "output_text", "text": "Working..."}]},
             {
                 "type": "function_call",
+                "id": "fc_output_item_2",
                 "call_id": "call_2",
                 "name": "run_tests",
                 "arguments": "{}",

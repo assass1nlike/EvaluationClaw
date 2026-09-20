@@ -1,10 +1,39 @@
 # TaskBuilder 任务字段契约（超集）
 
-TaskBuilder 的职责：根据 planner 给的 TaskDesign，生成任务对象（`TaskDefinition`），框架再打包成 `BenchmarkItem` 交给 Runner 执行。本文列出**所有任务类型字段的并集**（最通用的超集），以及每个字段的类型、语义、适用任务类型、必填性。
+TaskBuilder 根据 Planner 的 TaskDesign 生成 `TaskDefinition`。Builder、QC、Runner、Analyzer 和 LaaJ 使用同一份任务定义；`BenchmarkItem` 只增加题集来源信息，`source_definition` 是兼容访问视图。定义的版本号为 `schema_version: 2`；旧题可直接读取并沿用原来的呈现与评分语义。
+
+通常使用下文的简短题型模板。需要准确保留角色化上下文、任意资源、自定义评分或自适应交互时，使用同一模型中的显式契约：
+
+| 字段 | 内容 |
+| --- | --- |
+| `content` | 有序 `messages`，每条含 `role`、`content`，可注明 `origin` 为 task、seeded_context 或 prefill。内容为文本或 text/json/asset/image 块；输出要求放在 `content.output_contract`。可声明 stop、generate/continuation_likelihood 及待评分续写。 |
+| `assets` | id、path、media_type、sha256、version、uri、visibility、mount_path、writable、status。目标输入只能引用授予 target 的资源；组件只接收自身 assets 列表中的资源。mount_path 是包内相对路径；writable=null 沿用后端行为，文件系统只读授权暂不支持，显式声明会被拒绝。 |
+| `environment` | 现有 Docker/VM，或 tool_service：版本固定的服务组件、工具 schema、初始状态和显式 checkpoint/inspect 能力。容器承载服务不意味着目标获得 shell。 |
+| `interaction` | protocol 为 response/dialogue/tool_loop/program/model；参与者、工具权限、控制动作授权、控制器可见事件来源、对话后续输入及预算。actor_contact_tool 可暴露角色联系入口。 |
+| `evaluation` | references、metrics、scorers、可选 scalar、verification_cases。参考可为答案、标签、轨迹、测试、状态、准则，注明示例或完整允许集合。评分可为 exact/json/component/llm/agent/environment/aggregate，保留每项原生指标与方向。 |
+| `provenance` / `annotations` | 来源和原字段映射；原生语言、难度、类别等注释。不为导入题凭空赋予构题 effort。 |
+
+使用 `content` 时，删除模板中的 prompt、system_prompt、choices、output_contract，并将答案、参考轨迹、rubric 和评分配置统一放入 evaluation；不能维护两份互相竞争的输入或评分规则。exact/json 评分器需要内联参考值，llm/agent 评分器需要明确指令。题型标签不改变显式契约的执行或评分。无唯一答案的任务可用完整的检查器评分。用于 Analyzer 的题目必须明确选择 `evaluation.scalar` 的指标、范围和方向；否则只保留多指标结果，不猜测能力分数。题集级 mean/sum/micro/component 聚合写在 `TaskSuite.evaluation_plan`，分支不增加题目数量。
+
+Builder 可调用 `read_task_contract(section="schema")` 获取实际完整 schema，调用 `read_task_contract(section="component_protocol")` 获取服务协议，均支持分页。Planner 和 Builder 均收到 task_runtime_capabilities，描述当前运行绑定的实际能力。CLI 显式工作区支持 Docker、初始 user 文本、response/tool_loop/dialogue 和现有 environment actors；interaction.turns 按顺序投递 user 消息，工作区持续保留，interaction.reset_between_turns=true 时重置对话历史，否则要求 harness 支持会话续接。后续消息不会提前公开，评分保留各轮输入与输出。原生接口重置时保留初始 system/developer 指令与公开提交契约，历史交互仍留在审计事件中。原生角色历史、参与者工具授权、自适应控制器及工具服务使用兼容的原生模型接口。prefill、续写似然等能力不可用时，预检明确报错，不改写实验。
+
+需要文件交付时，可在 output_contract（显式任务为 content.output_contract）声明 `{"schema_version":"evalclaw.output.v1","artifacts":[{"id":"report","path":"deliverables/report.json","format":"json","required":true,"schema":{"type":"object"}}]}`。path 相对工作区，format 可为 file/directory/text/json/csv；schema 仅用于 JSON，response_schema 可描述最终文本回答的 JSON 结构。`read_task_contract(section="submission_contract")` 返回完整字段定义。框架将这份公开契约加入目标输入，并在评分证据的 submission_contract.artifact_paths 中提供相同的 ID→绝对路径表；工作区评分器通过 `/evalclaw-evidence/episode.json` 读取，显式组件通过评分请求读取。评分器应按 ID 使用路径；题面和示例不得与契约矛盾。契约不自动修改产物、转换类型或决定得分。没有该版本声明的既有输出契约维持原语义。
+
+Docker 环境的 interventions 支持 `trigger:{"type":"episode_end"}`，在目标正常结束或题目预算耗尽后、评分前按声明顺序执行 action；异常退出清理不执行结算。未触发的 elapsed_time/condition 不会自动补跑。结算失败视为执行错误。公开任务规则应说明观察时点，结算脚本在 stdout 或审计记录中保留相关前后状态，不得补做目标的工作。验证案例可用 required_interventions 要求结算实际发生。
+
+已有文件和镜像工具用于创建组件。`verify_candidate` 对显式契约接受 tool_calls/final_answer 的交互试交付，或 responses 数组中的逐轮 content、tool_calls、usage，通过正式状态机调用工具与评分器，不调用目标模型。多轮与控制器协议使用 responses。可在 evaluation.verification_cases 声明 id、responses 和 expected_metrics（指标名到 [最小值, 最大值] 的映射），预检独立重放并核对，建议覆盖正确与错误交付。CLI 工作区使用 environment.verification_cases 的命令与最终答案，按显式契约所选 scalar 检查结果。试运行单独标记，其预设回答不是模型实测表现。
+
+组件声明 image、version、command、files、config、输入/输出 JSON Schema、可访问 assets、网络权限、超时和 model_roles。组件在独立 Docker 容器中通过 stdin/stdout JSON 行通信，日志写 stderr；请求为 `{id, method, params, config}`，响应为 `{id, result}` 或 `{id, error}`。环境依次处理 initialize、call_tool、finalize，再由独立组件实例 score；原生 post-task/export 应在 finalize 内完成。控制器 next 接收获准来源的新增事件和自身状态，返回 actions 和状态。原生依赖可预装在镜像中，组件可以直接调用原实现，无需重写判分逻辑。模型回调通过声明的 actor/judge 角色绑定，不向容器提供 API 凭据。
+
+每个组件实现 describe，返回 `{version, methods}`；预检核对版本与所需方法。缺失的原生组件可用 status 与 unavailable_reason 如实记录，供静态审阅，但不能执行。finalize 的 artifact_files 将产物名映射到容器内文件，框架导出并记录 SHA-256；评分组件在 `/component/outputs/<产物名>` 读取校验后的副本。agent 评分器可按需读取证据、产物并检查独立环境状态。评分器仅能看到 depends_on 明确引用的已有指标；aggregate 按显式 weights 加权。response_view 区分目标新生成内容与包含 prefill 的完整消息。
+
+交互控制动作包括 message、target、tool_result、tool_call、register_tools、reset_session、checkpoint、restore、branch、actor、end，必须逐项授权。participants 的可执行角色为 target 和 actor；控制器使用 interaction.controller/controller_prompt，模拟服务在环境组件中实现。checkpoint 明确选择 conversation/environment/actors；恢复不删除审计事件，不退还已消耗预算。Actor 只接收自己的指令、授权资源和通信历史。外部 prefill 与目标新生成的内容分别记录。
+
+每次运行生成 `EpisodeRecord`：定义哈希、运行绑定、seed、按来源区分的事件、初末状态、输出、产物、预算、终止原因及原生指标。事件增量写入 events.jsonl，生命周期节点保存 episode.json。旧执行器保留完整原生证据引用，不伪造旧日志无法确定的事件。评分错误与有效零分分开。QC、Analyzer、LaaJ 首先收到题目与组件文件目录，完整内容可按需分页读取；read_task_file 的 area=definition、path 为 JSON Pointer。QC 保存被审题目的定义哈希；Analyzer 读取时区分匹配、过期和未绑定版本的审阅。Analyzer 的 evidence_assessments 跨轮保留任务引用、问题类别、涉及评分组件及具体证据；尚未消除题目或执行疑点的任务不能进入最终弱点题集。LaaJ 在新实例中试交付并调用评分器，其操作不归到目标名下。CLI 多轮探索仅支持初始环境检查，不能以单阶段命令验证案例代替完整会话验证。
 
 构题 Python 在独立 Docker 环境中运行，同一 Builder 的调用共享环境，仅挂载该作业的文件目录，使用独立 `/tmp`。默认镜像为 `python:3.11-slim`，每个构题执行容器的内存上限为 8192 MiB、进程数上限为 512；运行方可通过 `builder_sandbox_image`、`builder_memory_mb`、`builder_pids_limit` 配置。可在其中安装 Python 包、启动后台服务；后台进程需把输入输出重定向到文件或 DEVNULL。Python 调用超时（60 秒）会停止整个环境，作业结束或所属框架进程退出时会清理容器。只有作业目录中的文件保留。Docker 构建与检查通过框架工具完成；检查容器也挂载该作业目录，且受内存、进程和生命周期管理约束。
 
-## 1. 输出结构总览
+## 1. 简短模板的输出结构
 
 ```
 tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
@@ -37,7 +66,7 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 
 | 字段 | 类型 | 必填 | 语义 |
 |---|---|---|---|
-| `task_type` | `TaskType` | 是 | 任务类型，决定框架用哪套评分/执行逻辑 |
+| `task_type` | `TaskType` | 是 | 模板与报告标签；显式 content/evaluation 契约独立决定执行与评分 |
 | `title` | `str` | 是 | 任务标题 |
 | `prompt` | `str` | 是 | 发给被评测模型的完整任务提示 |
 | `challenge_effort` | `ChallengeEffort` | 是 | 难度档位：`E1` / `E2` / `E3` |

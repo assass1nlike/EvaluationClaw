@@ -108,18 +108,52 @@ def test_exhausted_item_failure_does_not_produce_partial_average(monkeypatch, tm
 
     def judge(messages, **kwargs):
         request = json.loads(messages[0].content)
+        if "item" not in request:
+            return _response()
         calls.append(request["item"]["id"])
         return _response() if request["item"]["id"] == "item_1" else "{}"
 
     monkeypatch.setattr(laaj, "call_llm", judge)
-    with pytest.raises(RuntimeError):
-        laaj.evaluate_with_laaj(
-            "Goal", _suite(), None, BenchmarkConfig(laaj_model="judge", laaj_api_key="test"),
-            trace_dir=tmp_path,
-        )
+    report = laaj.evaluate_with_laaj(
+        "Goal", _suite(), None, BenchmarkConfig(laaj_model="judge", laaj_api_key="test"),
+        trace_dir=tmp_path,
+    )
+    assert report.correctness is None and report.faithfulness is None
+    assert report.diversity.score == 3
+    assert set(report.item_errors) == {"item_2", "item_3"}
+    assert report.evaluated_item_ids == ["item_1"]
+    assert report.item_results[0].correctness.score == 4
     assert len(calls) == 9
     assert len(list((tmp_path / "items").glob('*/result.json'))) == 1
     assert len(list((tmp_path / "items").glob('*/error.json'))) == 2
+    from evalclaw.cli import _print_summary
+    from evalclaw.reporting.reporter import build_report
+    from evalclaw.types import BenchmarkPackage, EvalRun, QcReport
+
+    suite = _suite()
+    qc = QcReport()
+    run = EvalRun(suite=suite, qc_report=qc)
+    package = BenchmarkPackage(goal="Goal", spec=suite.spec, suite=suite, qc_report=qc,
+                               run=run, laaj=report, report=build_report(run, laaj=report))
+    _print_summary(package)
+    restored = BenchmarkPackage.model_validate_json(package.model_dump_json())
+    assert restored.laaj.correctness is None
+    assert restored.laaj.item_errors == report.item_errors
+
+
+def test_all_item_failures_still_allow_overall_evaluation(monkeypatch):
+    def judge(messages, **kwargs):
+        request = json.loads(messages[0].content)
+        return "{}" if "item" in request else _response()
+
+    monkeypatch.setattr(laaj, "call_llm", judge)
+    report = laaj.evaluate_with_laaj(
+        "Goal", _suite(), None, BenchmarkConfig(laaj_model="judge", laaj_api_key="test"),
+    )
+    assert report.correctness is None and report.faithfulness is None
+    assert report.item_results == []
+    assert len(report.item_errors) == 3
+    assert report.diversity.score == 3
 
 
 @pytest.mark.parametrize("score", [0, 6, 2.5, True, "4"])

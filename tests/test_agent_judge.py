@@ -127,6 +127,48 @@ def test_judge_failure_does_not_become_target_zero(monkeypatch, tmp_path, answer
     assert sandbox.closed
 
 
+@pytest.mark.parametrize("raises", [False, True])
+@pytest.mark.parametrize("exhausted", [False, True])
+def test_empty_judge_retry_preserves_evidence_and_isolates_failure(monkeypatch, tmp_path, raises, exhausted):
+    from evalclaw.models.llm import LLMFinalContentMissingError
+    import copy
+
+    commands, histories, traces = [], [], []
+    sandbox = FakeSandbox()
+    def command(command, timeout):
+        commands.append(command)
+        return subprocess.CompletedProcess(command, 0, "submitted", "")
+    sandbox.command = command
+    monkeypatch.setattr(module, "JudgeSandbox", lambda *_: sandbox)
+    normal = _judge_model()
+
+    def judge(messages, **kwargs):
+        histories.append(copy.deepcopy(messages))
+        traces.append(kwargs["trace_name"])
+        if len(histories) == 1 or (not exhausted and len(histories) == 4):
+            return normal(messages, **kwargs)
+        if raises:
+            raise LLMFinalContentMissingError("reasoning only")
+        return _response()
+
+    monkeypatch.setattr(module, "call_orchestrator_with_tools", judge)
+    if exhausted:
+        with pytest.raises(module.JudgeResponseError):
+            module.score_with_agent(_item(), _config(), "source", {}, lambda: (0, ""), artifact_dir=tmp_path)
+    else:
+        score, _ = module.score_with_agent(_item(), _config(), "source", {}, lambda: (0, ""), artifact_dir=tmp_path)
+        assert score == .8
+    assert len(histories) == 4
+    assert histories[1] == histories[2] == histories[3]
+    assert len(set(traces[1:])) == 3
+    assert commands == ["cat answer.txt"]
+    assert sandbox.closed
+    record = json.loads((tmp_path / "review.json").read_text())
+    assert record["status"] == ("failed" if exhausted else "scored")
+    if exhausted:
+        assert "score" not in record
+
+
 def test_contract_validation_and_model_selection(tmp_path):
     with pytest.raises(ValidationError):
         AgentJudgeSpec.model_validate(_item("hybrid").metadata["agent_env"]["judge"])

@@ -131,7 +131,11 @@ def prepare(batch, item):
     if not workspace.exists():
         subprocess.run(['git', 'clone', '--quiet', '--no-checkout',
                         str(ROOT / 'local/outputs/upstream'), str(workspace)], check=True)
-        subprocess.run(['git', 'checkout', '--quiet', '-B', 'main', UPSTREAM_COMMIT], cwd=workspace, check=True)
+        previous_umask = os.umask(0o022)
+        try:
+            subprocess.run(['git', 'checkout', '--quiet', '-B', 'main', UPSTREAM_COMMIT], cwd=workspace, check=True)
+        finally:
+            os.umask(previous_umask)
     for rel in ['src/gym_anything/runtime/runners/docker.py', 'local/generate.py',
                 'local/deepseek-settings.json',
                 'src/gym_anything/runtime/runners/qemu_apptainer.py',
@@ -208,12 +212,18 @@ def runtime_command(job, command, environ):
     """Use the host network and daemon, with standard Docker KVM device access."""
     config = json.loads((job / 'config.json').read_text())
     name = f'ga-build-{job.parent.name}-{config["env"]}'
+    endpoint = environ.get('DOCKER_HOST', 'unix:///var/run/docker.sock')
+    if not endpoint.startswith('unix://'):
+        raise ValueError('This runtime requires a local Unix Docker socket')
+    docker_socket = endpoint.removeprefix('unix://')
     docker = ['docker', 'run', '--rm', '--init', '--name', name, '--network', 'host',
               '--device', '/dev/kvm', '--group-add', str(os.stat('/dev/kvm').st_gid),
-              '--group-add', str(os.stat('/var/run/docker.sock').st_gid),
+              '--group-add', str(os.stat(docker_socket).st_gid),
               '--mount', f'type=bind,src={ROOT},dst={ROOT}',
               '--mount', 'type=bind,src=/tmp,dst=/tmp',
-              '--mount', 'type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock',
+              '--mount', f'type=bind,src={docker_socket},dst=/var/run/docker.sock',
+              '--env', 'DOCKER_HOST=unix:///var/run/docker.sock',
+              '--env', f'GYM_ANYTHING_QEMU_PORT_LOCK_DIR={ROOT / "local/runtime/qemu/port-locks"}',
               '--workdir', str(job / 'workspace')]
     keys = ['PATH', 'PYTHONPATH', 'PYTHONHASHSEED', 'PYTHONUNBUFFERED',
             'GYM_ANYTHING_RUNNER', 'GYM_ANYTHING_QEMU_CACHE', 'GYM_ANYTHING_QEMU_WORK_DIR',
@@ -225,7 +235,11 @@ def runtime_command(job, command, environ):
             'http_proxy', 'https_proxy', 'all_proxy', 'no_proxy',
             'HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'NO_PROXY']
     for key in keys:
-        if key in environ:
+        if docker_socket == '/run/evaluationclaw/docker.sock' and key.lower() in ('http_proxy', 'https_proxy', 'all_proxy'):
+            docker += ['--env', f'{key}=http://127.0.0.1:17891']
+        elif docker_socket == '/run/evaluationclaw/docker.sock' and key.lower() == 'no_proxy':
+            docker += ['--env', f'{key}=localhost,127.0.0.1,::1,' + environ.get(key, '')]
+        elif key in environ:
             docker += ['--env', key]
     return [*docker, RUNTIME_IMAGE, *command]
 

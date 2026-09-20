@@ -17,6 +17,8 @@ def runner():
     instance._ssh_user = "ga"
     instance._ssh_password = "password123"
     instance.ssh_port = 2222
+    instance._process = mock.Mock()
+    instance._process.poll.return_value = None
     return instance
 
 

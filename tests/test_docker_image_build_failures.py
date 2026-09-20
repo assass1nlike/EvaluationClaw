@@ -122,6 +122,73 @@ def test_builder_build_timeout_is_fatal(monkeypatch, build_context):
         )
 
 
+@pytest.mark.parametrize("tag", ["private-image:1", ""])
+@pytest.mark.parametrize("failure", ["recipe", "timeout", "daemon", "launch", "signal"])
+def test_commit_failure_registers_local_image_and_never_downloads_it(monkeypatch, build_context, tag, failure):
+    commands = []
+    def run(command, **kwargs):
+        commands.append(command)
+        if command[1] == "info":
+            return subprocess.CompletedProcess(command, int(failure == "daemon"), b"", b"")
+        assert command[1] == "commit"
+        assert kwargs["timeout"] == 7200
+        if failure == "timeout":
+            raise subprocess.TimeoutExpired(command, kwargs["timeout"])
+        if failure == "launch":
+            raise OSError("launch failed")
+        return subprocess.CompletedProcess(command, -9 if failure == "signal" else 1, "", "commit failed")
+    monkeypatch.setattr(images.subprocess, "run", run)
+    monkeypatch.setattr(research, "start_inspection_container", lambda *a, **kw: pytest.fail("download after failed commit"))
+    state = {"inspect_container": "container", "last_image": tag,
+             "local_images": {research._builder_image_key(tag): True} if tag else {}}
+    config = BenchmarkConfig(docker_build_timeout_s=7200)
+    call = ToolCall(id="commit", name="commit_inspect_container", arguments={"tag": tag})
+    if failure == "recipe":
+        result = research._execute_task_builder_tool(call, config, tool_state=state, max_chars=1000)
+        assert result.error == "image_build_failed"
+    else:
+        with pytest.raises(images.DockerBuildExecutionError):
+            research._execute_task_builder_tool(call, config, tool_state=state, max_chars=1000)
+    image = commands[0][-1]
+    assert state["last_image"] == ""
+    assert state["inspect_container"] == "container"
+    assert state["local_images"][research._builder_image_key(image)] is False
+    rejected = research._execute_task_builder_tool(
+        ToolCall(id="inspect", name="start_inspect_container", arguments={"image": image}),
+        config, work_dir=build_context, tool_state=state, max_chars=1000,
+    )
+    assert rejected.error == "tool_error"
+    # Retrying a recoverable commit publishes the image only on success.
+    monkeypatch.setattr(images.subprocess, "run", lambda command, **kw: subprocess.CompletedProcess(command, 0, "sha256:ok", ""))
+    monkeypatch.setattr(research, "stop_inspection_container", lambda *a, **kw: None)
+    recovered = research._execute_task_builder_tool(
+        ToolCall(id="commit", name="commit_inspect_container", arguments={"tag": image}),
+        config, tool_state=state, max_chars=1000,
+    )
+    assert recovered.error is None
+    assert state["last_image"] == image
+    assert state["local_images"][research._builder_image_key(image)] is True
+    assert "inspect_container" not in state
+
+
+@pytest.mark.parametrize("requested,expected", [(900, 5400), (7200, 7200), (None, 5400)])
+def test_builder_cannot_shorten_runtime_build_allowance(monkeypatch, build_context, requested, expected):
+    def timeout(command, **kwargs):
+        assert kwargs["timeout"] == expected
+        raise subprocess.TimeoutExpired(command, kwargs["timeout"])
+
+    monkeypatch.setattr(images.subprocess, "run", timeout)
+    args = {"dockerfile_path": "Dockerfile"}
+    if requested is not None:
+        args["timeout_s"] = requested
+    with pytest.raises(images.DockerBuildExecutionError):
+        research._execute_task_builder_tool(
+            ToolCall(id="build", name="build_image", arguments=args),
+            BenchmarkConfig(docker_build_timeout_s=5400),
+            work_dir=build_context, tool_state={}, max_chars=1000,
+        )
+
+
 def test_timeout_stops_tool_loop_before_following_image_check(monkeypatch, build_context):
     config = BenchmarkConfig(**dummy_config_kwargs(), output_dir=str(build_context.parent))
     monkeypatch.setattr(research, "task_builder_work_dir", lambda *a: build_context)

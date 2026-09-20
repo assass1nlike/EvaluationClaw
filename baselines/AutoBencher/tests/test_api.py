@@ -13,7 +13,7 @@ from api import start_api
 
 
 @contextmanager
-def provider(statuses):
+def provider(statuses, payloads=None):
     calls = []
 
     class Handler(BaseHTTPRequestHandler):
@@ -28,6 +28,8 @@ def provider(statuses):
                 self.close_connection = True
                 return
             content = json.dumps({'choices': [{'message': {'content': 'answer'}}]}).encode()
+            if payloads is not None:
+                content = payloads[min(len(calls) - 1, len(payloads) - 1)]
             self.send_response(status)
             self.send_header('Content-Length', str(len(content)))
             self.end_headers()
@@ -45,6 +47,65 @@ def provider(statuses):
 
 
 class ApiTest(unittest.TestCase):
+    def test_stream_retries_discard_partial_answers_and_preserve_usage(self):
+        def event(delta, finish=None):
+            return 'data: ' + json.dumps({'id': 'completion', 'model': 'gpt-5.6-sol',
+                'choices': [{'index': 0, 'delta': delta, 'finish_reason': finish}]}) + '\n\n'
+        usage = {'prompt_tokens': 42, 'completion_tokens': 70, 'total_tokens': 112,
+                 'completion_tokens_details': {'reasoning_tokens': 60}}
+        partial = event({'content': 'discard me'})
+        complete = ': heartbeat\n\n' + event({'role': 'assistant'})
+        complete += event({'reasoning_content': 'private reasoning'})
+        complete += event({'content': '最终'}) + event({'content': '答案'}, 'stop')
+        complete += 'data: ' + json.dumps({'choices': [], 'usage': usage}) + '\n\n'
+        complete += 'data: [DONE]\n\n'
+        payloads = [partial.encode(), (partial + 'data: [DONE]\n\n').encode(), complete.encode()]
+        with provider([200], payloads) as (upstream, calls), TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = {'base_url': upstream, 'api_key': 'secret', 'model': 'gpt-5.6-sol',
+                      'rpm': 50, 'extra_body': {'stream': True, 'stream_options': {'include_usage': True},
+                                               'reasoning_effort': 'high', 'max_tokens': 300000}}
+            with patch('api.RateLimit') as rate_class:
+                url, close = start_api(upstream, 'secret', 'deepseek-flash', {}, 42, root, test_taker=target)
+                try:
+                    with patch('api.time.sleep'), httpx.Client(trust_env=False) as client:
+                        response = client.post(url + '/chat/completions', json={
+                            'model': 'gpt-autobencher-target', 'messages': [{'role': 'user', 'content': 'Question'}],
+                            'temperature': 0.01, 'n': 1})
+                    self.assertEqual(response.status_code, 200)
+                    result = response.json()
+                    self.assertEqual(result['object'], 'chat.completion')
+                    self.assertEqual(result['choices'][0], {'index': 0, 'finish_reason': 'stop',
+                        'message': {'role': 'assistant', 'content': '最终答案', 'reasoning_content': 'private reasoning'}})
+                    self.assertEqual(result['usage'], usage)
+                    self.assertEqual(len(calls), 3)
+                    self.assertEqual(rate_class.return_value.reservation.call_count, 3)
+                    self.assertTrue(all(body == calls[0][1] for _, body in calls))
+                    self.assertEqual(calls[0][1]['seed'], 42)
+                    self.assertEqual(calls[0][1]['reasoning_effort'], 'high')
+                    logs = [json.loads(line) for line in (root / 'requests.jsonl').read_text().splitlines()]
+                    self.assertEqual([row['status'] for row in logs], [502, 502, 200])
+                    self.assertEqual(logs[-1]['response'], result)
+                finally:
+                    close()
+
+    def test_target_retries_are_limited_and_agent_is_not(self):
+        with provider([503, 503, 200]) as (target_url, target_calls), provider([200]) as (agent_url, agent_calls), TemporaryDirectory() as directory:
+            with patch('api.RateLimit') as rate_class:
+                url, close = start_api(agent_url, 'agent-secret', 'deepseek-flash', {}, 42, Path(directory),
+                    test_taker={'base_url': target_url, 'api_key': 'target-secret', 'model': 'gpt-5.6-sol',
+                                'extra_body': {'reasoning_effort': 'high'}, 'rpm': 50})
+                try:
+                    with patch('api.time.sleep'), httpx.Client(trust_env=False) as client:
+                        for model in ('gpt-autobencher', 'gpt-autobencher-target'):
+                            self.assertEqual(client.post(url + '/chat/completions', json={'model': model}).status_code, 200)
+                    self.assertEqual(len(target_calls), 3)
+                    self.assertEqual(len(agent_calls), 1)
+                    self.assertEqual(rate_class.return_value.reservation.call_count, 3)
+                    self.assertEqual(rate_class.call_args.args[1], 50)
+                finally:
+                    close()
+
     def test_separate_routes(self):
         with provider([200]) as (ds_url, ds), provider([200]) as (qw_url, qw), TemporaryDirectory() as directory:
             root = Path(directory)

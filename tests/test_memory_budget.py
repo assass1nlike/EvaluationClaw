@@ -195,11 +195,11 @@ def test_measured_memory_and_host_pressure_gate_admission(monkeypatch, tmp_path)
 def test_measured_wrapper_labels_containers_without_privileged_parent():
     spec = {"docker": "/usr/bin/docker", "label": "evalclaw.memory-owner=1005"}
     assert command(["run", "--rm", "alpine"], spec) == [
-        "/usr/bin/docker", "--context", "default", "run", "--label",
+        "/usr/bin/docker", "run", "--label",
         "evalclaw.memory-owner=1005", "--rm", "alpine",
     ]
     assert command(["build", "-t", "example", "."], spec) == [
-        "/usr/bin/docker", "--context", "default", "buildx", "build", "--builder",
+        "/usr/bin/docker", "buildx", "build", "--builder",
         "default", "--load", "-t", "example", ".",
     ]
 
@@ -246,8 +246,6 @@ def test_all_container_creation_gets_shared_parent(operation):
     spec = dict(docker="/usr/bin/docker", parent="evalclaw.slice", builder="dedicated")
     assert command([operation, "--memory", "8g", "image"], spec) == [
         "/usr/bin/docker",
-        "--context",
-        "default",
         operation,
         "--cgroup-parent",
         "evalclaw.slice",
@@ -267,8 +265,6 @@ def test_build_preserves_local_images_and_uses_full_cgroup_path():
     )
     assert command(["build", "-t", "task:test", "/context"], spec) == [
         "/usr/bin/docker",
-        "--context",
-        "default",
         "buildx",
         "build",
         "--builder",
@@ -282,6 +278,72 @@ def test_build_preserves_local_images_and_uses_full_cgroup_path():
     ]
     with pytest.raises(ValueError):
         command(["build", "--builder=default", "/context"], spec)
+
+
+def test_budget_pins_selected_daemon_for_checks_measurement_and_children(monkeypatch, tmp_path):
+    from evalclaw.execution import memory_usage
+    from evalclaw.execution.budget_docker import docker_env
+
+    endpoint = "unix:///run/experiment/docker.sock"
+    monkeypatch.setenv("DOCKER_CONTEXT", "experiment")
+    monkeypatch.setenv("DOCKER_HOST", "unix:///var/run/docker.sock")
+    monkeypatch.setenv("DOCKER_TLS_VERIFY", "1")
+    monkeypatch.setattr(module.shutil, "which", lambda _: "/usr/bin/docker")
+    calls = []
+
+    def output(args, **kwargs):
+        calls.append(args)
+        if args[1:3] == ["context", "inspect"]:
+            assert args[3:] == ["--format", "{{json .Endpoints.docker.Host}}"]
+            return json.dumps(endpoint)
+        env = kwargs["env"]
+        assert env["DOCKER_HOST"] == endpoint
+        assert "DOCKER_CONTEXT" not in env and "DOCKER_TLS_VERIFY" not in env
+        if args[1] == "info":
+            return json.dumps({"CgroupDriver": "systemd", "CgroupVersion": "2"})
+        if args[1:3] == ["buildx", "ls"]:
+            return json.dumps({"Name": "default", "Driver": "docker"})
+        assert args[1] == "ps"
+        return ""
+
+    monkeypatch.setattr(module.subprocess, "check_output", output)
+    original_init = module.MemoryBudget.__init__
+
+    def init(self, group, budget, headroom, state, **kwargs):
+        original_init(self, group, budget, headroom, tmp_path / "state", **kwargs)
+
+    monkeypatch.setattr(module.MemoryBudget, "__init__", init)
+    with module.memory_budget(BenchmarkConfig(memory_budget_gib=600), tmp_path):
+        spec = json.loads(Path(os.environ[module.SPEC_ENV]).read_text())
+        assert spec["endpoint"] == endpoint
+        assert docker_env(spec["endpoint"])["DOCKER_HOST"] == endpoint
+        assert memory_usage.container_usage(spec["docker"], spec["endpoint"]) == (0, 0)
+        assert json.loads((tmp_path / "memory-budget.json").read_text())["docker_endpoint"] == endpoint
+    assert any(args[1] == "ps" for args in calls)
+    assert os.environ["DOCKER_CONTEXT"] == "experiment"
+
+
+def test_shared_budget_rejects_mixed_daemons_and_clears_stale_usage(tmp_path):
+    manager = module.MemoryBudget(None, 100, 10, tmp_path)
+    first = {"budget": 100, "docker_endpoint": "unix:///run/a.sock"}
+    second = {**first, "docker_endpoint": "unix:///run/b.sock"}
+    token = manager.join(first)
+    (tmp_path / "usage.json").write_text('{"bytes": 50}')
+    with pytest.raises(module.MemoryBudgetError):
+        manager.join(second)
+    manager.leave(token)
+    token = manager.join(second)
+    assert not (tmp_path / "usage.json").exists()
+    manager.leave(token)
+
+
+@pytest.mark.parametrize("endpoint", ["ssh://other-host", "tcp://127.0.0.1:2375"])
+def test_budget_rejects_endpoints_without_local_container_accounting(monkeypatch, endpoint):
+    monkeypatch.setattr(module.shutil, "which", lambda _: "/usr/bin/docker")
+    monkeypatch.setattr(module.subprocess, "check_output", lambda *a, **k: json.dumps(endpoint))
+    with pytest.raises(module.MemoryBudgetError, match="Unix socket"):
+        with module.memory_budget(BenchmarkConfig(memory_budget_gib=600)):
+            pytest.fail("must reject before work")
 
 
 def test_oom_result_keeps_response_and_is_excluded_from_score(monkeypatch, tmp_path):
@@ -354,6 +416,64 @@ def test_pipeline_fails_before_model_calls_outside_resource_group(monkeypatch, t
     failure = json.loads(next(tmp_path.glob("debug/runs/*/failure.json")).read_text())
     assert failure["error_type"] == "MemoryBudgetError"
     assert module.SPEC_ENV not in os.environ
+
+
+@pytest.mark.skipif(
+    os.environ.get("EVALCLAW_DOCKER_TESTS") != "1",
+    reason="requires local Docker images",
+)
+def test_real_selected_daemon_memory_build_and_network(monkeypatch, tmp_path):
+    from evalclaw.execution.docker import resolve_docker_executable
+    from evalclaw.execution.docker_images import build_docker_image_from_context
+    from evalclaw.execution.memory_usage import container_usage
+
+    # Diagnostic checks must not join the accounting of active experiments.
+    original_init = module.MemoryBudget.__init__
+    def init(self, group, budget, headroom, state, **kwargs):
+        original_init(self, group, budget, headroom, tmp_path / "state", **kwargs)
+    monkeypatch.setattr(module.MemoryBudget, "__init__", init)
+    expected_id = subprocess.check_output(["docker", "info", "--format", "{{.ID}}"], text=True).strip()
+    name = "evalclaw-memory-test-" + uuid.uuid4().hex[:12]
+    tag = name + ":test"
+    network = name + "-net"
+    config = BenchmarkConfig(memory_budget_gib=600, memory_job_gib=1)
+    with module.memory_budget(config, tmp_path):
+        docker = resolve_docker_executable()
+        spec = json.loads(Path(os.environ[module.SPEC_ENV]).read_text())
+        # The runtime remains pinned even if a child's environment selects elsewhere.
+        with monkeypatch.context() as child:
+            child.setenv("DOCKER_CONTEXT", "default")
+            child.setenv("DOCKER_HOST", "unix:///nonexistent.sock")
+            def run(*args):
+                return subprocess.check_output([docker, *args], text=True, timeout=120).strip()
+            try:
+                assert run("info", "--format", "{{.ID}}") == expected_id
+                run("network", "create", "--internal", network)
+                run("run", "-d", "--pull", "never", "--name", name, "--network", network,
+                    "python:3.11-slim", "python", "-c",
+                    "import time; from pathlib import Path; data=bytearray(32*1024**2); "
+                    "Path('/tmp/ready').touch(); time.sleep(120)")
+                run("exec", name, "python", "-c",
+                    "import time; from pathlib import Path\n"
+                    "for _ in range(100):\n"
+                    " if Path('/tmp/ready').exists(): break\n"
+                    " time.sleep(.1)\n"
+                    "assert Path('/tmp/ready').exists()")
+                usage, count = container_usage(spec["docker"], spec["endpoint"])
+                assert count >= 1 and usage >= 32 * 1024**2
+                context = tmp_path / "context"
+                context.mkdir()
+                (context / "Dockerfile").write_text(
+                    "FROM python:3.11-slim\nRUN printf ready > /prepared\n")
+                built = build_docker_image_from_context(context, tag=tag, timeout_s=120)
+                assert built.built
+                assert run("run", "--rm", "--pull", "never", "--network", "none",
+                           tag, "cat", "/prepared") == "ready"
+                inspected = json.loads(run("network", "inspect", network))[0]
+                assert inspected["Internal"] is True
+            finally:
+                for args in [("rm", "-f", name), ("network", "rm", network), ("image", "rm", tag)]:
+                    subprocess.run([docker, *args], capture_output=True, timeout=30)
 
 
 @pytest.mark.skipif(

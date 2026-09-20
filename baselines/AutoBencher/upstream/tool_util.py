@@ -206,7 +206,11 @@ def get_page_obs(page):
     return paragraphs
 
 
-def search_step(entity, output_more=False):
+def search_step(entity, output_more=False, visited=None):
+    visited = set() if visited is None else visited
+    if entity in visited:
+        return [], entity
+    visited.add(entity)
     search_url = "https://en.wikipedia.org/w/index.php"
     response_text = _wiki_session.get(search_url, params={"search": entity}, headers={"User-Agent": "AutoBencher/1.0 (https://github.com/XiangLi1999/AutoBencher)"}, timeout=30).text
     soup = BeautifulSoup(response_text, features="html.parser")
@@ -215,12 +219,12 @@ def search_step(entity, output_more=False):
       result_titles = [clean_str(div.get_text().strip()) for div in result_divs]
       # obs = f"Could not find {entity}. Similar: {result_titles[:5]}."
       print(f"Could not find {entity}. Search for similar entities, {result_titles[0]}, instead")
-      obs, entity = search_step(result_titles[0])
+      obs, entity = search_step(result_titles[0], visited=visited)
     else:
       print('found entity', entity)
       page = [p.get_text().strip() for p in soup.find_all("p") + soup.find_all("ul")]
       if any("may refer to:" in p for p in page):
-        obs, entity = search_step("[" + entity + "]")
+        obs, entity = search_step("[" + entity + "]", visited=visited)
       else:
         page_ = ""
         for p in page:

@@ -446,7 +446,8 @@ def _run_multi_turn_dialogue(
     item: BenchmarkItem, target: object, config: BenchmarkConfig, history: list[Message], *,
     trace_dir: Path | None = None,
 ) -> tuple[str, float, str]:
-    initial_prompt = task_agent_initial_user_message(item)
+    from ..protocols.submission import submission_instructions
+    initial_prompt = task_agent_initial_user_message(item) + submission_instructions(item)
     initial_content = (
         build_asset_user_content(item, initial_prompt, getattr(target, "provider", "openai"))
         if item.assets
@@ -511,7 +512,7 @@ def _run_multi_turn_dialogue(
     return transcript, score, reasoning
 
 
-def _run_item(
+def _run_item_impl(
     item: BenchmarkItem,
     config: BenchmarkConfig,
     target_id: str,
@@ -519,6 +520,9 @@ def _run_item(
     trace_dir: Path | None = None,
 ) -> ItemResult:
     target = next(target for target in config.targets if target.id == target_id)
+    if item.content is not None:
+        from .task_runtime import run_contract
+        return run_contract(item, config, target, trace_dir=trace_dir)
     has_credentials, env_name = _target_has_credentials(target_id, config)
     if not has_credentials:
         return ItemResult(
@@ -639,6 +643,16 @@ def _run_item(
         )
 
 
+def _run_item(item, config, target_id, *, trace_dir=None):
+    result = _run_item_impl(item, config, target_id, trace_dir=trace_dir)
+    if result.episode is None:
+        from .task_runtime import legacy_episode
+        result.episode = legacy_episode(item, config, result, trace_dir)
+        if trace_dir is not None:
+            write_json(trace_dir / "episode.json", result.episode.model_dump(mode="json"), redact=True)
+    return result
+
+
 def _summarize(
     suite: TaskSuite,
     results: list[ItemResult],
@@ -653,7 +667,8 @@ def _summarize(
     for target in config.targets:
         target_results = results_by_target.get(target.id, [])
         total = len(target_results)
-        scored_results = [result for result in target_results if not result.error]
+        scored_results = [result for result in target_results
+                          if not result.error and result.execution.get("scalar_available", True)]
         avg = sum(result.score for result in scored_results) / len(scored_results) if scored_results else 0.0
         by_dimension: dict[str, float] = {}
         for dimension in suite.spec.dimensions:
@@ -719,6 +734,7 @@ def run_eval(
         jobs = [(target.id, item) for target in config.targets for item in accepted]
 
         def execute(target_id: str, item: BenchmarkItem) -> ItemResult | None:
+            from .task_runtime import task_digest
             if gateway_blocked.is_set():
                 return None
             item_dir = (
@@ -742,6 +758,10 @@ def run_eval(
                 and cached_result.target_id == target_id
                 and cached_result.item_id == item.id
                 and not cached_result.error
+                and (item.content is None or (
+                    cached_result.episode is not None
+                    and cached_result.episode.task_digest == task_digest(item)
+                ))
             ):
                 return cached_result
             result = None
@@ -790,11 +810,13 @@ def run_eval(
                     if on_progress:
                         on_progress(completed, total, target_id, item.id)
     summaries = _summarize(suite, results, config)
+    from .suite_metrics import aggregate_metrics
     run = EvalRun(
         suite=suite,
         qc_report=qc_report,
         results=results,
         summaries=summaries,
+        suite_metrics=aggregate_metrics(suite, results),
         runner_artifacts={
             "judge": {"double_pass_enabled": bool(config.judge_double_pass)},
             "debug_dir": str(debug_dir) if debug_dir is not None else None,
