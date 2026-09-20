@@ -75,8 +75,11 @@ def run_qc_gate(
     trace_dir: str | Path | None = None,
 ) -> QcReport:
     """Run MVP static QC plus optional LLM review."""
+    from ..protocols.task_view import task_revision
+    revisions = {item.id: task_revision(item) for item in suite.tasks}
     if config.ablation_simplified_contract:
         return QcReport(
+            task_digests=revisions,
             passed_item_ids=[item.id for item in suite.tasks],
             summary="QC skipped (ablation-simplified-contract).",
         )
@@ -84,6 +87,15 @@ def run_qc_gate(
     target_harnesses = [target.harness for target in config.targets if target.harness]
     for item in suite.tasks:
         issues.extend(_static_item_issues(item))
+        if any(not target.harness for target in config.targets):
+            from ..execution.contract_capabilities import native_workflow_issues
+            issues.extend(_issue(item.id, QcSeverity.error, QcCategory.schema, message)
+                          for message in native_workflow_issues(item))
+        if item.content is not None:
+            from ..execution.contract_capabilities import binding_issues
+            for target in config.targets:
+                issues.extend(_issue(item.id, QcSeverity.error, QcCategory.schema, message)
+                              for message in binding_issues(item, config, target))
         environment = item.metadata.get("agent_env")
         if isinstance(environment, dict):
             issues.extend(
@@ -92,6 +104,7 @@ def run_qc_gate(
                     environment,
                     target_harnesses,
                     has_workflow=item.workflow is not None,
+                    workflow=item.workflow,
                 )
             )
     issues.extend(_duplicate_issues(suite.tasks, near_duplicate_limit=_near_duplicate_limit(suite, config)))
@@ -110,6 +123,10 @@ def run_qc_gate(
         if issue.item_id and issue.severity == QcSeverity.error
     }
     passed_ids = [item.id for item in suite.tasks if item.id not in rejected_ids]
+    surviving = suite.model_copy(update={"tasks": [item for item in suite.tasks if item.id not in rejected_ids]})
+    existing = {(issue.category, issue.message) for issue in issues}
+    issues.extend(issue for issue in _coverage_issues(surviving, config.large_scale_item_threshold, retained=True)
+                  if issue.item_id is None and (issue.category, issue.message) not in existing)
     total = max(1, len(suite.tasks))
     penalty = sum(0.2 if issue.severity == QcSeverity.error else 0.05 for issue in issues)
     quality_score = max(0.0, min(1.0, 1.0 - penalty / total))
@@ -118,6 +135,7 @@ def run_qc_gate(
         f"{len(rejected_ids)} rejected, {len(issues)} issues."
     )
     report = QcReport(
+        task_digests=revisions,
         issues=issues,
         passed_item_ids=passed_ids,
         rejected_item_ids=sorted(rejected_ids),

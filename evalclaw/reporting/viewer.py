@@ -115,7 +115,7 @@ def _result_records(pkg: BenchmarkPackage) -> list[dict[str, Any]]:
                 "raw_response": _clip(result.raw_response, 60000),
                 "dimension_id": item.dimension_id if item else "-",
                 "task_type": item.task_type.value if item else "-",
-                "challenge_effort": item.challenge_effort.value if item else "-",
+                "challenge_effort": item.effort_label if item else "-",
                 "prompt": _clip(item.prompt, 30000) if item else "",
                 "rubric": _clip(item.rubric or "", 20000) if item else "",
                 "choices": [choice.model_dump(mode="json") for choice in item.choices] if item else [],
@@ -207,7 +207,7 @@ def _viewer_payload(
     source_backed = sum(1 for item in used_items if _is_source_backed(item))
     item_source_counts = Counter(item.source.kind.value for item in used_items)
     task_counts = Counter(item.task_type.value for item in used_items)
-    challenge_effort_counts = Counter(item.challenge_effort.value for item in used_items)
+    challenge_effort_counts = Counter(item.effort_label for item in used_items)
     agent_records = [record for record in records if record.get("agent_trace")]
     code_items: list[BenchmarkItem] = [
         item

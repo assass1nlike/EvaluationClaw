@@ -106,7 +106,7 @@ def _model_json(request, suite, config, prompt, validate, trace_dir, name, artif
         raw = _run_laaj_tool_loop(
             request, suite, config, trace_dir=trace_dir, artifact_dir=artifact_dir,
             trace_name=f"{name}-{attempt + 1}",
-            include_agent_tools=any(item.task_type == TaskType.agent for item in suite.tasks),
+            include_agent_tools=any(item.task_type == TaskType.agent or item.content is not None or item.assets for item in suite.tasks),
             system_prompt=prompt,
         )
         try:
@@ -155,7 +155,7 @@ def evaluate_contamination(
             raw = _run_laaj_tool_loop(
                 request, one_item, config, system_prompt=CONTAMINATION_RESEARCH_PROMPT,
                 trace_dir=item_dir, artifact_dir=artifact_dir, trace_name="research-agent",
-                include_agent_tools=item.task_type == TaskType.agent,
+                include_agent_tools=bool(item.task_type == TaskType.agent or item.content is not None or item.assets),
                 additional_tools=RESEARCH_TOOLS,
                 tool_handlers={tool.name: tools.dispatch for tool in RESEARCH_TOOLS},
                 max_tool_calls=config.contamination_max_tool_calls,

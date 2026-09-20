@@ -8,6 +8,7 @@ import mimetypes
 import re
 import shutil
 import subprocess
+import uuid
 from concurrent.futures import CancelledError
 from contextlib import ExitStack
 from pathlib import Path, PurePosixPath
@@ -252,10 +253,23 @@ TASK_BUILDER_READ_TOOL = ToolSpec(
     },
 )
 
+TASK_BUILDER_CONTRACT_TOOL = ToolSpec(
+    name="read_task_contract",
+    description="Read the composable task schema and isolated component protocol. Use for exact message histories, stateful tool services, dynamic controllers or native/multiple scorers. Template tasks do not need this tool.",
+    parameters={"type": "object", "properties": {
+        "section": {"type": "string", "enum": ["schema", "component_protocol", "submission_contract"]},
+        "offset": {"type": "integer", "minimum": 0},
+        "max_chars": {"type": "integer", "minimum": 100, "maximum": 100000},
+    }, "required": ["section"], "additionalProperties": False},
+)
+
 TASK_BUILDER_VERIFY_TOOL = ToolSpec(
     name="verify_candidate",
-    description="Run the selected agent candidate's verification_cases in fresh target environments using its packaged files and original scorer. Each case declares target commands, final_answer, min_score and max_score. Returns exact failures for repair. No target model is invoked; configured actors and judges may be invoked.",
-    parameters={"type": "object", "properties": {"task_index": {"type": "integer", "minimum": 0}},
+    description="Verify a candidate in fresh environments with its actual protocol and scorers. Without trial arguments, run preflight and declared verification_cases. Explicit native contracts also accept responses (content/tool_calls/usage per turn) for a complete scripted interaction, or tool_calls and final_answer for an interactive trial. CLI workspaces use declared command verification_cases. No target model is invoked; configured controllers, actors and judges may be invoked.",
+    parameters={"type": "object", "properties": {"task_index": {"type": "integer", "minimum": 0},
+        "tool_calls": {"type": "array", "items": {"type": "object"}},
+        "responses": {"type": "array", "items": {"type": "object"}, "description": "Scripted target responses for the complete declared interaction protocol."},
+        "final_answer": {"type": "string"}},
                 "required": ["task_index"], "additionalProperties": False},
 )
 
@@ -416,9 +430,9 @@ TASK_BUILDER_IMAGE_TOOLS = [
                     "maximum": _MAX_IMAGE_BUILD_TIMEOUT_S,
                     "default": DEFAULT_DOCKER_BUILD_TIMEOUT_S,
                     "description": (
-                        "Maximum Docker build duration in seconds. Omit to allow 3600 seconds; "
-                        "use up to 7200 for slow storage or large builds. Concurrent builds may "
-                        "spend substantial time waiting for disk operations, so avoid short limits."
+                        "Optional request for additional Docker build time, up to 7200 seconds. "
+                        "The runtime's configured build timeout is a minimum allowance and cannot "
+                        "be shortened by this argument. This is infrastructure time, not a target-task budget."
                     ),
                 },
             },
@@ -869,7 +883,8 @@ def _field_level_issues(document: dict[str, Any]) -> list[str]:
         environment = task.get("environment")
         if isinstance(environment, dict) and environment:
             try:
-                AgentEnvironmentSpec.model_validate(environment)
+                from ..protocols.task_definition import ServiceEnvironment
+                (ServiceEnvironment if environment.get("type") == "tool_service" else AgentEnvironmentSpec).model_validate(environment)
             except ValidationError as exc:
                 for error in exc.errors():
                     etype = error.get("type", "")
@@ -1125,11 +1140,25 @@ def _execute_task_builder_tool(
     args = call.arguments if isinstance(call.arguments, dict) else {}
     state = tool_state if tool_state is not None else {}
     try:
+        if call.name == "read_task_contract":
+            from ..execution.components import COMPONENT_PROTOCOL
+            from ..protocols.submission import SubmissionContract
+            from ..types import TaskDefinition
+            value = {"schema": TaskDefinition.model_json_schema,
+                     "submission_contract": SubmissionContract.model_json_schema,
+                     "component_protocol": lambda: COMPONENT_PROTOCOL}[args["section"]]()
+            text = json.dumps(value, ensure_ascii=False)
+            offset = int(args.get("offset", 0))
+            size = min(int(args.get("max_chars", max_chars)), 100000)
+            return ToolResult(tool_call_id=call.id, name=call.name, content=json.dumps({
+                "content": text[offset:offset + size], "total_chars": len(text),
+                "next_offset": offset + size if offset + size < len(text) else None,
+            }))
         if call.name == "verify_candidate":
-            from .parsing import _task_from_raw
-            from .packaging import pack_task_item
-            from .verification import verify_agent_cases
             from ..types import EvalDimension
+            from .packaging import pack_task_item
+            from .parsing import _task_from_raw
+            from .verification import verify_agent_cases
 
             document = json.loads(Path(document_path).read_text(encoding="utf-8"))
             index = int(args["task_index"])
@@ -1142,6 +1171,31 @@ def _execute_task_builder_tool(
 
                 for asset in task.assets:
                     asset.path = str(resolve_builder_asset_path(asset.path, work_dir))
+            if task.content is not None:
+                if not any(key in args for key in ("responses", "tool_calls", "final_answer")):
+                    from ..execution.task_runtime import preflight_contract
+                    from ..types import TargetModelConfig
+                    targets = config.targets or [TargetModelConfig(provider="openai", model="verification")]
+                    for target in targets:
+                        preflight_contract(task, config, target)
+                    return ToolResult(tool_call_id=call.id, name=call.name, content=json.dumps({
+                        "status": "preflight_passed", "scripted_cases": len(task.evaluation.verification_cases),
+                        "command_cases": len(getattr(task.environment, "verification_cases", [])),
+                    }))
+                from ..quality.laaj_exploration import ContractExperiment
+                session = ContractExperiment(task, config, config.targets[0].id if config.targets else "",
+                                             work_dir / "verification" if work_dir else None)
+                try:
+                    if "responses" in args:
+                        session.perform({"operation": "trial", "responses": args["responses"]})
+                    else:
+                        for raw_call in args.get("tool_calls", []):
+                            session.perform({"operation": "action", "action": {"action": raw_call["name"], "args": raw_call.get("arguments", {})}})
+                        session.perform({"operation": "evaluate", "final_answer": args.get("final_answer", "")})
+                    result = session.runtime.episode.model_dump(mode="json")
+                finally:
+                    session.close()
+                return ToolResult(tool_call_id=call.id, name=call.name, content=_tool_content(result, max_chars=max_chars))
             if not task.environment or not task.environment.verification_cases:
                 raise ValueError("Declare environment.verification_cases before verifying.")
             dimension = EvalDimension(id="verification", name="Verification", description="Candidate verification", approach="Execute cases")
@@ -1377,12 +1431,12 @@ def _execute_task_builder_tool(
                 network=str(args.get("network") or "default").strip().lower(),
                 docker_executable=config.docker_executable,
                 unavailable_images={key for key, built in state.get("local_images", {}).items() if not built},
-                timeout_s=_bounded_int(
+                timeout_s=max(config.docker_build_timeout_s, _bounded_int(
                     args.get("timeout_s"),
-                    default=DEFAULT_DOCKER_BUILD_TIMEOUT_S,
+                    default=config.docker_build_timeout_s,
                     minimum=1,
                     maximum=_MAX_IMAGE_BUILD_TIMEOUT_S,
-                ),
+                )),
             )
             state["last_image"] = result.image
             state.setdefault("local_images", {})[_builder_image_key(result.image)] = True
@@ -1597,10 +1651,14 @@ def _execute_task_builder_tool(
                     content="No inspection container is running. Call start_inspect_container first.",
                     error="no_inspection_container",
                 )
+            tag = str(args.get("tag") or "").strip() or f"evalclaw-task-{uuid.uuid4().hex[:12]}"
+            state["last_image"] = ""
+            state.setdefault("local_images", {})[_builder_image_key(tag)] = False
             result = commit_inspection_container(
                 container,
-                tag=str(args.get("tag") or "").strip(),
+                tag=tag,
                 docker_executable=config.docker_executable,
+                timeout_s=config.docker_build_timeout_s,
             )
             state["last_image"] = result.image
             state.setdefault("local_images", {})[_builder_image_key(result.image)] = True
@@ -2137,6 +2195,8 @@ def run_task_builder_tools(
         maximum=100_000,
     )
     tools = [TASK_BUILDER_PYTHON_TOOL, TASK_BUILDER_READ_TOOL, TASK_BUILDER_WRITE_TOOL, TASK_BUILDER_VIEW_IMAGE_TOOL, TASK_BUILDER_VERIFY_TOOL]
+    if not config.ablation_simplified_contract:
+        tools.append(TASK_BUILDER_CONTRACT_TOOL)
     tools.extend(TASK_BUILDER_DOCUMENT_TOOLS)
     if _image_generation_configured(config):
         tools.append(TASK_BUILDER_GENERATE_IMAGE_TOOL)

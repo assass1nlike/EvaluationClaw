@@ -22,6 +22,15 @@ from pydantic import (
     model_validator,
 )
 
+from .protocols.task_definition import (
+    EpisodeRecord,
+    EvaluationSpec,
+    InteractionProtocol,
+    ServiceEnvironment,
+    SuiteMetric,
+    TaskContent,
+)
+
 
 def utc_now() -> str:
     """Return an ISO-8601 UTC timestamp."""
@@ -229,8 +238,16 @@ class ConditionInterventionTrigger(BaseModel):
         return self
 
 
+class EpisodeEndInterventionTrigger(BaseModel):
+    """Settle declared environment consequences after the target stops, before scoring."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["episode_end"]
+
+
 EnvironmentInterventionTrigger = Annotated[
-    ElapsedTimeInterventionTrigger | ConditionInterventionTrigger,
+    ElapsedTimeInterventionTrigger | ConditionInterventionTrigger | EpisodeEndInterventionTrigger,
     Field(discriminator="type"),
 ]
 
@@ -789,6 +806,15 @@ class TaskAsset(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     path: str
+    id: str = ""
+    media_type: str = ""
+    sha256: str = ""
+    version: str = ""
+    uri: str = ""
+    visibility: list[str] = Field(default_factory=lambda: ["target"])
+    mount_path: str = ""
+    writable: bool | None = None
+    status: Literal["available", "missing", "not_provided", "not_applicable"] = "available"
 
 
 class ReferenceTrajectoryStep(BaseModel):
@@ -805,13 +831,18 @@ class ReferenceTrajectoryStep(BaseModel):
 class TaskDefinition(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    schema_version: Literal[2] = 2
     id: str
-    dimension_id: str
-    task_type: TaskType
-    title: str
+    dimension_id: str = ""
+    task_type: TaskType = TaskType.generation
+    title: str = ""
+    content: Optional[TaskContent] = None
+    evaluation: Optional[EvaluationSpec] = None
+    provenance: dict[str, Any] = Field(default_factory=dict)
+    annotations: dict[str, Any] = Field(default_factory=dict)
     content_summary: str = ""
     description: str = ""
-    prompt: str
+    prompt: str = ""
     assets: list[TaskAsset] = Field(default_factory=list)
     choices: list[ChoiceOption] = Field(default_factory=list)
     correct_choice_ids: list[str] = Field(default_factory=list)
@@ -823,40 +854,108 @@ class TaskDefinition(BaseModel):
     output_contract: dict[str, Any] = Field(default_factory=dict)
     system_prompt: str = ""
     resource_ids: list[str] = Field(default_factory=list)
-    environment: Optional[AgentEnvironmentSpec] = None
+    environment: Optional[AgentEnvironmentSpec | ServiceEnvironment] = None
     workflow: Optional[AgentWorkflow] = None
-    interaction: dict[str, Any] = Field(default_factory=dict)
+    interaction: InteractionProtocol | dict[str, Any] = Field(default_factory=dict)
     scoring: TaskScoringSpec = Field(default_factory=TaskScoringSpec)
-    challenge_effort: ChallengeEffort = ChallengeEffort.E3
+    challenge_effort: Optional[ChallengeEffort] = ChallengeEffort.E3
     tags: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
+    @model_validator(mode="before")
+    @classmethod
+    def read_legacy_version(cls, value: Any) -> Any:
+        if isinstance(value, dict):
+            value = dict(value)
+            if value.get("content") is not None and "challenge_effort" not in value:
+                value["challenge_effort"] = None
+            if value.get("schema_version") == 1:
+                value["schema_version"] = 2
+            interaction = value.get("interaction")
+            if isinstance(interaction, dict) and "protocol" in interaction:
+                value["interaction"] = InteractionProtocol.model_validate(interaction)
+        return value
+
+    @model_validator(mode="after")
+    def validate_contract(self):
+        from .protocols.submission import validate_output_contract
+        submission = validate_output_contract(self.output_contract)
+        if submission and submission.artifacts:
+            env_type = getattr(self.environment, "type", None) or self.metadata.get("agent_env", {}).get("type")
+            if self.task_type != TaskType.agent or env_type != "docker_workspace":
+                raise ValueError("Template submission artifacts require an agent task with a Docker workspace")
+        if self.content is not None:
+            if self.prompt or self.system_prompt or self.choices or self.output_contract:
+                raise ValueError("content is the complete model input; do not also set prompt/system_prompt/choices/output_contract")
+            if self.evaluation is None:
+                raise ValueError("explicit content requires an explicit evaluation protocol")
+            if (self.correct_choice_ids or self.expected_texts or self.reference_answer
+                    or self.reference_trajectory or self.rubric or self.judge_tools
+                    or self.scoring != TaskScoringSpec()):
+                raise ValueError("Use evaluation for explicit tasks; legacy answers, rubric, judge_tools and scoring must be omitted")
+            if not isinstance(self.interaction, InteractionProtocol):
+                if self.interaction:
+                    raise ValueError("explicit content requires a typed interaction protocol")
+                self.interaction = InteractionProtocol()
+            if self.workflow:
+                raise ValueError("workflow is a legacy template; do not combine it with explicit content")
+        elif self.evaluation is not None or isinstance(self.interaction, InteractionProtocol) or isinstance(self.environment, ServiceEnvironment):
+            raise ValueError("composable evaluation/interaction/environment requires explicit content")
+        ids = [a.id for a in self.assets if a.id]
+        if len(ids) != len(set(ids)):
+            raise ValueError("asset ids must be unique")
+        return self
+
+    @property
+    def effort_label(self) -> str:
+        return self.challenge_effort.value if self.challenge_effort is not None else "unspecified"
 
 
-class BenchmarkItem(BaseModel):
-    model_config = ConfigDict(extra="forbid")
 
-    id: str
-    dimension_id: str
-    task_type: TaskType
-    workflow: Optional[AgentWorkflow] = None
-    prompt: str
-    assets: list[TaskAsset] = Field(default_factory=list)
-    choices: list[ChoiceOption] = Field(default_factory=list)
-    correct_choice_ids: list[str] = Field(default_factory=list)
-    expected_texts: list[str] = Field(default_factory=list)
-    reference_answer: str = ""
-    reference_trajectory: list[ReferenceTrajectoryStep] = Field(default_factory=list)
-    rubric: Optional[str] = None
-    judge_tools: list[JudgeToolRef] = Field(default_factory=list)
-    output_contract: dict[str, Any] = Field(default_factory=dict)
-    challenge_effort: ChallengeEffort = ChallengeEffort.E3
+class BenchmarkItem(TaskDefinition):
+    """A task associated with a suite; execution semantics live in TaskDefinition."""
     source: BenchmarkSource = Field(
         default_factory=lambda: BenchmarkSource(kind=SourceKind.self_generated)
     )
-    tags: list[str] = Field(default_factory=list)
-    metadata: dict[str, Any] = Field(default_factory=dict)
-    source_definition: Optional[TaskDefinition] = Field(default=None, exclude=True)
+    @model_validator(mode="before")
+    @classmethod
+    def read_packed_definition(cls, value: Any) -> Any:
+        if not isinstance(value, dict):
+            return value
+        value = dict(value)
+        source = value.pop("source_definition", None)
+        if source is not None:
+            definition = source.model_dump() if isinstance(source, TaskDefinition) else source
+            value = {**definition, **value}
+        # Older saved suites kept these execution fields only in metadata.
+        metadata = value.get("metadata") or {}
+        if not value.get("environment") and isinstance(metadata.get("agent_env"), dict):
+            env = metadata["agent_env"]
+            fields = AgentEnvironmentSpec.model_fields
+            if env.get("type") in {"docker_workspace", "vm"}:
+                value["environment"] = {k: v for k, v in env.items() if k in fields}
+        return value
+
+    @property
+    def source_definition(self) -> TaskDefinition:
+        return self
+
+    @source_definition.setter
+    def source_definition(self, value: Optional[TaskDefinition]) -> None:
+        if value is not None:
+            for name in TaskDefinition.model_fields:
+                if name == "metadata":
+                    self.metadata = {**value.metadata, **self.metadata}
+                elif name != "id":
+                    setattr(self, name, getattr(value, name))
+
+    def model_copy(self, *, update=None, deep=False):
+        update = dict(update or {})
+        source = update.pop("source_definition", None)
+        copied = super().model_copy(deep=deep)
+        if source is not None:
+            copied.source_definition = source
+        return BaseModel.model_copy(copied, update=update)
 
     @property
     def builder_job_id(self) -> str:
@@ -875,6 +974,7 @@ class TaskSuite(BaseModel):
     blueprints: list[TaskBlueprint] = Field(default_factory=list)
     resources: list[TaskResource] = Field(default_factory=list)
     tasks: list[BenchmarkItem] = Field(default_factory=list)
+    evaluation_plan: list[SuiteMetric] = Field(default_factory=list)
     plan: Optional[BenchmarkPlan] = Field(default=None, exclude=True)
     construction_notes: str = ""
     created_at: str = Field(default_factory=utc_now)
@@ -899,6 +999,7 @@ class QcIssue(BaseModel):
 
 
 class QcReport(BaseModel):
+    task_digests: dict[str, str] = Field(default_factory=dict)
     issues: list[QcIssue] = Field(default_factory=list)
     passed_item_ids: list[str] = Field(default_factory=list)
     rejected_item_ids: list[str] = Field(default_factory=list)
@@ -968,6 +1069,10 @@ class TargetModelConfig(BaseModel):
     base_url: Optional[str] = None
     harness: str = ""
     extra_body: dict[str, Any] = Field(default_factory=dict)
+    capabilities: list[Literal["prefill", "continuation_likelihood"]] = Field(default_factory=list)
+    # None means unverified, not a claim that every role is supported.
+    supported_message_roles: list[Literal["system", "developer", "user", "assistant", "tool"]] | None = None
+    prefill_format: Literal["assistant_message", "prefix_flag"] = "assistant_message"
 
     @model_validator(mode="after")
     def fill_default_id(self) -> "TargetModelConfig":
@@ -993,6 +1098,7 @@ class ItemResult(BaseModel):
     error: Optional[str] = None
     latency_ms: Optional[int] = None
     execution: dict[str, Any] = Field(default_factory=dict)
+    episode: Optional[EpisodeRecord] = None
 
 
 class TargetSummary(BaseModel):
@@ -1012,6 +1118,7 @@ class EvalRun(BaseModel):
     results: list[ItemResult] = Field(default_factory=list)
     summaries: list[TargetSummary] = Field(default_factory=list)
     runner_artifacts: dict[str, Any] = Field(default_factory=dict)
+    suite_metrics: list[dict[str, Any]] = Field(default_factory=list)
     created_at: str = Field(default_factory=utc_now)
 
 
@@ -1020,9 +1127,23 @@ class AnalysisProbeDesign(BaseModel):
     task_design: TaskDesign
 
 
+class AnalysisEvidenceAssessment(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    iteration: StrictInt = Field(ge=0)
+    item_id: str = Field(min_length=1)
+    target_id: str = Field(min_length=1)
+    status: Literal["model_failure", "format_failure", "no_model_failure", "suspected_task_defect",
+                    "confirmed_task_defect", "evaluation_error", "infrastructure_error"]
+    components: list[str] = Field(default_factory=list)
+    reason: str = Field(min_length=1)
+    evidence: list[str] = Field(min_length=1)
+
+
 class AnalysisIteration(BaseModel):
     iteration: int
     analysis: str = ""
+    evidence_assessments: list[AnalysisEvidenceAssessment] = Field(default_factory=list)
     goal: str = ""
     task_designs: list[AnalysisProbeDesign] = Field(default_factory=list)
     suite: Optional[TaskSuite] = None
@@ -1068,6 +1189,7 @@ class AnalysisReport(BaseModel):
     status: Literal["completed", "failed"] = "completed"
     error: str | None = None
     analysis: str = ""
+    evidence_assessments: list[AnalysisEvidenceAssessment] = Field(default_factory=list)
     benchmark: list[AnalysisWeakness] | None = None
     iterations: list[AnalysisIteration] = Field(default_factory=list)
 
@@ -1141,13 +1263,15 @@ class LaajItemResult(BaseModel):
 
 class LaajReport(BaseModel):
     model: str
-    correctness: LaajMetric
-    faithfulness: LaajMetric
-    diversity: LaajMetric
+    correctness: LaajMetric | None = None
+    faithfulness: LaajMetric | None = None
+    diversity: LaajMetric | None = None
     systematicness: Optional[LaajMetric] = None
     credibility: Optional[LaajMetric] = None
     contamination: ContaminationReport | None = None
     item_results: list[LaajItemResult] = Field(default_factory=list)
+    item_errors: dict[str, str] = Field(default_factory=dict)
+    overall_error: str | None = None
     evaluated_item_ids: list[str] = Field(default_factory=list)
     total_item_count: int = 0
     iteration_reports: dict[int, LaajReport] = Field(default_factory=dict)
@@ -1189,6 +1313,7 @@ class BenchmarkPackage(BaseModel):
 
 
 class BenchmarkConfig(BaseModel):
+    seed: int = 42
     model_config = ConfigDict(extra="forbid")
 
     failover_endpoint: Optional[FailoverEndpoint] = None
@@ -1319,6 +1444,7 @@ class BenchmarkConfig(BaseModel):
     ablation_analyser: Literal["none", "similar_tasks"] = "none"
     docker_auto_select_image: bool = True
     docker_pull_timeout_s: int = 300
+    docker_build_timeout_s: int = Field(default=3600, ge=1)
     docker_executable: str = "docker"
     container_sandbox_image: str = "python:3.11-slim"
     environment_preflight: bool = True

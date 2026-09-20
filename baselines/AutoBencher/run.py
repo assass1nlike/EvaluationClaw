@@ -38,7 +38,8 @@ def main():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--extra-body", default=os.getenv("AUTOBENCHER_EXTRA_BODY", '{"thinking":{"type":"enabled"}}'))
     parser.add_argument("--test-taker", type=json.loads,
-                        help="JSON with model, base_url, api_key_env and extra_body for a separate target")
+                        help="JSON with model, base_url, api_key_env, extra_body and optional rpm for a separate target")
+    parser.add_argument("--parallel", type=json.loads, help="Global target/judge concurrency and target_timeout")
     parser.add_argument("--resume", type=Path, help="Resume an existing run using its saved configuration")
     parser.add_argument("--output-dir", type=Path, help="Output directory for a new run")
     args = parser.parse_args()
@@ -49,6 +50,7 @@ def main():
             setattr(args, key, saved[key])
         args.extra_body = json.dumps(saved["extra_body"])
         args.test_taker = saved.get("test_taker")
+        args.parallel = saved.get("parallel")
         if args.iterations is None:
             args.iterations = saved["iterations"]
         if args.iterations < saved["iterations"]:
@@ -60,8 +62,10 @@ def main():
     if args.iterations < 1:
         parser.error("--iterations must be positive")
     if args.test_taker:
-        if set(args.test_taker) != {"model", "base_url", "api_key_env", "extra_body"}:
-            parser.error("--test-taker requires model, base_url, api_key_env and extra_body")
+        if set(args.test_taker) - {"rpm"} != {"model", "base_url", "api_key_env", "extra_body"}:
+            parser.error("--test-taker requires model, base_url, api_key_env and extra_body; rpm is optional")
+        if "rpm" in args.test_taker and (type(args.test_taker["rpm"]) is not int or args.test_taker["rpm"] < 1):
+            parser.error("test_taker.rpm must be a positive integer")
         if not os.getenv(args.test_taker["api_key_env"]):
             parser.error(f"Set {args.test_taker['api_key_env']} in .env")
     if os.getenv("PYTHONHASHSEED") != str(args.seed):
@@ -123,7 +127,7 @@ def main():
 
     target = args.test_taker | {"api_key": os.environ[args.test_taker["api_key_env"]]} if args.test_taker else None
     url, close = start_api(args.base_url, os.environ["AUTOBENCHER_API_KEY"],
-                           args.model, config["extra_body"], args.seed, run_dir, test_taker=target)
+                           args.model, config["extra_body"], args.seed, run_dir, test_taker=target, parallel=args.parallel)
     os.environ["OPENAI_BASE_URL"] = url
     os.environ["OPENAI_API_KEY"] = "local-proxy"
     os.environ.pop("OPENAI_ORG_ID", None)
@@ -131,7 +135,11 @@ def main():
     sys.argv = command
     os.chdir(run_dir)
     try:
-        runpy.run_path(command[0], run_name="__main__")
+        if args.parallel:
+            from parallel_eval import run
+            run(config, run_dir, url)
+        else:
+            runpy.run_path(command[0], run_name="__main__")
     finally:
         close()
     from verify import verify

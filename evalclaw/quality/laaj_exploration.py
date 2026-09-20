@@ -28,7 +28,8 @@ LAAJ_EXPLORE_TOOL = ToolSpec(
         "Run an isolated experiment on an agent task, never on the original target run. "
         "open requires item_id; scope/iteration select main or probe tasks, target_id selects "
         "the configured runtime (default first target). Reuse the returned session_id for "
-        "command, action, evaluate, reset, or close. command executes a shell command; "
+        "command, action, evaluate, trial, reset, or close. trial replays scripted responses "
+        "through the complete native interaction protocol and scoring. command executes a shell command; "
         "action invokes a native tool returned by open. Target perspective uses actual target "
         "permissions; reviewer perspective is privileged inspection and cannot prove target "
         "feasibility. evaluate runs the original scorer on your trial submission and ends the "
@@ -38,7 +39,8 @@ LAAJ_EXPLORE_TOOL = ToolSpec(
     parameters={
         "type": "object",
         "properties": {
-            "operation": {"type": "string", "enum": ["open", "command", "action", "evaluate", "reset", "close"]},
+            "operation": {"type": "string", "enum": ["open", "command", "action", "evaluate", "trial", "reset", "close"]},
+            "responses": {"type": "array", "items": {"type": "object"}, "description": "For trial: scripted target responses with content, tool_calls and optional usage; runs the complete declared protocol."},
             "item_id": {"type": "string"},
             "scope": {"type": "string", "enum": ["main", "probe"]},
             "iteration": {"type": "integer", "minimum": 1},
@@ -70,6 +72,7 @@ class TaskExperiment:
         self.actors: ActorSession | None = None
         self.environment = None
         self.backend = None
+        self.evaluation_callback = None
         self.workdir = None
         self.controller = None
         self.trace: list[dict[str, Any]] = []
@@ -191,8 +194,10 @@ class TaskExperiment:
         return self._exec(command, timeout, reviewer=True)
 
     def _evidence(self, final_answer: str):
+        from ..protocols.submission import submission_contract
         return {
             "schema_version": EVALUATOR_EVIDENCE_SCHEMA,
+            "submission_contract": submission_contract(self.item),
             "purpose": "laaj_exploration", "item_id": self.item.id,
             "reviewer_access": self.reviewer_access,
             "target": {
@@ -288,8 +293,9 @@ class TaskExperiment:
                 self._finish_budget_timer()
                 self.ended = True
                 if self.controller:
-                    self.controller.stop()
-                    self.controller.raise_if_failed()
+                    if self.environment is None and any(s["trigger"]["type"] == "episode_end" for s in self.controller.specs):
+                        harness.ManifestHarnessRunner._stop_episode(self.capture["docker"], self.capture["container_name"])
+                    self.controller.finish()
                 if self.actors:
                     self.actors.close()
                     self.actors.raise_if_failed()
@@ -304,7 +310,9 @@ class TaskExperiment:
                 evidence = self._evidence(final_answer)
                 if self.directory:
                     write_json(self.directory / "evaluator-evidence.json", evidence, redact=True)
-                if self.environment is None:
+                if self.evaluation_callback is not None:
+                    score, details = self.evaluation_callback(evidence)
+                elif self.environment is None:
                     score, details = self.backend.evaluate(
                         self.image, self.workdir, evidence, container_name=self.capture["container_name"],
                         **({"artifact_dir": self.directory / "judge" if self.directory else None}
@@ -360,6 +368,122 @@ class TaskExperiment:
             self.environment = None
 
 
+class ContractExperiment:
+    """Use the same lifecycle and scorers as execution in a separate instance."""
+
+    def __init__(self, item, config, target_id, directory):
+        from ..execution.task_runtime import ContractSession
+        from ..types import TargetModelConfig
+        self.item, self.config, self.directory = item, config, directory
+        self.target = next((t for t in config.targets if t.id == target_id), None)
+        if target_id and self.target is None:
+            raise ValueError(f"Unknown target binding: {target_id}")
+        self.target = self.target or (config.targets[0] if config.targets else TargetModelConfig(provider="openai", model="inspection"))
+        self.record = {"purpose": "laaj_exploration", "operations": []}
+        self.runtime = ContractSession(item, config, self.target, directory)
+        self.workspace_trial = None
+        try:
+            if self.target.harness and item.environment is not None:
+                from ..execution.contract_capabilities import binding_issues, workspace_projection
+                from ..execution.contract_workspace import evaluate_workspace
+                issues = binding_issues(item, config, self.target)
+                if issues:
+                    raise ValueError("; ".join(issues))
+                self.workspace_trial = TaskExperiment(workspace_projection(item), config, self.target.id, directory)
+                self.runtime.prepare_scorers()
+                trial = self.workspace_trial
+                self.runtime.episode.bindings["purpose"] = "scripted_trial"
+                trial.evaluation_callback = lambda evidence: evaluate_workspace(
+                    self.runtime, trial.backend, trial.image, trial.workdir, evidence, trial.capture["container_name"])
+            else:
+                self.runtime.prepare()
+        except BaseException:
+            self.close()
+            raise
+
+    def save(self):
+        if self.directory:
+            write_json(self.directory / "reviewer.json", self.record, redact=True)
+        self.runtime.save()
+
+    def describe(self):
+        if self.workspace_trial:
+            return self.workspace_trial.describe()
+        return {"status": "open", "tools": [t.model_dump(mode="json") for t in self.runtime.tools],
+                "initial_messages": self.runtime.messages,
+                "note": "Independent reviewer experiment; its operations are not target-model performance."}
+
+    def perform(self, args):
+        operation = args["operation"]
+        if self.workspace_trial:
+            result = self.workspace_trial.perform(args)
+            if operation == "evaluate":
+                result["metrics"] = [m.model_dump(mode="json") for m in self.runtime.episode.metrics]
+            return result
+        if self.runtime.target_ended:
+            raise ValueError("Experiment ended; reset before another trial")
+        self.record["operations"].append(copy.deepcopy(args))
+        if operation == "action":
+            from ..protocols.tool import ToolCall
+            action = args["action"]
+            call = ToolCall(id=f"reviewer-{len(self.record['operations'])}", name=action["action"], arguments=action.get("args", {}))
+            if args.get("perspective", "target") == "reviewer":
+                result = self.runtime.tool_call(call, origin="reviewer")
+            else:
+                self.runtime.trial_submit(calls=[call])
+                result = {"status": "completed", "last_event": self.runtime.episode.events[-1].model_dump(mode="json")}
+        elif operation == "command":
+            if args.get("perspective", "target") != "reviewer":
+                return self.perform({"operation": "action", "action": {"action": "run_command", "args": {"command": args["command"]}}})
+            env = self.runtime.legacy_environment
+            if env is not None and hasattr(env, "_container_name"):
+                from ..execution.judge_sandbox import JudgeSandbox
+                with JudgeSandbox(env.docker_executable, env._container_name, env.workdir) as sandbox:
+                    proc = sandbox.command(args["command"], 120)
+                    result = {"returncode": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr}
+            elif self.runtime.environment is None or "inspect" not in self.item.environment.capabilities:
+                raise ValueError("This environment has no reviewer inspection capability; use its declared action tools")
+            else:
+                result = self.runtime.environment.call("inspect", {"query": args["command"]})
+            self.runtime.emit("inspection", "reviewer", result)
+        elif operation == "evaluate":
+            if self.runtime.protocol.protocol not in {"response", "tool_loop"}:
+                raise ValueError("Use trial with scripted responses for dialogue or controller protocols")
+            env = self.runtime.legacy_environment
+            if env is not None and env.done:
+                if args.get("final_answer") and args["final_answer"] != getattr(env, "final_answer", ""):
+                    raise ValueError("Environment already ended; cannot replace the submitted answer")
+            else:
+                self.runtime.trial_submit(args.get("final_answer", ""))
+            self.runtime.episode.termination = "reviewer_trial"
+            self.runtime.emit("submission", "reviewer", args.get("final_answer", ""))
+            self.runtime.finalize()
+            result = {"metrics": [m.model_dump(mode="json") for m in self.runtime.evaluate()]}
+        elif operation == "trial":
+            if self.runtime.episode.outputs:
+                raise ValueError("Reset before running a complete scripted trial")
+            result = {"metrics": [m.model_dump(mode="json") for m in self.runtime.run_trial(args["responses"])]}
+        else:
+            raise ValueError(f"Unknown exploration operation: {operation}")
+        if operation in {"evaluate", "trial"}:
+            from ..execution.task_runtime import scalar_score
+            self.runtime.require_valid_scoring()
+            result["score"] = scalar_score(self.item, self.runtime.episode)
+        self.save()
+        return result if isinstance(result, dict) else {"result": result}
+
+    def close(self):
+        try:
+            if self.workspace_trial:
+                self.workspace_trial.close()
+        finally:
+            self.runtime.close()
+
+
+def _experiment(item, config, target_id, directory):
+    return (ContractExperiment if item.content is not None else TaskExperiment)(item, config, target_id, directory)
+
+
 class LaajExploration:
     def __init__(self, suite: TaskSuite, analysis: AnalysisReport | None, config: BenchmarkConfig, directory: Path | None):
         self.suites = {0: suite}
@@ -383,11 +507,11 @@ class LaajExploration:
                     raise ValueError("probe scope requires iteration >= 1")
                 suite = self.suites.get(iteration)
                 item = next((i for i in suite.tasks if i.id == args.get("item_id")), None) if suite else None
-                if item is None or item.task_type != TaskType.agent:
+                if item is None or (item.task_type != TaskType.agent and item.content is None):
                     raise ValueError("Unknown agent task in the requested scope")
                 session_id = uuid.uuid4().hex[:12]
                 directory = self.directory / session_id if self.directory else None
-                experiment = TaskExperiment(item, self.config, str(args.get("target_id") or ""), directory)
+                experiment = _experiment(item, self.config, str(args.get("target_id") or ""), directory)
                 self.sessions[session_id] = experiment
                 experiment.record.update(scope=scope, iteration=iteration)
                 experiment.save()
@@ -400,7 +524,7 @@ class LaajExploration:
                     if operation == "reset":
                         new_id = uuid.uuid4().hex[:12]
                         directory = self.directory / new_id if self.directory else None
-                        replacement = TaskExperiment(experiment.item, self.config, experiment.target.id if experiment.target else "", directory)
+                        replacement = _experiment(experiment.item, self.config, experiment.target.id if experiment.target else "", directory)
                         session_id = new_id
                         self.sessions[session_id] = replacement
                         replacement.record.update(

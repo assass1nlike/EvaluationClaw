@@ -93,6 +93,8 @@ def _ensure_unique_task_ids(tasks: list[TaskDefinition]) -> None:
 
 
 def _task_duplicate_key(task: TaskDefinition) -> str:
+    if task.content is not None:
+        return json.dumps(task.model_dump(mode="json", include={"content", "assets", "environment", "interaction"}), sort_keys=True, ensure_ascii=False)
     content: dict[str, object] = {
         "prompt": task.prompt,
         "assets": [asset.path for asset in task.assets],
@@ -117,7 +119,7 @@ def _normalize_builder_asset_paths(
     task: TaskDefinition,
     builder_work_dir: Path | None,
 ) -> TaskDefinition:
-    if task.task_type != TaskType.agent:
+    if task.content is None and task.task_type != TaskType.agent:
         task.prompt = replace_non_agent_asset_references(task.prompt, task.assets)
         for choice in task.choices:
             choice.text = replace_non_agent_asset_references(choice.text, task.assets)
@@ -206,6 +208,22 @@ def _preflight_builder_environments(
     failed_ids: set[str] = set()
     blocked: dict[str, str] = {}
     for index, task in enumerate(tasks, 1):
+        if task.content is not None:
+            from ..execution.task_runtime import preflight_contract
+            from ..types import TargetModelConfig
+            targets = config.targets or [TargetModelConfig(provider="openai", model="preflight")]
+            for target in targets:
+                try:
+                    preflight_contract(task, config, target,
+                                       trace_dir / _debug_slug(task.id) / _debug_slug(target.id) if trace_dir else None)
+                except EvaluationExecutionError as exc:
+                    if not isinstance(exc, JudgeResponseError):
+                        raise
+                    blocked[task.id] = str(exc)
+                except Exception as exc:
+                    failed_ids.add(task.id)
+                    issues.append(f"task #{index} ({task.id}): contract preflight failed: {type(exc).__name__}: {exc}")
+            continue
         if task.environment is None or task.environment.type != AgentEnvironmentType.docker_workspace:
             continue
         task_design_id = str(task.metadata.get("task_design_id") or "")
@@ -381,6 +399,12 @@ def _task_builder_payload(
             else ["id", "dimension_id", "metadata.task_design_id"]
         ),
     }
+    if not simplified:
+        task_schema["required"] = ["task_type", "title", "challenge_effort", "metadata"]
+        task_schema["input_alternatives"] = {
+            "template": {"required": ["prompt"], "rules": "The type-specific requirements below apply to this template."},
+            "explicit": {"required": ["content", "evaluation"], "rules": "Read read_task_contract; omit prompt and follow the declared protocols instead of type-template rules."},
+        }
     # These instructions must state the fields and runtime semantics required by
     # each selected task type.
     type_requirements: dict[str, list[str]] = {}
@@ -569,6 +593,9 @@ def _task_builder_payload(
     }
     if config is not None and config.builder_environment_notes:
         payload["construction_environment_notes"] = config.builder_environment_notes
+    if config is not None:
+        from ..execution.contract_capabilities import runtime_capabilities
+        payload["task_runtime_capabilities"] = runtime_capabilities(config)
     if direct:
         payload["task_definition_schema"] = TaskDefinition.model_json_schema()
         payload["task_resource_schema"] = TaskResource.model_json_schema()
@@ -1294,8 +1321,14 @@ def build_task_suite(
                     continue
                 task = _normalize_builder_asset_paths(task, builder_work_dir)
                 task_issues: list[str] = []
-                if not task.prompt.strip():
+                if task.content is None and not task.prompt.strip():
                     task_issues.append("Task prompt is required.")
+                if task.content is not None:
+                    from ..execution.contract_capabilities import binding_issues
+                    for target in config.targets:
+                        task_issues.extend(binding_issues(task, config, target))
+                    if config.analyser_api_key and task.evaluation.scalar is None:
+                        task_issues.append("Analyzer requires evaluation.scalar")
                 task.resource_ids = [
                     resource_aliases.get(resource_id, resource_id)
                     for resource_id in task.resource_ids

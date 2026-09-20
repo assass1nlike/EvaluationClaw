@@ -174,15 +174,17 @@ def _print_summary(pkg: BenchmarkPackage) -> None:
 
     if pkg.laaj is not None:
         scores = {
-            "correctness": pkg.laaj.correctness.score,
-            "faithfulness": pkg.laaj.faithfulness.score,
-            "diversity": pkg.laaj.diversity.score,
+            name: getattr(pkg.laaj, name).score
+            for name in ("correctness", "faithfulness", "diversity") if getattr(pkg.laaj, name) is not None
         }
         if pkg.laaj.systematicness is not None:
             scores["systematicness"] = pkg.laaj.systematicness.score
         if pkg.laaj.credibility is not None:
             scores["credibility"] = pkg.laaj.credibility.score
         console.print("LaaJ: " + ", ".join(f"{name}={score:.1f}" for name, score in scores.items()))
+        if pkg.laaj.item_errors or pkg.laaj.overall_error:
+            console.print(f"LaaJ incomplete: {len(pkg.laaj.item_errors)} failed task judgments; "
+                          f"overall judgment failed: {bool(pkg.laaj.overall_error)}.")
 
     if pkg.report.recommendations:
         console.print()

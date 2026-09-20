@@ -1,0 +1,56 @@
+{
+  "jobs": [
+    {
+      "id": "long-horizon",
+      "goal": "I want to evaluate whether models can carry a large, open-ended objective through to completion over a span far exceeding a single task, without losing sight of the objective when work is interrupted, resumed, or re-ordered.",
+      "count": 20
+    },
+    {
+      "id": "session-consistency",
+      "goal": "I want to evaluate whether models working on separate sessions in a shared project maintain a consistent view of what was already decided and built, instead of producing work that contradicts or silently redoes what was already established.",
+      "count": 20
+    },
+    {
+      "id": "implicit-conventions",
+      "goal": "I want to evaluate whether models can work correctly inside a codebase or document collection whose conventions and structure were never written down anywhere, inferring how things are done from the artifacts alone and following those conventions in what they produce.",
+      "count": 20
+    }
+  ],
+  "author_model": "gpt-6-astra",
+  "author_base_url": "https://api.sudorelay.com/v1",
+  "author_key_env": "FRONTIER_API_KEY",
+  "author_effort": "high",
+  "author_workers": 3,
+  "evaluation_workers": 3,
+  "author_timeout_seconds": 28800,
+  "request_spacing_seconds": 2.1,
+  "proxy": null,
+  "direct_hosts": ["api.deepseek.com"],
+  "seed": 42,
+  "evaluation_key_env": "DEEPSEEK_API_KEY",
+  "evaluation_model": {
+    "id": "deepseek-flash",
+    "provider": "openai_compatible",
+    "model": "deepseek-flash",
+    "base_url": "https://api.deepseek.com",
+    "supported_message_roles": ["system", "user", "assistant", "tool"],
+    "extra_body": {"thinking": {"type": "enabled"}, "reasoning_effort": "high"}
+  },
+  "task_key_env": "FRONTIER_API_KEY",
+  "task_model": {
+    "id": "gpt-6-astra",
+    "provider": "openai_compatible",
+    "model": "gpt-6-astra",
+    "base_url": "https://api.sudorelay.com/v1",
+    "extra_body": {"reasoning_effort": "high"}
+  },
+  "laaj_key_env": "FRONTIER_API_KEY",
+  "laaj_model": {
+    "id": "gpt-6-astra",
+    "provider": "openai_responses",
+    "model": "gpt-6-astra",
+    "base_url": "https://api.sudorelay.com/v1",
+    "extra_body": {"reasoning": {"effort": "high"}}
+  },
+  "contamination_enabled": false
+}

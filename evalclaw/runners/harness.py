@@ -30,8 +30,8 @@ from ..execution.docker_images import (
 from ..execution.environment_checks import run_environment_checks
 from ..execution.evaluation import parse_evaluator_result
 from ..execution.evidence import EVALUATOR_EVIDENCE_SCHEMA, execution_failure, redact_evidence
-from ..execution.harness_evidence import cli_result, normalize_events
 from ..execution.harness_compatibility import external_harness_issues
+from ..execution.harness_evidence import cli_result, normalize_events
 from ..execution.image_acquisition import acquire_image, image_pull_options
 from ..execution.interventions import InterventionController
 from ..execution.process import run_bounded
@@ -490,15 +490,17 @@ def _copy_regular_tree(source: Path, destination: Path) -> None:
 
 
 def _harness_prompt(item: BenchmarkItem) -> str:
+    from ..protocols.submission import submission_instructions
+    prompt = item.prompt + submission_instructions(item)
     system_prompt = task_agent_system_prompt(item, "")
     initial_content = task_agent_initial_content_text(item)
     has_actors = bool(agent_env(item).get("actors"))
     if not system_prompt and not initial_content and not has_actors:
-        return item.prompt
+        return prompt
     parts: list[str] = []
     if system_prompt:
         parts.append(f"Task-specific instructions:\n{system_prompt}")
-    parts.append(f"Task:\n{item.prompt}")
+    parts.append(f"Task:\n{prompt}")
     if initial_content:
         parts.append(f"Initial task content:\n{initial_content}")
     if has_actors:
@@ -552,6 +554,7 @@ def prepare_docker_task(item: BenchmarkItem, config: BenchmarkConfig) -> tuple[s
         env,
         task_text=task_text,
         docker_executable=config.docker_executable,
+        timeout_s=config.docker_build_timeout_s,
     )
     image = acquire_image(
         str(env.get("image") or "python:3.11-slim"),
@@ -1057,8 +1060,10 @@ class ManifestHarnessRunner:
         *,
         artifact_dir: Path | None = None,
         preflight_only: bool = False,
+        evaluation_callback=None,
     ) -> tuple[str, float, str]:
         item = item.model_copy(deep=True)
+        episode_filename = "native-episode.json" if evaluation_callback else "episode.json"
         started_at = datetime.now(timezone.utc)
         started = time.monotonic()
         reject_tool_constraints(item, self.name)
@@ -1115,10 +1120,12 @@ class ManifestHarnessRunner:
             actor_evidence = actor_session.runtime.evidence() if actor_session else {
                 "summary": {}, "interactions": []
             }
+            from ..protocols.submission import submission_contract
             evidence = redact_evidence(
                 {
                     "schema_version": EVALUATOR_EVIDENCE_SCHEMA,
                     "item_id": item.id,
+                    "submission_contract": submission_contract(item),
                     "target": {
                         "id": target.id,
                         "model": target.model,
@@ -1163,21 +1170,25 @@ class ManifestHarnessRunner:
             launch_capture["stage"] = "evaluation"
             if artifact_dir is not None:
                 self._collect_trajectory(workdir, artifact_dir)
-            score, reasoning = backend.evaluate(
-                context.image,
-                context.workdir,
-                evidence=evidence,
-                container_name=launch_capture.get("container_name"),
-                **({"artifact_dir": artifact_dir / "judge" if artifact_dir else None}
-                   if agent_env(item).get("judge") else {}),
-            )
+            if evaluation_callback is not None:
+                score, reasoning = evaluation_callback(backend, context.image, context.workdir,
+                                                       evidence, launch_capture.get("container_name"))
+            else:
+                score, reasoning = backend.evaluate(
+                    context.image,
+                    context.workdir,
+                    evidence=evidence,
+                    container_name=launch_capture.get("container_name"),
+                    **({"artifact_dir": artifact_dir / "judge" if artifact_dir else None}
+                       if agent_env(item).get("judge") else {}),
+                )
             raw = _redact_secret(raw, target.api_key)
             reasoning = _redact_secret(reasoning, target.api_key)
             if artifact_dir is not None:
                 finished_at = datetime.now(timezone.utc)
                 (artifact_dir / f"{self.name}-reasoning.txt").write_text(reasoning, encoding="utf-8")
                 self._collect_trajectory(workdir, artifact_dir)
-                (artifact_dir / "episode.json").write_text(
+                (artifact_dir / episode_filename).write_text(
                     json.dumps(
                         {
                             "item_id": item.id,
@@ -1240,7 +1251,7 @@ class ManifestHarnessRunner:
                 "termination": {"status": "failed", "error_type": type(exc).__name__},
                 "failure": failure,
                 "evidence_error": launch_capture.get("evidence_error"),
-                "artifacts": {"episode": "episode.json", "evidence": "execution-failure.json"},
+                "artifacts": {"episode": episode_filename, "evidence": "execution-failure.json"},
             }, [target.api_key, config.actor_api_key])
             exc.execution_evidence = failure_evidence
             if artifact_dir is not None:
@@ -1270,7 +1281,7 @@ class ManifestHarnessRunner:
                         _redact_secret(exc.stderr, target.api_key), encoding="utf-8"
                     )
                 self._collect_trajectory(workdir, artifact_dir)
-                (artifact_dir / "episode.json").write_text(
+                (artifact_dir / episode_filename).write_text(
                     json.dumps(
                         {
                             "item_id": item.id,
@@ -1755,6 +1766,15 @@ class ManifestHarnessRunner:
                         proc.stdout,
                         proc.stderr,
                     )
+            if controller is not None:
+                # Normal completion and task-budget exhaustion are submissions;
+                # infrastructure failures above must not execute business settlement.
+                if any(s["trigger"]["type"] == "episode_end" for s in interventions):
+                    self._stop_episode(resolved, container_name)
+                try:
+                    controller.finish()
+                finally:
+                    lifecycle["interventions"] = list(controller.records)
             return proc.stdout
         finally:
             if owns_lifecycle:
@@ -1790,7 +1810,7 @@ for pid in stopped:
         _docker(docker, ["exec", "--user", "0:0", container, "python3", "-c", script, _target_container_user().split(":")[0]])
 
     def _workflow_turns(self, item, values, quoted, prefix, lifecycle, docker, container, docker_env, timeout):
-        from .workflow import stage_item, _stage_prompt
+        from .workflow import _stage_prompt, stage_item
 
         deadline = time.monotonic() + timeout
         session_id = str(uuid.uuid4())
@@ -1861,7 +1881,10 @@ for pid in stopped:
             'test "$(id -u)" -ne 0 && test -r /workspace && test -x /workspace && test -w "$HOME"',
             *self._manifest.preflight,
         ]
-        if agent_env(context.item).get("budget"):
+        environment = agent_env(context.item)
+        if environment.get("budget") or any(
+            event.get("trigger", {}).get("type") == "episode_end" for event in environment.get("interventions", [])
+        ):
             commands.append("python3 --version")
         if agent_env(context.item).get("actors"):
             from .environment_actors import CONTACT_COMMAND

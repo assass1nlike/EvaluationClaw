@@ -7,6 +7,7 @@ import subprocess
 import time
 from pathlib import Path
 
+from .budget_docker import docker_env
 from .memory_budget import MemoryBudgetError, _process_identity, _replace_file
 
 
@@ -42,11 +43,12 @@ def process_usage(owners, tracked, proc=Path("/proc")):
     return total, {str(pid): records[pid][1] for pid in selected}
 
 
-def container_usage(docker):
-    args = [docker, "--context", "default"]
+def container_usage(docker, endpoint=None):
+    args = [docker]
+    env = docker_env(endpoint) if endpoint else None
     ids = subprocess.check_output(
         [*args, "ps", "-q", "--no-trunc", "--filter", f"label=evalclaw.memory-owner={os.getuid()}"],
-        text=True, timeout=30,
+        text=True, timeout=30, env=env,
     ).split()
     total = 0
     for cid in ids:
@@ -58,7 +60,7 @@ def container_usage(docker):
             # It may have exited between listing and sampling. A still-running
             # container with an unreadable cgroup must never silently count as zero.
             alive = subprocess.check_output(
-                [*args, "ps", "-q", "--filter", f"id={cid}"], text=True, timeout=30,
+                [*args, "ps", "-q", "--filter", f"id={cid}"], text=True, timeout=30, env=env,
             ).strip()
             if alive:
                 raise MemorySamplePending(f"Docker container {cid} is transitioning at {group}.")
@@ -67,7 +69,7 @@ def container_usage(docker):
     return total, len(ids)
 
 
-def sample_usage(state, docker):
+def sample_usage(state, docker, endpoint=None):
     """Called under the shared admission lock; reuse samples for at most one second."""
     path = state / "usage.json"
     previous = json.loads(path.read_text()) if path.exists() else {}
@@ -78,7 +80,7 @@ def sample_usage(state, docker):
     owners = {k: v for k, v in owners.items() if _process_identity(v["pid"]) == v["identity"]}
     try:
         host, tracked = process_usage(owners, previous.get("tracked", {}))
-        containers, count = container_usage(docker)
+        containers, count = container_usage(docker, endpoint)
         meminfo = dict((parts[0].rstrip(":"), int(parts[1]) * 1024)
                        for line in Path("/proc/meminfo").read_text().splitlines()
                        if len(parts := line.split()) >= 2)

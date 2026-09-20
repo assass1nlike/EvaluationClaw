@@ -450,7 +450,7 @@ def _detailed_item_lines(run: EvalRun) -> list[str]:
                 "",
                 f"- Dimension: `{item.dimension_id if item else '-'}`",
                 f"- Task type: `{task_type.value}`",
-                f"- Challenge effort: `{item.challenge_effort.value if item else '-'}`",
+                f"- Challenge effort: `{item.effort_label if item else '-'}`",
                 f"- Source: {_source_label(item) if item else '-'}",
                 f"- Latency: {result.latency_ms if result.latency_ms is not None else '-'} ms",
                 f"- Error: {result.error or '-'}",

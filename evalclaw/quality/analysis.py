@@ -81,6 +81,27 @@ evidence. Do not request more tasks when ending. If no supported, in-scope
 weakness benchmark can be selected, return "benchmark": [] and explain the
 evidence limitation in analysis; do not invent a weakness to populate it.
 While continuing, omit benchmark.
+
+Return evidence_assessments (an empty list if none) alongside analysis on every call.
+Record suspected/confirmed task defects and evaluation/infrastructure errors here,
+not only in prose, so later iterations retain these exclusions. Each entry is:
+{"iteration": 0, "item_id": "...", "target_id": "...",
+ "status": "suspected_task_defect", "components": ["affected scoring component"],
+ "reason": "...", "evidence": ["artifact path and concrete observation"]}.
+Statuses: model_failure, format_failure, no_model_failure, suspected_task_defect, confirmed_task_defect,
+evaluation_error, infrastructure_error. Inspect actual target input, evaluator and
+episode evidence before blaming a capability. A planned actor persona is not proof
+of what the actor actually did. Separate report truthfulness from task completion
+and formatting. Do not infer capability failures from an invalid scoring component.
+A task with an unresolved defect cannot enter the final benchmark even if another
+component appears valid. You may discuss that limited observation separately.
+Previous assessments persist; revise a reference only with concrete new evidence
+that resolves the earlier concern. A model_failure or format_failure assessment
+must justify why any earlier defect no longer applies to the saved task and result.
+Use no_model_failure when inspection finds no demonstrated target failure; that
+result cannot support a weakness even if the task itself is valid.
+QC findings with stale or unknown task revisions are leads, not verified facts
+about the current task. Inspect the saved definition before carrying them forward.
 """
 
 ANALYSER_SYSTEM_PROMPT = """\
@@ -503,7 +524,7 @@ def _task_context(suite: TaskSuite) -> list[dict[str, Any]]:
                 "id": item.id,
                 "dimension_id": item.dimension_id,
                 "task_type": item.task_type.value,
-                "challenge_effort": item.challenge_effort.value,
+                "challenge_effort": item.effort_label,
                 "prompt": item.prompt,
                 "choices": [choice.model_dump(mode="json") for choice in item.choices],
                 "correct_choice_ids": list(item.correct_choice_ids),
@@ -514,6 +535,9 @@ def _task_context(suite: TaskSuite) -> list[dict[str, Any]]:
                 ],
                 "rubric": item.rubric,
             }
+        if item.content is not None:
+            from ..protocols.task_view import definition_view
+            context["task_definition"] = definition_view(item)
         environment = agent_environment(item)
         if environment is not None:
             context["agent_environment"] = environment
@@ -548,8 +572,9 @@ def _run_context(run: EvalRun) -> dict[str, Any]:
                 "latency_ms": result.latency_ms,
                 "execution": {
                     key: value for key, value in result.execution.items()
-                    if key in {"stage", "termination", "target_started", "artifacts"}
+                    if key in {"stage", "termination", "target_started", "artifacts", "scalar_available"}
                 },
+                "native_metrics": [m.model_dump(mode="json") for m in result.episode.metrics] if result.episode else [],
                 "failure_evidence": {
                     "failed": bool(result.error) or result.score < 1.0,
                     "score": result.score,
@@ -584,6 +609,7 @@ def _analysis_payload(
             {
                 "iteration": iteration.iteration,
                 "analysis": iteration.analysis,
+                "evidence_assessments": [a.model_dump(mode="json") for a in iteration.evidence_assessments],
                 "goal": iteration.goal,
                 "task_designs": [
                     design.model_dump(mode="json") for design in iteration.task_designs
@@ -699,6 +725,31 @@ def _parse_response(
     return analysis, goal, False, designs
 
 
+def _parse_evidence_assessments(data, suite, run, iterations):
+    from ..types import AnalysisEvidenceAssessment
+    raw = data.get("evidence_assessments", [])
+    if not isinstance(raw, list):
+        raise ValueError("evidence_assessments must be a list")
+    sources = {0: (suite, run)}
+    sources.update({entry.iteration: (entry.suite, entry.run) for entry in iterations})
+    known = {(number, result.item_id, result.target_id)
+             for number, (source_suite, source_run) in sources.items()
+             if source_suite is not None and source_run is not None
+             for result in source_run.results
+             if result.item_id in {task.id for task in source_suite.tasks}}
+    merged = {(a.iteration, a.item_id, a.target_id): a
+              for entry in iterations for a in entry.evidence_assessments}
+    seen = set()
+    for value in raw:
+        assessment = AnalysisEvidenceAssessment.model_validate(value)
+        key = (assessment.iteration, assessment.item_id, assessment.target_id)
+        if key not in known or key in seen:
+            raise ValueError(f"Unknown or duplicate evidence assessment reference: {key!r}")
+        seen.add(key)
+        merged[key] = assessment
+    return list(merged.values())
+
+
 def _parse_benchmark(
     data: dict[str, Any],
     suite: TaskSuite,
@@ -709,6 +760,9 @@ def _parse_benchmark(
     if not isinstance(raw, list):
         raise ValueError("Final Analyser response requires a benchmark list (empty if unsupported).")
     groups = [AnalysisWeakness.model_validate(group) for group in raw]
+    assessments = _parse_evidence_assessments(data, suite, run, iterations)
+    excluded = {(a.iteration, a.item_id, a.target_id): a.status for a in assessments
+                if a.status not in {"model_failure", "format_failure"}}
     sources = {0: (suite, run)}
     sources.update({entry.iteration: (entry.suite, entry.run) for entry in iterations})
     eligible: set[tuple[int, str, str]] = set()
@@ -726,6 +780,10 @@ def _parse_benchmark(
         seen: set[tuple[int, str, str]] = set()
         for item in group.items:
             reference = (item.iteration, item.item_id, item.target_id)
+            if reference in excluded:
+                if excluded[reference] == "no_model_failure":
+                    raise ValueError(f"Benchmark reference {reference!r} has no demonstrated model failure.")
+                raise ValueError(f"Benchmark reference {reference!r} has an unresolved evidence defect.")
             if reference not in eligible:
                 raise ValueError(
                     f"Benchmark reference {reference!r} must identify an existing task with a "
@@ -944,6 +1002,8 @@ def run_analysis(
         raise RuntimeError("Analysis requires a configured Analyser model.")
     if not run.results:
         raise RuntimeError("Analysis requires target-model results from the main benchmark run.")
+    if any(not result.error and result.execution.get("scalar_available") is False for result in run.results):
+        raise ValueError("Analyzer requires an explicit evaluation.scalar selection; native metrics remain available without one")
 
     root = artifact_dir / "analysis" if artifact_dir is not None else new_debug_dir(config.output_dir, "analysis")
     try:
@@ -1009,6 +1069,7 @@ def _run_analysis(
                 data, suite, config, iteration=next_iteration, remaining_probe_iterations=remaining
             )
             benchmark = _parse_benchmark(data, suite, run, iterations) if done else None
+            _parse_evidence_assessments(data, suite, run, iterations)
             return analysis, goal, done, task_designs, benchmark
 
         data = _call_analyser_json(
@@ -1021,6 +1082,7 @@ def _run_analysis(
         if call_dir is not None:
             write_json(call_dir / "response.json", data)
         analysis, goal, done, task_designs, benchmark = parse(data)
+        assessments = _parse_evidence_assessments(data, suite, run, iterations)
         if done:
             report = AnalysisReport(
                 strategy=(
@@ -1029,6 +1091,7 @@ def _run_analysis(
                     else config.ablation_analyser
                 ),
                 analysis=analysis,
+                evidence_assessments=assessments,
                 benchmark=benchmark,
                 iterations=iterations,
             )
@@ -1063,6 +1126,7 @@ def _run_analysis(
         completed = AnalysisIteration(
             iteration=next_iteration,
             analysis=analysis,
+            evidence_assessments=assessments,
             goal=goal,
             task_designs=task_designs,
             suite=probe_suite,

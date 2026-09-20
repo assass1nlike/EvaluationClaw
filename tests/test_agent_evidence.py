@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import types
+import subprocess
 
 from evalclaw.models.llm import TargetToolModelResponse
 from evalclaw.protocols.tool import ToolCall, ToolSpec, object_schema
@@ -49,6 +50,27 @@ class EvidenceEnvironment:
 
     def evaluate_with_evidence(self, evidence):
         self.evidence = evidence
+
+
+def test_native_settlement_precedes_final_evaluator(monkeypatch):
+    env = EvidenceEnvironment()
+    env.interventions = [{"id": "settle", "trigger": {"type": "episode_end"},
+                          "action": {"command": "settle"}}]
+    steps = []
+    def control(command, timeout):
+        steps.append("settled")
+        return subprocess.CompletedProcess([], 0, "before: pending; after: settled", "")
+    env.run_external_command = control
+    def evaluate(evidence):
+        steps.append("graded")
+        env.evidence = evidence
+    env.evaluate_with_evidence = evaluate
+    monkeypatch.setattr(agent_module, "call_target_model", lambda *a, **kw: '{"action":"final","args":{"answer":"done"}}')
+    item = BenchmarkItem(id="native-settle", task_type="agent", prompt="Finish.")
+    agent_module._run_agent_interaction_json_actions(item, TargetModelConfig(provider="mock", model="test"),
+                                                    BenchmarkConfig(), environment=env)
+    assert steps == ["settled", "graded"]
+    assert env.evidence["interventions"][0]["status"] == "completed"
 
 
 def test_native_final_evaluator_receives_complete_target_trace(monkeypatch) -> None:

@@ -781,6 +781,12 @@ def task_structure_issues(
     This is intentionally narrower than content QC. It checks whether the task
     has the fields needed for its task type and optional execution capabilities.
     """
+    if task.content is not None:
+        from ..execution.task_runtime import contract_issues
+        issues = contract_issues(task)
+        if dimension is not None and task.dimension_id != dimension.id:
+            issues.append(f"Task dimension_id must be {dimension.id}.")
+        return issues
     issues: list[str] = []
     target_harnesses = tuple(target_harnesses) if target_harnesses is not None else None
     has_native_target = target_harnesses is not None and (not target_harnesses or "" in target_harnesses)
@@ -881,7 +887,7 @@ def task_structure_issues(
     if expected_effort is not None and task.challenge_effort != expected_effort:
         issues.append(
             f"Task challenge_effort must be {expected_effort.value}; "
-            f"got {task.challenge_effort.value}."
+            f"got {task.effort_label}."
         )
     if require_challenge_effort_self_assessment:
         assessment = task.metadata.get("challenge_effort_self_assessment")
@@ -1014,6 +1020,9 @@ def task_structure_issues(
         expected_environment = task.environment.type
 
     env = task.environment
+    if has_native_target:
+        from ..execution.contract_capabilities import native_workflow_issues
+        issues.extend(native_workflow_issues(task))
     if env.budget and has_native_target:
         issues.append("Episode wall-clock budgets require external shell harness targets.")
     if env.verification_cases and task.workflow is not None:

@@ -15,7 +15,9 @@ def test_docker_runtime_uses_host_network_kvm_and_existing_daemon(tmp_path, monk
     job = tmp_path / 'software'
     job.mkdir()
     (job / 'config.json').write_text('{"env":"test_env"}')
-    monkeypatch.setattr(seed_batch.os, 'stat', lambda p: SimpleNamespace(st_gid=109))
+    original_stat = seed_batch.os.stat
+    monkeypatch.setattr(seed_batch.os, 'stat', lambda p, **kwargs:
+        SimpleNamespace(st_gid=109) if str(p) in ('/dev/kvm', '/var/run/docker.sock') else original_stat(p, **kwargs))
     env = {'PATH': '/tools/bin', 'https_proxy': 'http://127.0.0.1:17891',
            'OPENAI_API_KEY': 'unrelated-secret'}
     command = seed_batch.runtime_command(job, ['/tools/python', 'build.py'], env)
@@ -25,8 +27,28 @@ def test_docker_runtime_uses_host_network_kvm_and_existing_daemon(tmp_path, monk
     assert 'type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock' in mounts
     assert 'type=bind,src=/tmp,dst=/tmp' in mounts
     passed = [command[i+1] for i, arg in enumerate(command) if arg == '--env']
-    assert passed == ['PATH', 'https_proxy']
+    assert passed == ['DOCKER_HOST=unix:///var/run/docker.sock',
+                      f'GYM_ANYTHING_QEMU_PORT_LOCK_DIR={seed_batch.ROOT / "local/runtime/qemu/port-locks"}',
+                      'PATH', 'https_proxy']
     assert command[-3:] == [seed_batch.RUNTIME_IMAGE, '/tools/python', 'build.py']
+
+
+def test_dedicated_socket_is_mounted_and_remapped_inside_worker(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from local import seed_batch
+    (tmp_path / 'config.json').write_text('{"env":"test_env"}')
+    original_stat = seed_batch.os.stat
+    monkeypatch.setattr(seed_batch.os, 'stat', lambda p, **kwargs:
+        SimpleNamespace(st_gid=999) if str(p) in ('/dev/kvm', '/run/evaluationclaw/docker.sock') else original_stat(p, **kwargs))
+    command = seed_batch.runtime_command(tmp_path, ['python', 'worker.py'],
+                                         {'DOCKER_HOST': 'unix:///run/evaluationclaw/docker.sock'})
+    mounts = [command[i+1] for i, arg in enumerate(command) if arg == '--mount']
+    assert 'type=bind,src=/run/evaluationclaw/docker.sock,dst=/var/run/docker.sock' in mounts
+    assert 'type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock' not in mounts
+    assert 'DOCKER_HOST=unix:///var/run/docker.sock' in command
+    passed = [command[i+1] for i, arg in enumerate(command) if arg == '--env']
+    assert 'https_proxy=http://127.0.0.1:17891' in passed
+    assert 'HTTPS_PROXY=http://127.0.0.1:17891' in passed
 
 
 def test_host_launch_uses_default_network_and_retains_model_configuration(tmp_path, monkeypatch):

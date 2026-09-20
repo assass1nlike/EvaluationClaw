@@ -8,6 +8,7 @@ import re
 import shlex
 import subprocess
 import tempfile
+import time
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
@@ -456,6 +457,8 @@ def _run_image_build(
     log_root = _build_context_root() / "logs"
     log_root.mkdir(parents=True, exist_ok=True)
     log_dir = Path(tempfile.mkdtemp(prefix="build-", dir=log_root))
+    started_at = time.time()
+    started = time.monotonic()
     env = docker_subprocess_env(docker_executable)
     if configured_mirrors():
         try:
@@ -466,13 +469,16 @@ def _run_image_build(
         except (ImageAcquisitionError, ValueError) as exc:
             (log_dir / "dependency-failure.json").write_text(json.dumps({
                 "image": image, "error_type": type(exc).__name__, "error": str(exc),
+                "started_at": started_at, "dependency_seconds": time.monotonic() - started,
             }, indent=2), encoding="utf-8")
             message = f"{exc}\nBuild dependency logs: {log_dir}"
             if isinstance(exc, ImageAcquisitionError):
                 raise ImageAcquisitionError(message) from exc
             raise DockerImageBuildError(image, message) from exc
         env["EXPERIMENTAL_BUILDKIT_SOURCE_POLICY"] = str(policy)
-    record = {"image": image, "timeout_s": timeout_s, "exit_code": None, "timed_out": False}
+    build_started = time.monotonic()
+    record = {"image": image, "timeout_s": timeout_s, "exit_code": None, "timed_out": False,
+              "started_at": started_at, "dependency_seconds": build_started - started}
     fatal = ""
     cause = None
     stdout = stderr = ""
@@ -510,6 +516,8 @@ def _run_image_build(
     stdout = stdout.decode("utf-8", errors="replace") if isinstance(stdout, bytes) else stdout
     stderr = stderr.decode("utf-8", errors="replace") if isinstance(stderr, bytes) else stderr
     record["execution_error"] = fatal
+    record["build_seconds"] = time.monotonic() - build_started
+    record["finished_at"] = time.time()
     (log_dir / "stdout.log").write_text(stdout, encoding="utf-8")
     (log_dir / "stderr.log").write_text(stderr, encoding="utf-8")
     (log_dir / "result.json").write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -980,7 +988,7 @@ def commit_inspection_container(
     tag: str = "",
     *,
     docker_executable: str = "docker",
-    timeout_s: int = 120,
+    timeout_s: int = DEFAULT_DOCKER_BUILD_TIMEOUT_S,
 ) -> DockerInspectResult:
     """Commit a running inspection container into a reusable image.
 
@@ -992,7 +1000,7 @@ def commit_inspection_container(
         raise ValueError("Inspection container commit requires a container.")
     resolved = resolve_docker_executable(docker_executable)
     if not resolved:
-        raise RuntimeError("Docker executable is not available for inspection containers.")
+        raise DockerBuildExecutionError("Docker executable is not available for image commit.")
     image_tag = str(tag or "").strip() or f"evalclaw-task-{uuid.uuid4().hex[:12]}"
     try:
         proc = subprocess.run(
@@ -1006,10 +1014,26 @@ def commit_inspection_container(
             env=docker_subprocess_env(docker_executable),
         )
     except subprocess.TimeoutExpired as exc:
-        raise RuntimeError(f"Inspection container commit timed out for {container_name}.") from exc
+        raise DockerBuildExecutionError(
+            f"Inspection container commit timed out after {timeout_s}s for {container_name}; "
+            f"image {image_tag!r} is not confirmed ready."
+        ) from exc
+    except OSError as exc:
+        raise DockerBuildExecutionError(f"Could not execute image commit for {image_tag!r}: {exc}") from exc
+    if proc.returncode < 0:
+        raise DockerBuildExecutionError(f"Image commit for {image_tag!r} terminated by signal {-proc.returncode}.")
     if proc.returncode != 0:
         detail = (proc.stderr or proc.stdout or "Unknown error.").strip()
-        raise RuntimeError(
+        try:
+            health = subprocess.run(
+                [resolved, "info"], capture_output=True, timeout=30,
+                env=docker_subprocess_env(docker_executable),
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise DockerBuildExecutionError(f"Docker unavailable after image commit failure: {detail[-4000:]}") from exc
+        if health.returncode:
+            raise DockerBuildExecutionError(f"Docker unavailable after image commit failure: {detail[-4000:]}")
+        raise DockerImageBuildError(image_tag,
             f"Failed to commit inspection container {container_name}: {detail[-4000:]}"
         )
     return DockerInspectResult(

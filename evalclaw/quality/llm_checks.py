@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import closing
 from pathlib import Path
 
 from ..core.scaling import is_large_scale
@@ -95,12 +96,15 @@ def _compact_metadata_for_qc(metadata: dict, *, string_limit: int = 1200) -> dic
             "test_command",
             "start_room",
             "notes",
+            "interventions",
+            "budget",
         ):
             if key in env:
                 env_summary[key] = str(env[key])[:1600] if key == "notes" else env[key]
         setup_commands = env.get("setup_commands")
         if isinstance(setup_commands, list):
-            env_summary["setup_commands"] = [str(command)[:1200] for command in setup_commands[:12]]
+            env_summary["setup_commands"] = [_file_review_excerpt(command, 1200) for command in setup_commands[:12]]
+            env_summary["setup_command_count"] = len(setup_commands)
         browser = env.get("browser")
         if isinstance(browser, dict):
             env_summary["browser"] = {
@@ -141,7 +145,7 @@ def _compact_metadata_for_qc(metadata: dict, *, string_limit: int = 1200) -> dic
                 )
                 if key in image_build
             }
-        for key in ("visible_files", "files", "hidden_files"):
+        for key in ("visible_files", "files", "hidden_files", "runtime_files"):
             files = env.get(key)
             if isinstance(files, dict):
                 env_summary[f"{key}_count"] = len(files)
@@ -386,7 +390,7 @@ def _llm_qc(
             "id": item.id,
             "dimension_id": item.dimension_id,
             "task_type": item.task_type.value,
-            "challenge_effort": item.challenge_effort.value,
+            "challenge_effort": item.effort_label,
             **_prompt_for_qc(item.prompt, limit=prompt_limit),
             "assets": [asset.model_dump(mode="json") for asset in item.assets],
             "choices": [choice.model_dump(mode="json") for choice in item.choices],
@@ -399,6 +403,7 @@ def _llm_qc(
             "rubric": None if item.task_type == TaskType.choice else item.rubric,
             "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools],
             "output_contract": item.output_contract,
+            "workflow": item.workflow.model_dump(mode="json") if item.workflow else None,
             "source": item.source.model_dump(mode="json"),
             "tags": item.tags,
             "metadata": _compact_metadata_for_qc(
@@ -408,6 +413,13 @@ def _llm_qc(
         }
         for item in sampled_items
     ]
+    for index, (entry, item) in enumerate(zip(sample, sampled_items)):
+        if item.content is not None:
+            from ..protocols.task_view import definition_view
+            sample[index] = {
+                **{key: entry[key] for key in ("id", "dimension_id", "task_type", "challenge_effort", "source", "metadata")},
+                "task_definition": definition_view(item),
+            }
     request = {
         "objective": suite.spec.objective,
         "item_count": len(suite.tasks),
@@ -441,7 +453,19 @@ def _llm_qc(
     for attempt in range(1, LLM_QC_MAX_ATTEMPTS + 1):
         raw: str | None = None
         try:
-            raw = call_llm(
+            if any(item.content is not None or item.task_type == TaskType.agent for item in sampled_items):
+                from .laaj import _run_laaj_tool_loop
+                from .laaj_exploration import LAAJ_EXPLORE_TOOL, LaajExploration
+                tool_suite = suite.model_copy(update={"tasks": sampled_items})
+                with closing(LaajExploration(tool_suite, None, config,
+                        Path(trace_dir) / "exploration" / f"attempt-{attempt:02d}" if trace_dir else None)) as exploration:
+                    raw = _run_laaj_tool_loop(request, tool_suite, config,
+                        trace_dir=Path(trace_dir) / "llm" if trace_dir is not None else None,
+                        artifact_dir=None, trace_name=f"qc-attempt-{attempt:02d}", include_agent_tools=True,
+                        additional_tools=[LAAJ_EXPLORE_TOOL], tool_handlers={LAAJ_EXPLORE_TOOL.name: exploration.handle},
+                        system_prompt=QC_SYSTEM_PROMPT, model_role="qc", max_tool_calls=config.laaj_tool_calls_per_item)
+            else:
+                raw = call_llm(
                 [
                     Message(
                         role="user",

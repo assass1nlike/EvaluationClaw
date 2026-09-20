@@ -19,6 +19,16 @@ class EvaluatorResult:
         return asdict(self)
 
 
+def require_valid_evaluator_execution(result: dict[str, Any], evaluation: dict[str, Any]) -> None:
+    structured_required = bool(
+        evaluation.get("result_path") or evaluation.get("score_path")
+        or evaluation.get("result_format") == "json_on_stdout"
+        or evaluation.get("allow_stdout_score")
+    )
+    if result["returncode"] not in {0, 1} or (structured_required and not result["evaluator"]["structured"]):
+        raise RuntimeError(f"Evaluator did not return a valid result: {result.get('stderr') or result.get('stdout')}")
+
+
 def _bounded_score(value: object) -> float | None:
     try:
         score = float(value)

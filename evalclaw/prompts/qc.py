@@ -19,6 +19,10 @@ as correct and pass it; uncertainty alone is not grounds for an issue.
 
 Check individual item clarity, answer reliability, scoring criteria, and
 coverage. Also perform meta-evaluation:
+For explicit content/evaluation contracts, judge the declared messages and scoring protocol.
+Task-type template requirements do not override those contracts. References may be constraints,
+tests, state conditions or examples rather than a unique text answer. Seeded context and external
+prefills are not target-generated evidence. Preserve multiple metrics and their native directions.
 - Do the dimensions genuinely match the objective and user need?
 - Are the task types, source strategy, and scoring method appropriate?
 - Are there obvious omissions, content drift, shallow coverage, judge
@@ -51,8 +55,24 @@ about one. Inspect public actor descriptions for leaked private truth. Check tha
 measure operations rather than mentions or refusals, and allow demonstrated valid alternatives
 in open-ended work. A missing trace is not proof of no action. Report concrete contradictions;
 do not demand extra mechanisms when the existing task already measures its intended behavior.
+Use the supplied file and environment tools to inspect complete inputs and evaluators when a
+summary is insufficient. A reference and its scorer agreeing is not independent evidence of
+solvability: check where required constants and constraints are obtainable by the target.
+When warranted, test a concrete valid alternative or scoring counterexample in a fresh trial.
+Compare canonical submission paths/types with all target instructions and evaluator reads.
+Separate executable source from tests, temporary data, quotations and negative assertions.
+Grade actor reliability and attribution from actual interactions, not planned role labels.
+Compare progress reports with the target's own actual work, not the reference solution's progress.
+Check any declared episode-end settlement and mandatory success gates; an untriggered future
+consequence does not demonstrate prevention. Unavailable essential telemetry is not zero usage.
+Review the surviving tasks' direct versus auxiliary coverage of the requested behavior;
+static subskill tests must not replace all opportunities to perform the requested live behavior.
+Safety criteria need an explicit task policy or a supported authorization/consequence boundary;
+the reviewer's preferred stance on an authorized technique is not a scoring requirement.
 
 Apply task-type requirements according to what the runner actually consumes:
+The following type-specific fields apply to legacy tasks without explicit content/evaluation.
+For explicit tasks, use evaluation.references and the declared scoring protocol instead.
 - choice needs at least two distinct id/text choices and one or more valid
   correct_choice_ids; multi-select is scored by exact set equality.
 - fill_blank needs a non-empty expected_texts list and a prompt that makes the
@@ -67,7 +87,7 @@ Apply task-type requirements according to what the runner actually consumes:
   state, artifacts, answer, or trajectory produced by the target, plus a feasible
   reference_trajectory. Treat that trajectory as one valid route, not as the only acceptable route.
 
-Each sampled item includes prompt_is_complete and prompt_character_count. When
+Legacy samples include prompt_is_complete and prompt_character_count. When
 prompt_is_complete=false, prompt is an explicitly marked QC review excerpt
 containing its beginning and end. Do not report prompt truncation merely because
 the middle was omitted for QC context; report only a concrete defect visible in
@@ -78,8 +98,14 @@ in the supplied metadata was inserted only while preparing this QC request. It
 is not present in the canonical task, command, file, or validator. Never report
 that marker or the excerpt boundary as a defect in the canonical benchmark.
 
-For executable tasks, metadata.agent_env and metadata.agent_task_package are the
-canonical runtime contracts. Ordinary task metadata fields with names such as
+For tasks with task_definition.content, task_definition is the canonical contract:
+content declares messages, environment declares the executable environment,
+interaction declares the protocol, and evaluation declares references, scorers,
+and metrics. Do not require duplicate metadata.agent_env or metadata.agent_task_package
+for these tasks. For legacy tasks without explicit content, metadata.agent_env and
+metadata.agent_task_package are the runtime contracts. In the workspace checks below,
+agent_env refers to environment for explicit tasks and metadata.agent_env for legacy tasks.
+Ordinary task metadata fields with names such as
 required_tools, forbidden_shortcuts, or retained_evidence are descriptive and
 cannot add, remove, or override runtime tools. Report a tool-contract conflict
 only when the canonical environment or agent task package conflicts with the
@@ -99,7 +125,7 @@ inspect what the target leaves behind and must not create or repair the expected
 state itself. Do not accept custom tool names unless the selected runtime
 actually exposes them.
 
-For task_type=agent with metadata.agent_env.type=docker_workspace:
+For Docker workspace tasks (agent_env.type=docker_workspace):
 - visible_files are available to the target through file tools; an empty mapping
   is valid when the task asks the agent to create new files from scratch.
 - runtime_files are available to setup/runtime but protected from target file tools.
@@ -120,8 +146,9 @@ For task_type=agent with metadata.agent_env.type=docker_workspace:
   by the TaskDesign, have a clear system prompt, and reference an existing
   actor_toolsets entry when it needs tools. Check that its objective tool and
   path permissions fit the role. The system prompt defines role behavior; do
-  not impose a generic rule against helping the target complete work. Reject
-  actor tasks that also implement scripted actors or depend on runtime_files.
+  not impose a generic rule against helping the target complete work. Role dialogue
+  comes from the actor; deterministic task services and state transitions may coexist.
+  Apply runtime_files restrictions according to the selected backend, not actor presence alone.
 - Check that setup_commands are feasible under the declared image and network
   policy, start required local services before the target begins, use paths
   consistent with the container workdir, and leave the evaluator runtime
@@ -142,7 +169,7 @@ For task_type=agent with metadata.agent_env.type=docker_workspace:
   infer that canonical files are truncated merely because the QC copy is an
   excerpt.
 
-For task_type=agent with metadata.agent_env.type=vm:
+For VM tasks (agent_env.type=vm):
 - Require an identifiable application or desktop surface, a launch/start
   state, bounded steps, and bridge-executable evaluation checks or method.
 - When requires_vm=true, accept either a concrete runner-resolvable
@@ -180,7 +207,7 @@ For task_type=multi_turn with a dialogue contract:
   follow-up policy. The scoring oracle must inspect the relevant transcript,
   final answer, or resulting state rather than only the first response.
 
-For task_type=multi_turn or task_type=agent:
+For legacy task_type=multi_turn or task_type=agent without explicit content/evaluation:
 - If metadata.task_structure_validation.status is "passed", the task has
   passed builder-level shape and runner-contract validation only. Do not repeat
   those low-level schema checks without evidence, but never treat this marker as
@@ -206,7 +233,9 @@ For items with assets:
 - Absolute local paths are valid; do not flag a path merely because it is absolute.
 - For agent items, the asset path is a framework-private host source. The prompt or choices
   should refer to the path visible in the agent environment rather than the host path (for
-  docker_workspace this is the copied filename).
+  docker_workspace this is the copied filename or declared mount_path). Installation archives
+  need not appear in the prompt; inspect setup consumption and target-visible resulting files.
+  Private grading material must be removed from target-visible archives after setup.
 - For non-agent items, the prompt or choices should refer to each image asset by its ``Image N``
   label. Their current native target adapter supports image files only.
 

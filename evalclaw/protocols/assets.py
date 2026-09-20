@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import base64
 import mimetypes
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from ..types import BenchmarkItem, TaskAsset, TaskType
@@ -11,12 +11,26 @@ from ..types import BenchmarkItem, TaskAsset, TaskType
 
 def environment_asset_guest_path(asset: TaskAsset) -> str:
     """Return the target-visible workspace path for one host-side task asset."""
+    if asset.mount_path:
+        path = PurePosixPath(asset.mount_path)
+        if path.is_absolute() or ".." in path.parts or str(path) == ".":
+            raise ValueError("Asset mount_path must be package-relative")
+        return str(path)
     return Path(asset.path).name
 
 
 def environment_asset_sources(assets: list[TaskAsset]) -> dict[str, Path]:
     sources: dict[str, Path] = {}
     for asset in assets:
+        if "target" not in asset.visibility:
+            continue
+        if asset.writable is False:
+            raise ValueError("This workspace backend does not enforce read-only asset grants")
+        if asset.status != "available":
+            raise ValueError(f"Asset {asset.id or asset.path} is unavailable")
+        if asset.sha256:
+            from ..execution.components import asset_bytes
+            asset_bytes(asset)
         guest_path = environment_asset_guest_path(asset)
         if not guest_path:
             raise ValueError(f"Asset path has no filename: {asset.path!r}.")

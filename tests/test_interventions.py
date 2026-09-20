@@ -15,6 +15,31 @@ def _result(returncode: int = 0, stdout: str = "", stderr: str = ""):
     return subprocess.CompletedProcess([], returncode, stdout, stderr)
 
 
+def test_episode_end_settles_in_order_once_and_not_on_cleanup():
+    commands = []
+    specs = [{"id": name, "trigger": {"type": "episode_end"},
+              "action": {"type": "run_command", "command": name}} for name in ["close", "audit"]]
+    assert AgentEnvironmentSpec(interventions=specs).interventions[0].trigger.type == "episode_end"
+    controller = InterventionController(specs, lambda command, timeout: (commands.append(command), _result())[1])
+    controller.start()
+    controller.stop()
+    assert commands == []  # infrastructure cleanup must not commit business state
+    controller.finish()
+    controller.finish()
+    assert commands == ["close", "audit"]
+    assert [r["id"] for r in controller.records] == commands
+
+
+def test_failed_settlement_stays_failed_and_does_not_run_later_actions():
+    specs = [{"id": name, "trigger": {"type": "episode_end"},
+              "action": {"command": name}} for name in ["broken", "later"]]
+    controller = InterventionController(specs, lambda *args: _result(1, stderr="failed business transition"))
+    for _ in range(2):
+        with pytest.raises(RuntimeError, match="failed business transition"):
+            controller.finish()
+    assert [r["id"] for r in controller.records] == ["broken"]
+
+
 def test_elapsed_intervention_runs_once_and_records_result() -> None:
     commands: list[str] = []
 

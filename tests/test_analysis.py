@@ -97,6 +97,29 @@ def _benchmark(*references: dict) -> list[dict]:
     }]
 
 
+def test_evidence_defect_survives_iterations_and_blocks_final_selection():
+    suite, run = _suite_and_run()
+    finding = {"iteration": 0, "item_id": "reasoning_1", "target_id": "target",
+               "status": "confirmed_task_defect", "components": ["accuracy"],
+               "reason": "The scorer reads a different path than the public requirement.",
+               "evidence": ["grader.py: report path; item.json: public path"]}
+    parsed = analysis_module._parse_evidence_assessments({"evidence_assessments": [finding]}, suite, run, [])
+    prior = [AnalysisIteration(iteration=1, evidence_assessments=parsed)]
+    assert analysis_module._parse_evidence_assessments({}, suite, run, prior) == parsed
+    with pytest.raises(ValueError, match="unresolved evidence defect"):
+        analysis_module._parse_benchmark({"benchmark": _benchmark()}, suite, run, prior)
+    assert analysis_module._parse_benchmark({"benchmark": []}, suite, run, prior) == []
+    cleared = {**finding, "status": "model_failure", "reason": "The full input and trace resolve the path concern.",
+               "evidence": ["complete input and episode: correct path, wrong contents"]}
+    data = {"benchmark": _benchmark(), "evidence_assessments": [cleared]}
+    assert len(analysis_module._parse_benchmark(data, suite, run, prior)) == 1
+    with pytest.raises(ValueError, match="no demonstrated model failure"):
+        analysis_module._parse_benchmark({"benchmark": _benchmark(), "evidence_assessments": [
+            {**cleared, "status": "no_model_failure"}]}, suite, run, prior)
+    with pytest.raises(ValueError, match="Unknown or duplicate"):
+        analysis_module._parse_evidence_assessments({"evidence_assessments": [{**finding, "item_id": "missing"}]}, suite, run, [])
+
+
 def _probe_design(**updates) -> dict:
     design = {
         "dimension_id": "reasoning",

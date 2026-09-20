@@ -189,7 +189,10 @@ def test_construction_resume_restores_builder_source_definitions(tmp_path) -> No
     assert resumed_plan is not None
     assert resumed_plan.subjects == ["target"]
     assert resumed_suite is not None
-    assert resumed_suite.tasks[0].source_definition == source
+    resumed = resumed_suite.tasks[0]
+    assert resumed.source_definition is resumed
+    assert resumed.title == source.title
+    assert resumed.rubric == source.rubric
 
 
 def test_resumed_plan_restores_runtime_targets_before_builder(monkeypatch):

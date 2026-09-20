@@ -256,7 +256,9 @@ def test_reference_outputs_survive_parsing_and_packaging() -> None:
     item = pack_task_item(task, dimension, resource_by_id={})
 
     assert item.reference_answer == "The conclusion follows by the stated invariant."
-    assert item.source_definition is task
+    assert item.source_definition is item
+    assert item.reference_answer == task.reference_answer
+    assert item.title == task.title
 
 
 def test_container_asset_filenames_must_be_unique(tmp_path) -> None:

@@ -823,10 +823,10 @@ def _resolve_reasoning_effort(
     explicit_effort: Optional[str],
     reduce_reasoning_effort: bool,
 ) -> str | None:
-    if not _is_reasoning_model(model):
-        return None
     if explicit_effort:
         return explicit_effort
+    if not _is_reasoning_model(model):
+        return None
     if reduce_reasoning_effort:
         return "low"
     return os.environ.get("EVALCLAW_REASONING_EFFORT")
@@ -930,7 +930,7 @@ def _call_litellm(
         and not model.startswith(("claude-", "anthropic/"))
     ):
         kwargs["response_format"] = {"type": "json_object"}
-    if model.startswith("deepseek-v4") and expect_json:
+    if model.startswith("deepseek-") and expect_json:
         # DeepSeek JSON recovery forces structured JSON even without a base URL.
         kwargs["response_format"] = {"type": "json_object"}
     if extra:
@@ -1345,7 +1345,7 @@ def _call_openai_compatible_tools(
         body.update(extra_body or {})
         if tools:
             body["tools"] = openai_tools(tools)
-        elif model.startswith("deepseek-v4") and expect_json:
+        elif expect_json:
             body["response_format"] = {"type": "json_object"}
         if reasoning_effort:
             body["reasoning_effort"] = reasoning_effort
@@ -1631,7 +1631,10 @@ def _call_orchestrator_with_tools_once(
         extra = dict(extra_body or {})
         if tool_specs:
             kwargs["tools"] = openai_tools(tool_specs)
-        elif model_name.startswith("deepseek-v4") and expect_json:
+        elif expect_json and (
+            model_name.startswith("deepseek-")
+            or (base_url and not model_name.startswith(("claude-", "anthropic/")))
+        ):
             kwargs["response_format"] = {"type": "json_object"}
         if extra:
             kwargs["extra_body"] = extra
@@ -1744,6 +1747,7 @@ def call_target_model_with_tools(
     timeout_s: float | None = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "target-tools",
+    hard_max_tokens: int | None = None,
 ) -> TargetToolModelResponse:
     """Call a target model with provider-native tool declarations.
 
@@ -1753,6 +1757,8 @@ def call_target_model_with_tools(
     appended without lossy conversion through EvalClaw's simple ``Message``
     model.
     """
+    from ..execution.contract_capabilities import validate_message_roles
+    validate_message_roles(messages, target, system_prompt)
     started = time.monotonic()
 
     def run(connection: EndpointConnection, attempt_name: str) -> TargetToolModelResponse:
@@ -1773,6 +1779,7 @@ def call_target_model_with_tools(
             timeout_s=remaining,
             trace_dir=trace_dir,
             trace_name=attempt_name,
+            hard_max_tokens=hard_max_tokens,
         )
 
     return _with_endpoint_failover(
@@ -1807,6 +1814,7 @@ def _call_target_model_with_tools_once(
     timeout_s: float | None = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "target-tools",
+    hard_max_tokens: int | None = None,
 ) -> TargetToolModelResponse:
     _require_supported_backend(backend)
     adapter = tool_adapter_for_target(target)
@@ -1816,7 +1824,7 @@ def _call_target_model_with_tools_once(
             "provider": "anthropic",
             "stream": True,
             "model": _anthropic_model_name(target.model),
-            "max_tokens": _effective_max_tokens(target.model, max_tokens),
+            "max_tokens": hard_max_tokens if hard_max_tokens is not None else _effective_max_tokens(target.model, max_tokens),
             "system": system_prompt,
             "messages": messages,
             "tools": anthropic_tools(tools),
@@ -1831,6 +1839,7 @@ def _call_target_model_with_tools_once(
                 system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
                 messages=messages,
                 tools=request["tools"] or anthropic.NOT_GIVEN,
+                **({"stop_sequences": target.extra_body["stop"]} if target.extra_body.get("stop") else {}),
                 **({"timeout": timeout_s} if timeout_s is not None else {}),
             )
         except BaseException as exc:
@@ -1879,6 +1888,8 @@ def _call_target_model_with_tools_once(
         "max_tokens": _effective_max_tokens(target.model, max_tokens),
     }
     body.update(target.extra_body or {})
+    if hard_max_tokens is not None:
+        body["max_tokens"] = hard_max_tokens
     if not tools:
         body.pop("tools", None)
         body.pop("tool_choice", None)

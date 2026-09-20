@@ -45,7 +45,7 @@ RESEARCH_TOOLS = [
     _tool("read_source", "Read another portion of a fetched source or archive member.", {"source_id": _STRING, **_PAGE}, ["source_id"]),
     _tool("confirm_overlap", "Verify a substantial contiguous exact passage occurs both in a task field/file and in a retrieved original source. Only verified passages become evidence.", {
         "source_id": _STRING, "text": _STRING,
-        "area": {"type": "string", "enum": ["task", "visible", "runtime", "hidden", "session", "image_build", "asset"]},
+        "area": {"type": "string", "enum": ["task", "visible", "runtime", "hidden", "session", "image_build", "asset", "definition"]},
         "path": _STRING,
     }, ["source_id", "text"]),
 ]
@@ -169,7 +169,9 @@ class ContaminationResearchTools:
         if len(quote) < self.config.contamination_min_overlap_chars:
             raise ValueError(f"The contiguous overlap must contain at least {self.config.contamination_min_overlap_chars} normalized characters.")
         area, path = args.get("area", "task"), args.get("path", "")
-        task_texts = _strings(_item_payload(self.item)) if area == "task" else [_declared_text(self.item, area, path) or ""]
+        from ..protocols.task_view import definition_data
+        task_source = definition_data(self.item) if self.item.content is not None else _item_payload(self.item)
+        task_texts = _strings(task_source) if area == "task" else [_declared_text(self.item, area, path) or ""]
         if not any(quote in normalize(value) for value in task_texts):
             raise ValueError("Passage does not occur verbatim in the specified task field/file.")
         normalized = normalize(source["text"])

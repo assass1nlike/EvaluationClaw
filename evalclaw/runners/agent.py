@@ -58,8 +58,10 @@ def _native_evaluator_evidence(
     started_at: datetime,
     started: float,
 ) -> dict[str, Any]:
+    from ..protocols.submission import submission_contract
     evidence = {
         "schema_version": EVALUATOR_EVIDENCE_SCHEMA,
+        "submission_contract": submission_contract(item),
         "target": {
             "id": target.id,
             "model": target.model,
@@ -108,8 +110,8 @@ def _run_final_native_evaluation(
     started: float,
 ) -> None:
     if controller is not None:
-        controller.stop()
-        controller.raise_if_failed()
+        controller.finish()
+        raw["final_state"] = env.state()
     evaluate = getattr(env, "evaluate_with_evidence", None)
     if not callable(evaluate):
         return
@@ -207,10 +209,11 @@ def parse_agent_action(response: str) -> tuple[dict[str, Any] | None, str | None
 
 
 def _initial_user_prompt(item: BenchmarkItem, env: Any, *, include_action_schema: bool) -> str:
+    from ..protocols.submission import submission_instructions
     initial_content = task_agent_initial_content_text(item)
     initial_block = f"\n\nInitial task content:\n{initial_content}\n" if initial_content else ""
     prompt = (
-        f"Task:\n{item.prompt}\n\n"
+        f"Task:\n{item.prompt}{submission_instructions(item)}\n\n"
         f"{initial_block}"
         f"Initial observation:\n{env.observation()}"
     )

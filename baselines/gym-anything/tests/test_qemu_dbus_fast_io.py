@@ -13,6 +13,8 @@ from gym_anything.runtime.runners.qemu_dbus_display import QemuDbusDisplayCaptur
 class QemuDbusFastIoTests(unittest.TestCase):
     def _runner(self) -> QemuApptainerRunner:
         runner = QemuApptainerRunner.__new__(QemuApptainerRunner)
+        runner._process = mock.Mock()
+        runner._process.poll.return_value = None
         runner.resolution = (1920, 1080)
         runner.is_android = False
         runner.is_windows = False

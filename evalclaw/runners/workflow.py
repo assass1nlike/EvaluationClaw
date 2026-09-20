@@ -125,6 +125,10 @@ def run_workflow(
 ) -> tuple[str, float, str]:
     workflow = item.workflow
     assert workflow is not None
+    from ..execution.contract_capabilities import native_workflow_issues
+    issues = native_workflow_issues(item)
+    if issues:
+        raise ValueError("; ".join(issues))
     root = artifact_dir or new_debug_dir(config.output_dir, "workflow")
     if root is None:
         raise ValueError("Workflow execution requires an output directory for stage checkpoints.")

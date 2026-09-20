@@ -1472,6 +1472,13 @@ HTML_TEMPLATE = """<!doctype html>
         markdownNode(report[name].reasoning || "-"),
       ]);
       section.append(table(["Criterion", "Score (1-5)", "Reasoning"], rows));
+      if (Object.keys(report.item_errors || {}).length || report.overall_error) {
+        section.append(node("p", {}, "Quality evaluation incomplete. Per-task means are withheld if any sampled task judgment failed."));
+        section.append(table(["Failed judgment", "Error"], [
+          ...Object.entries(report.item_errors || {}),
+          ...(report.overall_error ? [["Overall", report.overall_error]] : []),
+        ]));
+      }
       if ((report.item_results || []).length) {
         section.append(node("p", {}, "Correctness and faithfulness are equally weighted per-task means. Diversity and the Analyser metrics are overall judgments."));
         const details = node("details");

@@ -451,13 +451,16 @@ def test_laaj_retries_invalid_judgments(monkeypatch) -> None:
 def test_laaj_requires_analyser_metrics_when_analysis_is_present(monkeypatch) -> None:
     monkeypatch.setattr(laaj_module, "call_llm", lambda *args, **kwargs: _response())
 
-    with pytest.raises(RuntimeError, match="systematicness and credibility"):
-        laaj_module.evaluate_with_laaj(
-            "Evaluate both skills.",
-            _suite(),
-            AnalysisReport(analysis="A conclusion."),
-            BenchmarkConfig(laaj_model="judge", laaj_api_key="key"),
-        )
+    report = laaj_module.evaluate_with_laaj(
+        "Evaluate both skills.",
+        _suite(),
+        AnalysisReport(analysis="A conclusion."),
+        BenchmarkConfig(laaj_model="judge", laaj_api_key="key"),
+    )
+    assert report.overall_error
+    assert report.diversity is None
+    assert report.systematicness is None and report.credibility is None
+    assert report.correctness.score == 4
 
 
 def test_cli_configures_laaj_and_analyser_ablation(monkeypatch) -> None:

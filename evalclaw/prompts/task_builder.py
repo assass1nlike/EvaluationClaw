@@ -194,7 +194,12 @@ def project_task_builder_task(
     """Project a task document onto the fields visible to its Builder job."""
     task_type = TaskType(task_type)
     allowed = task_builder_fields(task_type, source_backed=source_backed, simplified=simplified)
+    if task.get("content") is not None and not simplified:
+        allowed = allowed | {"schema_version", "content", "evaluation", "provenance", "annotations", "environment", "interaction"}
     projected = {key: value for key, value in task.items() if key in allowed}
+    if task.get("content") is not None:
+        for key in ("prompt", "choices", "correct_choice_indices", "system_prompt", "output_contract"):
+            projected.pop(key, None)
     metadata = task.get("metadata")
     if isinstance(metadata, dict) and not simplified:
         projected["metadata"] = {
@@ -202,7 +207,7 @@ def project_task_builder_task(
             for key in ("challenge_effort_self_assessment", "task_model_id")
             if key in metadata
         }
-    if task_type == TaskType.choice and isinstance(task.get("choices"), list):
+    if task.get("content") is None and task_type == TaskType.choice and isinstance(task.get("choices"), list):
         choices = [choice for choice in task["choices"] if isinstance(choice, dict)]
         correct_ids = {
             str(value) for value in task.get("correct_choice_ids", [])
@@ -364,6 +369,46 @@ def build_task_builder_prompt(
             "content_summary is a short report label. Store only required construction metadata such as "
             "the effort self-assessment and selected task model."
         )
+    explicit_guidance = """
+The shape above is a convenience template, not a restriction on expressible tasks. When exact
+role-ordered context, non-image resources, independent scoring, stateful native tools or adaptive
+control are needed, use the explicit TaskDefinition contract instead: content.messages (role,
+content as text or text/json/asset/image blocks), evaluation (references, metrics, scorers, explicit
+scalar), and interaction.protocol (response/dialogue/tool_loop/program/model). Omit prompt, choices,
+system_prompt and output_contract when using content; content is the complete model input. Put all
+references and scoring instructions in evaluation; do not also fill template answer/scoring fields.
+Type labels describe tasks, not their scoring rules. Do not add a canonical answer when a complete
+constraint checker already defines correctness. Preserve original scorer semantics when importing.
+Use read_task_contract for exact field schemas and the component service protocol before using it.
+Assets can have id, path, media_type, sha256, visibility and mount_path; disclose only intended inputs.
+Program environments/controllers/scorers use isolated versioned JSON-lines components. Author their
+files with existing file tools, build their dependency image with the existing image tools, and let
+preflight validate them. A tool_service exposes only its declared tools, not a target shell.
+Check task_runtime_capabilities before choosing a protocol: CLI workspace bindings accept an initial user
+text message, scripted dialogue user turns, and existing environment actors. interaction.reset_between_turns
+starts fresh conversations in the same workspace; continuation requires harness session support.
+Native role histories, participants and controllers
+require a compatible native model binding. Unsupported capabilities fail validation, never silently
+fall back to a simpler task. Declare participants only as target or actor; place controllers in
+interaction.controller/controller_prompt. mount_path is package-relative; explicit filesystem
+read-only assets are not currently supported. Use immutable input content or service tool permissions.
+Use verify_candidate(responses=[...]) to exercise a full native interaction with scripted target
+responses and actual tools/scorers. Include positive and negative evaluation.verification_cases
+(id, responses, expected_metrics as metric-to-[min,max]) when checking a custom protocol or scorer.
+Single-stage CLI workspaces instead use environment.verification_cases with commands and expected scalar scores.
+CLI dialogue trials currently explore the initial environment only; do not claim that they verify later stages.
+Trials validate the protocol and grading, not target-model performance.
+For framework-generated tasks, select evaluation.scalar explicitly so Analyzer can interpret scores.
+
+For filesystem deliverables, prefer a single public output_contract with
+schema_version="evalclaw.output.v1" and artifacts=[{id, path, format, required, schema?}].
+Paths are workspace-relative; format is file/directory/text/json/csv and schema applies only to JSON.
+Optional response_schema describes the final response. In explicit tasks put this in content.output_contract.
+The framework renders this contract to the target and supplies the same submission_contract.artifact_paths
+mapping to evaluators (also at /evalclaw-evidence/episode.json for workspace scoring). Read paths by artifact
+id there; do not hand-copy conflicting locations into prompts, reference solutions or graders. JSON examples
+must use values of the declared types. The contract describes submission, not automatic correctness scoring.
+""" if not simplified else ""
     return f"""You are the EvaluationClaw Task Builder.
 
 Implement the single Planner-authored TaskDesign in task_plan. Treat the TaskDesign, resources, and
@@ -389,6 +434,8 @@ language.{count_guidance}
 {_TYPE_RULES[task_type]}{asset_rule}{scoring_rule}{scoring_guidance}{model_guidance}{environment_rule}
 {provenance_guidance}
 
+{explicit_guidance}
+
 For repair requests with revision.path, use the same file-editing process on that document. Repair
 only the listed tasks, preserve their order and ids, and fix every listed issue. For both initial
 construction and repair, return only a compact confirmation after the file is complete. When every
@@ -413,6 +460,9 @@ dimension, TaskDesign, resource, and choice-option ids; omit those ids where the
 are framework-injected. Use English unless the evaluation explicitly tests another language.
 Generation tasks must include reference_answer. Agent tasks must include reference_trajectory as one
 ordered feasible solution path. Choice, fill_blank, and multi_turn tasks must not include either field.
+Those requirements apply to the convenience templates. When using explicit content/evaluation,
+follow their declared references, scoring and interaction protocols instead; omit conflicting
+template input fields and preserve native task semantics. Type labels do not override that contract.
 
 {_EFFORT_GUIDANCE.get(challenge_effort, "")}
 {_TYPE_RULES[task_type]}

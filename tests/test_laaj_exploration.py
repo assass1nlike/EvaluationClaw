@@ -62,14 +62,14 @@ def test_laaj_exploration_is_available_and_always_closed(monkeypatch, tmp_path, 
     monkeypatch.setattr(laaj_module, "LaajExploration", Experiments)
     monkeypatch.setattr(laaj_module, "_run_laaj_tool_loop", loop)
     config = BenchmarkConfig(laaj_model="judge", laaj_api_key="test", laaj_tool_calls_per_item=600)
+    report = laaj_module.evaluate_with_laaj("goal", _suite(), None, config, trace_dir=tmp_path)
     if fail:
-        with pytest.raises(RuntimeError, match="judge disconnected"):
-            laaj_module.evaluate_with_laaj("goal", _suite(), None, config, trace_dir=tmp_path)
+        assert report.item_errors and report.overall_error
+        assert report.correctness is None and report.diversity is None
     else:
-        report = laaj_module.evaluate_with_laaj("goal", _suite(), None, config, trace_dir=tmp_path)
         assert (report.correctness.score, report.faithfulness.score, report.diversity.score) == (4, 5, 3)
     assert budgets == [600] * len(closed)
-    assert len(closed) == (laaj_module.LAAJ_MAX_ATTEMPTS if fail else 2)
+    assert len(closed) == (2 * laaj_module.LAAJ_MAX_ATTEMPTS if fail else 2)
 
 
 def test_native_tools_probe_scope_and_cleanup(monkeypatch, tmp_path):

@@ -19,6 +19,8 @@ import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
+from .budget_docker import docker_env
+
 GIB = 1024**3
 SPEC_ENV = "EVALCLAW_MEMORY_SPEC"
 _active = None
@@ -60,9 +62,10 @@ def _replace_file(path, text, mode=None):
 
 
 class MemoryBudget:
-    def __init__(self, group, budget, headroom, state, *, docker=None):
+    def __init__(self, group, budget, headroom, state, *, docker=None, endpoint=None):
         self.group = Path(group) if group else None
         self.docker = docker
+        self.endpoint = endpoint
         self.budget, self.headroom = budget, headroom
         self.state = Path(state)
         self.state.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -98,7 +101,7 @@ class MemoryBudget:
         if self.group is None:
             from .memory_usage import sample_usage
 
-            return sample_usage(self.state, self.docker)
+            return sample_usage(self.state, self.docker, self.endpoint)
         current = int((self.group / "memory.current").read_text())
         stats = dict(line.split() for line in (self.group / "memory.stat").read_text().splitlines())
         return max(0, current - int(stats.get("inactive_file", 0))), None
@@ -114,8 +117,11 @@ class MemoryBudget:
             }
             if owners and previous["policy"] != policy:
                 raise MemoryBudgetError(
-                    "All active processes sharing this resource group must use the same memory policy."
+                    "All active processes sharing this resource group must use the same memory policy "
+                    "and Docker endpoint."
                 )
+            if previous.get("policy") != policy:
+                (self.state / "usage.json").unlink(missing_ok=True)
             token = uuid.uuid4().hex
             owners[token] = {"pid": os.getpid(), "identity": _process_identity(os.getpid())}
             _replace_file(path, json.dumps({"policy": policy, "owners": owners}))
@@ -273,7 +279,6 @@ def memory_budget(config, artifact_dir=None):
                     docker,
                     "context",
                     "inspect",
-                    "default",
                     "--format",
                     "{{json .Endpoints.docker.Host}}",
                 ],
@@ -281,14 +286,15 @@ def memory_budget(config, artifact_dir=None):
                 timeout=30,
             )
         )
-        if endpoint != "unix:///var/run/docker.sock":
+        if not isinstance(endpoint, str) or not endpoint.startswith("unix:///"):
             raise MemoryBudgetError(
-                "Memory budgets require the local system Docker socket in the default context."
+                "Memory budgets require a local rootful Docker Unix socket."
             )
-        docker_args = [docker, "--context", "default"]
+        docker_args = [docker]
+        env = docker_env(endpoint)
         info = json.loads(
             subprocess.check_output(
-                [*docker_args, "info", "--format", "{{json .}}"], text=True, timeout=30
+                [*docker_args, "info", "--format", "{{json .}}"], text=True, timeout=30, env=env
             )
         )
         if info.get("CgroupDriver") != "systemd" or info.get("CgroupVersion") != "2":
@@ -298,7 +304,7 @@ def memory_budget(config, artifact_dir=None):
         if "rootless" in str(info.get("SecurityOptions")):
             raise MemoryBudgetError("Memory budgets require the local system Docker daemon.")
         builders = subprocess.check_output(
-            [*docker_args, "buildx", "ls", "--format", "{{json .}}"], text=True, timeout=30
+            [*docker_args, "buildx", "ls", "--format", "{{json .}}"], text=True, timeout=30, env=env
         )
         if not any(
             b.get("Name") == "default" and b.get("Driver") == "docker"
@@ -312,15 +318,16 @@ def memory_budget(config, artifact_dir=None):
         state = Path("/tmp") / f"evalclaw-memory-{os.getuid()}" / key
         manager = MemoryBudget(
             group, config.memory_budget_gib * GIB, config.memory_headroom_gib * GIB, state,
-            docker=docker,
+            docker=docker, endpoint=endpoint,
         )
         policy = {"group": str(group) if group else None, "budget": manager.budget,
-                  "headroom": manager.headroom, "mode": "hard" if group else "measured"}
+                  "headroom": manager.headroom, "mode": "hard" if group else "measured",
+                  "docker_endpoint": endpoint}
         session = manager.join(policy)
         with manager.locked():
             # Integrated BuildKit preserves local FROM images and build cache.
             # Unlike Docker run, its parent option is a cgroup path, not a slice name.
-            spec = {"docker": docker}
+            spec = {"docker": docker, "endpoint": endpoint}
             if os.environ.get("EVALCLAW_DOCKER_NETWORK_POOL"):
                 spec["network_pool"] = os.environ["EVALCLAW_DOCKER_NETWORK_POOL"]
             if group:
@@ -330,7 +337,7 @@ def memory_budget(config, artifact_dir=None):
                 spec["label"] = f"evalclaw.memory-owner={os.getuid()}"
                 manager.usage()  # Fail before model calls if measurement is unavailable.
             source = str(Path(__file__).with_name("budget_docker.py"))
-            client_key = hashlib.sha256(f"{sys.executable}:{source}".encode()).hexdigest()[:16]
+            client_key = hashlib.sha256(f"{sys.executable}:{source}:{endpoint}".encode()).hexdigest()[:16]
             client = state / "clients" / client_key
             client.mkdir(parents=True, exist_ok=True)
             spec_path = client / "docker.json"

@@ -30,6 +30,7 @@ class InterventionController:
         self._lock = threading.Lock()
         self._failure: RuntimeError | None = None
         self._episode_started = 0.0
+        self._finished = False
 
     def start(self) -> None:
         if not self.specs:
@@ -38,6 +39,8 @@ class InterventionController:
         self._threads.append(coordinator)
         coordinator.start()
         for spec in self.specs:
+            if spec["trigger"]["type"] == "episode_end":
+                continue
             worker = threading.Thread(target=self._run_spec, args=(spec,), daemon=True)
             self._threads.append(worker)
             worker.start()
@@ -151,3 +154,18 @@ class InterventionController:
     def raise_if_failed(self) -> None:
         if self._failure is not None:
             raise self._failure
+
+    def finish(self) -> None:
+        """Commit end-of-episode actions once; cleanup via stop never commits them."""
+        if self._finished:
+            self.raise_if_failed()
+            return
+        self.stop()
+        self._finished = True
+        if any(thread.is_alive() for thread in self._threads):
+            self._failure = RuntimeError("Environment intervention did not stop before settlement")
+        self.raise_if_failed()
+        for spec in self.specs:
+            if spec["trigger"]["type"] == "episode_end":
+                self._execute(spec)
+                self.raise_if_failed()

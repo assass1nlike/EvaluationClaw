@@ -659,9 +659,11 @@ class DockerWorkspaceAgentEnvironment:
                 "rm -rf /evalclaw-evidence", self.timeout, user="0:0"
             )
 
-    def preflight(self) -> EvaluatorResult:
+    def preflight(self, *, evaluate: bool = True) -> EvaluatorResult | None:
         """Verify setup and evaluator materialization in an isolated container."""
         self.environment_checks.extend(run_environment_checks(self.preflight_commands, self._exec_shell))
+        if not evaluate:
+            return None
         if self.judge_evaluator is not None:
             self.evaluate_with_evidence({
                 "termination": {"status": "preflight"},

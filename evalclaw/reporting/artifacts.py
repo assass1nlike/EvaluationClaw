@@ -48,7 +48,7 @@ def _write_lm_eval_task(
                 "expected_texts": item.expected_texts,
                 "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools],
                 "rubric": item.rubric or "",
-                "challenge_effort": item.challenge_effort.value,
+                "challenge_effort": item.effort_label,
                 "task_type": item.task_type.value,
                 "source": item.source.model_dump(mode="json"),
                 "tags": item.tags,

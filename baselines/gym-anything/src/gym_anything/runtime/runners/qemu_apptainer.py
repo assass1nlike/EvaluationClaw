@@ -41,6 +41,7 @@ from ...security import wrap_posix_command_with_env, wrap_powershell_command_wit
 from ...specs import EnvSpec
 from .base import BaseRunner
 from .qemu_ssh import SSH_OPTIONS, ssh_credentials, ssh_key_path
+from .qemu_ports import PortLeases
 from .vnc_utils import VNCConnectionPool
 from .windows_pyautogui_client import PyAutoGUIClient, PyAutoGUIClientError
 
@@ -73,24 +74,6 @@ def _find_free_port(start: int = 5900) -> int:
         except OSError:
             continue
     raise RuntimeError("No free port")
-
-
-def _find_free_qemu_hostfwd_port(start: int = 45500) -> int:
-    """Find a hostfwd port using the same bind constraints QEMU will use."""
-    import socket
-    import random
-    offset = random.randint(0, 200)
-    for i in range(300):
-        port = start + offset + i
-        if port > 65535:
-            port = start + (i % 300)
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(("0.0.0.0", port))
-                return port
-        except OSError:
-            continue
-    raise RuntimeError("No free QEMU hostfwd port")
 
 
 def _check_apptainer() -> bool:
@@ -361,6 +344,7 @@ class QemuApptainerRunner(BaseRunner):
         # State
         self._running = False
         self._process: Optional[subprocess.Popen] = None
+        self._port_leases = PortLeases()
         self._vnc_pool: Optional[VNCConnectionPool] = None
         self._qmp_socket_path: Optional[Path] = None
         self._qmp_client: Optional[_QMPClient] = None
@@ -502,15 +486,7 @@ class QemuApptainerRunner(BaseRunner):
         print(f"[QemuApptainer] COW overlay created")
         
         # Step 4: Find ports
-        with self._lock:
-            self.vnc_port = _find_free_port(5900)
-            if self.is_android:
-                self.adb_port = _find_free_port(15555)  # ADB instead of SSH
-            else:
-                self.ssh_port = _find_free_port(2222)
-            if self.is_windows:
-                self.pyautogui_port = _find_free_port(5555)
-            self._assign_fast_input_port()
+        self._allocate_ports()
         if self.is_android:
             print(f"[QemuApptainer] VNC: {self.vnc_port}, ADB: {self.adb_port}")
         elif self.is_windows:
@@ -773,8 +749,35 @@ class QemuApptainerRunner(BaseRunner):
                 f"Allowed values for this guest are: {', '.join(sorted(allowed))}."
             )
 
+    def _allocate_ports(self) -> None:
+        if self._process and self._process.poll() is None:
+            raise RuntimeError("Cannot replace ports of a live VM")
+        self._clear_ports()
+        try:
+            self.vnc_port = self._port_leases.reserve(5900)
+            if self.is_android:
+                self.adb_port = self._port_leases.reserve(15555)
+            else:
+                self.ssh_port = self._port_leases.reserve(2222)
+            if self.is_windows:
+                self.pyautogui_port = self._port_leases.reserve(5555)
+            self._assign_fast_input_port()
+        except Exception:
+            self._clear_ports()
+            raise
+
+    def _clear_ports(self) -> None:
+        self.vnc_port = self.ssh_port = self.adb_port = None
+        self.pyautogui_port = None
+        self._fast_input_host_port = None
+        self._port_leases.close()
+
+    def _require_live_vm(self) -> None:
+        if not self._process or self._process.poll() is not None:
+            raise RuntimeError("VM is not running; refusing remote access")
+
     def _assign_fast_input_port(self) -> None:
-        self._fast_input_host_port = _find_free_qemu_hostfwd_port(45500) if self._fast_uinput_keyboard_enabled() else None
+        self._fast_input_host_port = self._port_leases.reserve(45500) if self._fast_uinput_keyboard_enabled() else None
 
     def _dbus_auto_install_enabled(self) -> bool:
         value = os.environ.get("GYM_ANYTHING_QEMU_DBUS_AUTO_INSTALL", "1")
@@ -1207,18 +1210,22 @@ class QemuApptainerRunner(BaseRunner):
         Args:
             loadvm_snapshot: If provided, start QEMU with -loadvm to restore this snapshot.
         """
-        cmd = self._build_qemu_cmd(self._instance_qcow2, self.vnc_port, self.ssh_port, self._work_dir, loadvm_snapshot=loadvm_snapshot)
+        try:
+            cmd = self._build_qemu_cmd(self._instance_qcow2, self.vnc_port, self.ssh_port, self._work_dir, loadvm_snapshot=loadvm_snapshot)
 
-        log_file = self._work_dir / "qemu.log"
-        with open(log_file, "w") as lf:
-            self._process = subprocess.Popen(
-                cmd, stdin=subprocess.PIPE, stdout=lf, stderr=subprocess.STDOUT,
-                cwd=str(self._work_dir), preexec_fn=os.setsid
-            )
-        self._start_fast_io_display_listener()
+            log_file = self._work_dir / "qemu.log"
+            with open(log_file, "w") as lf:
+                self._process = subprocess.Popen(
+                    cmd, stdin=subprocess.PIPE, stdout=lf, stderr=subprocess.STDOUT,
+                    cwd=str(self._work_dir), preexec_fn=os.setsid
+                )
+            self._start_fast_io_display_listener()
 
-        # Set VNC password via QEMU monitor (required for macOS Screen Sharing compatibility)
-        self._set_vnc_password()
+            # Set VNC password via QEMU monitor (required for macOS Screen Sharing compatibility)
+            self._set_vnc_password()
+        except Exception:
+            self.stop()
+            raise
 
     def _set_vnc_password(self) -> None:
         """Set VNC password via QEMU monitor.
@@ -1267,6 +1274,8 @@ class QemuApptainerRunner(BaseRunner):
         print(f"[QemuApptainer] Waiting for SSH on port {port}...")
         start = time.time()
         while time.time() - start < timeout:
+            if not self._process or self._process.poll() is not None:
+                return False
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     s.settimeout(5)
@@ -1275,7 +1284,7 @@ class QemuApptainerRunner(BaseRunner):
                     if b"SSH" in data:
                         print(f"[QemuApptainer] SSH available!")
                         time.sleep(5)  # Give SSH a moment to fully initialize
-                        return True
+                        return self._process is not None and self._process.poll() is None
             except:
                 pass
             time.sleep(2)
@@ -1361,6 +1370,7 @@ class QemuApptainerRunner(BaseRunner):
 
         Returns True if auth succeeds, False otherwise.
         """
+        self._require_live_vm()
         try:
             import paramiko
             client = paramiko.SSHClient()
@@ -1609,6 +1619,7 @@ class QemuApptainerRunner(BaseRunner):
 
     def _adb_command(self, args: List[str], timeout: int = 60, capture: bool = True) -> subprocess.CompletedProcess:
         """Run an ADB command targeting this instance."""
+        self._require_live_vm()
         adb = self._find_adb()
         if not adb:
             return subprocess.CompletedProcess([], 1, b"", b"adb not found")
@@ -1987,6 +1998,9 @@ class QemuApptainerRunner(BaseRunner):
 
     def _run_ssh_cmd(self, port: int, cmd: str, timeout: int = 120) -> subprocess.CompletedProcess:
         """Run SSH command to specific port using key or password auth."""
+        self._require_live_vm()
+        if port != self.ssh_port:
+            raise RuntimeError("SSH endpoint does not belong to this VM")
         ssh_key = ssh_key_path()
         user = self._ssh_user
         password = self._ssh_password
@@ -2040,6 +2054,9 @@ class QemuApptainerRunner(BaseRunner):
 
     def _scp_to_vm(self, port: int, host_src: str, vm_dst: str) -> bool:
         """Copy file/directory to VM via SCP or SFTP."""
+        self._require_live_vm()
+        if port != self.ssh_port:
+            raise RuntimeError("SSH endpoint does not belong to this VM")
         ssh_key = ssh_key_path()
         user = self._ssh_user
         password = self._ssh_password
@@ -2216,8 +2233,6 @@ class QemuApptainerRunner(BaseRunner):
     
     def stop(self) -> None:
         """Stop VM."""
-        if not self._running and not self._process:
-            return
         
         print(f"[QemuApptainer] Stopping {self.instance_name}")
         self._stop_event.set()
@@ -2258,8 +2273,10 @@ class QemuApptainerRunner(BaseRunner):
                     os.killpg(os.getpgid(self._process.pid), signal.SIGKILL)
                 except:
                     self._process.kill()
+                self._process.wait(timeout=10)
         
         self._process = None
+        self._clear_ports()
         self._running = False
         
         if self._work_dir and self._work_dir.exists():
@@ -2490,7 +2507,7 @@ class QemuApptainerRunner(BaseRunner):
         Windows: No DISPLAY needed, uses python instead of python3.
         """
         if not self.ssh_port:
-            return
+            raise RuntimeError("VM has no SSH endpoint")
         script = self._build_pyautogui_script(commands)
         self._run_guest_python(script, timeout=timeout)
 
@@ -2498,7 +2515,7 @@ class QemuApptainerRunner(BaseRunner):
         """Run a python script in the guest, transported base64-encoded so the
         guest shell never interprets its contents."""
         if not self.ssh_port:
-            return
+            raise RuntimeError("VM has no SSH endpoint")
         encoded = base64.b64encode(script.encode("utf-8")).decode("ascii")
         bootstrap = f"import base64;exec(base64.b64decode('{encoded}').decode())"
         if self.is_windows:
@@ -2938,6 +2955,7 @@ class QemuApptainerRunner(BaseRunner):
         On Android: Uses ADB input commands.
         On Linux: Uses pyautogui over SSH with DISPLAY=:1.
         """
+        self._require_live_vm()
         if self._fast_io and not self.is_android:
             self._inject_action_via_fast_io(action)
             return
@@ -3297,6 +3315,7 @@ class QemuApptainerRunner(BaseRunner):
 
     def capture_screenshot_image(self):
         """Capture the display as a PIL Image without guest SSH, ffmpeg, or VNC."""
+        self._require_live_vm()
         if self._fast_io:
             if self._fast_io_backend() == "dbus":
                 if self._dbus_display is None:
@@ -3315,6 +3334,7 @@ class QemuApptainerRunner(BaseRunner):
         Linux: Uses X11/ffmpeg inside the VM (captures mouse pointer).
         Fallback: VNC framebuffer capture.
         """
+        self._require_live_vm()
         host_path = Path(host_path)
         host_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -3424,8 +3444,9 @@ class QemuApptainerRunner(BaseRunner):
                      to prevent SIGHUP from killing background processes when the
                      SSH session ends.
         """
+        self._require_live_vm()
         if not self.ssh_port:
-            return subprocess.CompletedProcess([], 0, b"", b"")
+            raise RuntimeError("VM has no SSH endpoint")
 
         # Check if we've already hit too many consecutive SSH failures
         if self._consecutive_ssh_failures >= self._max_consecutive_ssh_failures:
@@ -3509,6 +3530,7 @@ class QemuApptainerRunner(BaseRunner):
 
         last_err = None
         for attempt in range(4):
+            self._require_live_vm()
             client = paramiko.SSHClient()
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             try:
@@ -3653,6 +3675,7 @@ class QemuApptainerRunner(BaseRunner):
     
     def copy_to(self, host_src: str, container_dst: str) -> None:
         """Copy file/directory from host to VM via SCP/SFTP or ADB push."""
+        self._require_live_vm()
         # Android: Use ADB push
         if self.is_android:
             result = self._adb_command(["push", host_src, container_dst], timeout=120)
@@ -3661,7 +3684,7 @@ class QemuApptainerRunner(BaseRunner):
             return
 
         if not self.ssh_port:
-            return
+            raise RuntimeError("VM has no SSH endpoint")
 
         # Windows: Go directly to SFTP (no SSH key configured)
         if self.is_windows:
@@ -3738,6 +3761,7 @@ class QemuApptainerRunner(BaseRunner):
 
     def copy_from(self, container_src: str, host_dst: str) -> None:
         """Copy file/directory from VM to host via SCP/SFTP or ADB pull."""
+        self._require_live_vm()
         Path(host_dst).parent.mkdir(parents=True, exist_ok=True)
 
         # Android: Use ADB pull
@@ -3751,7 +3775,7 @@ class QemuApptainerRunner(BaseRunner):
             return
 
         if not self.ssh_port:
-            return
+            raise RuntimeError("VM has no SSH endpoint")
 
         # Windows: Go directly to SFTP (no SSH key configured)
         if self.is_windows:
@@ -3789,6 +3813,7 @@ class QemuApptainerRunner(BaseRunner):
 
         last_err = None
         for attempt in range(4):
+            self._require_live_vm()
             client = paramiko.SSHClient()
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             try:
@@ -4234,15 +4259,7 @@ class QemuApptainerRunner(BaseRunner):
     def _boot_vm_from_overlay(self, seed: Optional[int] = None) -> None:
         """Boot VM from already-created COW overlay. Slow operation, no lock needed."""
         # Find ports
-        with self._lock:
-            self.vnc_port = _find_free_port(5900)
-            if self.is_android:
-                self.adb_port = _find_free_port(15555)  # ADB instead of SSH
-            else:
-                self.ssh_port = _find_free_port(2222)
-            if self.is_windows:
-                self.pyautogui_port = _find_free_port(5555)
-            self._assign_fast_input_port()
+        self._allocate_ports()
         if self.is_android:
             print(f"[QemuApptainer] VNC: {self.vnc_port}, ADB: {self.adb_port}")
         elif self.is_windows:
@@ -4331,15 +4348,7 @@ class QemuApptainerRunner(BaseRunner):
         - We only need to reconnect VNC/PyAutoGUI client to new ports
         """
         # Find ports (these will be different from when snapshot was created)
-        with self._lock:
-            self.vnc_port = _find_free_port(5900)
-            if self.is_android:
-                self.adb_port = _find_free_port(15555)
-            else:
-                self.ssh_port = _find_free_port(2222)
-            if self.is_windows:
-                self.pyautogui_port = _find_free_port(5555)
-            self._assign_fast_input_port()
+        self._allocate_ports()
 
         if self.is_windows:
             print(f"[QemuApptainer] VNC: {self.vnc_port}, SSH: {self.ssh_port}, PyAutoGUI: {self.pyautogui_port}")
