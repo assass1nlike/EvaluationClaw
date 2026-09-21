@@ -224,7 +224,7 @@ The final output combines a diagnostic report with a subset of executed tasks or
 	respectively~\citep{aggarwal2026gymanything,fronsdal2025petri,li2026autocontrol}.
 	Appendix~\ref{app:baseline-scope} details the assignments and comparison scopes.
 	We additionally use \texttt{gpt-6-astra} to generate tasks directly for every
-	demand; Appendix~\ref{app:direct-generation} provides the details of this baseline.
+	demand; Appendix~\ref{app:baseline-configurations} provides the details of this baseline.
 	
 	\paragraph{Evaluation.}
 	We assess benchmark quality using the following metrics:
@@ -1228,16 +1228,260 @@ The final output combines a diagnostic report with a subset of executed tasks or
 		}
 	\end{promptbox}
 	
-	\section{Direct Generation Baseline}
-	\label{app:direct-generation}
+	\section{Baseline Configurations}
+	\label{app:baseline-configurations}
+	% TODO: Specify per-baseline configurations, software selections, seeds, and model exceptions.
 	% TODO: Specify the gpt-6-astra direct-generation protocol.
+
+	\subsection{Baselines for Eight Conventional Evaluation Demands}
+	\paragraph{Benchmark-Agent.}
+	Following the original paper's setup, we use Hugging Face datasets in the
+	\texttt{nlp} and \texttt{image/comprehension} categories as the candidate data
+	pool. The search stage requires a model with native search tools, for which
+	we use \texttt{gpt-5.6-luna} with reasoning effort set to medium. All other
+	stages use \texttt{deepseek-flash} with thinking enabled and reasoning effort
+	set to high.
+
+	\paragraph{AutoBencher.}
+
+	\subsection{Baselines for Fifteen Frontier Evaluation Demands}
+	\paragraph{Gym-Anything.}
+	We generate 10 tasks per software application using the \texttt{enterprise}
+	task type. The official prompt calls for extremely difficult, realistic tasks
+	spanning diverse professions and industries. We set the local random seed to
+	42 and use Claude Code version 2.1.229 as the CLI.
+
+	\paragraph{Petri.}
+	We use the framework's native \texttt{epoch} parameter to run each demand
+	independently 20 times; the resulting scenarios are not guaranteed to be
+	distinct. We set the audit budget to 200, compared with the default of 8.
+	Prefill is enabled for Qwen models that support it. For \texttt{deepseek-flash}
+	and GPT models, which do not support prefill, we remove the prompt instruction
+	requiring its use at least once and do not expose the prefill tool.
+
+	\paragraph{AutoControl Arena.}
+	We retain the default settings: optional detailed scenario designs and
+	implementation requirements for tools, data, and permissions are left empty,
+	and no risk category is specified. Pressure and temptation are both set to 1.
+	Environment reuse is disabled, environment code review is enabled, and review
+	and repair budgets are set to 1, 2, and 5. The framework/tool error limit is 3,
+	and context management is disabled. We generate 20 scenarios per demand and
+	evaluate each environment once, with environment complexity set to 1 and a
+	maximum of 200 interaction steps.
 
 	\section{Benchmark Format Alignment for LLM Judging}
 	\label{app:format-alignment}
 	% TODO: Specify conversion to EvalClaw TaskDefinition and judge input formatting.
 
-	\section{Baseline Configurations}
-	\label{app:baseline-configurations}
-	% TODO: Specify per-baseline configurations, software selections, seeds, and model exceptions.
+	\section{Detailed Results for Each Baseline}
+	\label{app:baseline-results}
+
+	\subsection{Results on Eight Conventional Evaluation Demands}
+
+	\begin{table}[htbp]
+		\centering
+		\caption{Detailed Benchmark-Agent results on eight conventional evaluation
+			demands. Pass rates and model scores are percentages; reasoning effort
+			is shown in parentheses.}
+		\label{tab:benchmark-agent-results}
+		\small
+		\renewcommand{\arraystretch}{1.2}
+		\resizebox{\linewidth}{!}{%
+		\begin{tabular}{@{}lrrrrrr@{}}
+			\toprule
+			Demand & Items & \shortstack{Pass\\rate} & \shortstack{Qwen\\(xhigh)} & \shortstack{DeepSeek\\(high)} & \shortstack{gpt-5.6-sol\\(medium)} & \shortstack{gpt-5.6-sol\\(high)} \\
+			\midrule
+			Knowledge & 182 & 91.00 & 88.46 & 91.76 & 87.36 & 92.86 \\
+			Reasoning & 196 & 98.00 & 92.35 & 93.37 & 91.84 & 95.41 \\
+			Mathematics & 191 & 95.50 & 97.91 & 97.91 & 92.67 & 96.86 \\
+			Computer Science & 177 & 88.50 & 90.96 & 91.53 & 90.40 & 91.53 \\
+			Data Analysis & 191 & 95.50 & 97.91 & 97.38 & 91.10 & 94.76 \\
+			Instruction Following & 195 & 97.50 & 97.95 & 97.44 & 96.92 & 96.92 \\
+			Long Context & 175 & 87.50 & 98.29 & 98.29 & 94.29 & 99.43 \\
+			Multilingual & 123 & 61.50 & 88.62 & 92.68 & 91.87 & 94.31 \\
+			\midrule
+			Average & 178.75 & 89.38 & 94.34 & 95.17 & 92.10 & 95.31 \\
+			\bottomrule
+		\end{tabular}%
+		}
+	\end{table}
+
+	\begin{table}[htbp]
+		\centering
+		\caption{Detailed AutoBencher results with \texttt{deepseek-flash} as the
+			target model. Each cell reports accuracy above correct / total counts. R denotes the round; totals are weighted by item count.}
+		\label{tab:autobencher-deepseek-results}
+		\scriptsize
+		\resizebox{\linewidth}{!}{%
+		\begin{tabular}{@{}lrrrrrrrr@{}}
+			\toprule
+			Group & R1 & R2 & R3 & R4 & R5 & R6 & R7 & R8 \\
+			\midrule
+			Knowledge & \shortstack{91.16\%\\(196/215)} & \shortstack{83.70\%\\(113/135)} & \shortstack{70.30\%\\(116/165)} & \shortstack{69.23\%\\(135/195)} & \shortstack{72.12\%\\(119/165)} & \shortstack{75.00\%\\(90/120)} & \shortstack{60.00\%\\(66/110)} & \shortstack{58.00\%\\(87/150)} \\
+			Reasoning & \shortstack{88.72\%\\(173/195)} & \shortstack{78.89\%\\(142/180)} & \shortstack{69.27\%\\(151/218)} & \shortstack{55.76\%\\(92/165)} & \shortstack{66.67\%\\(128/192)} & \shortstack{68.33\%\\(82/120)} & \shortstack{56.19\%\\(59/105)} & \shortstack{83.08\%\\(162/195)} \\
+			Mathematics & \shortstack{92.89\%\\(209/225)} & \shortstack{81.43\%\\(171/210)} & \shortstack{70.37\%\\(95/135)} & \shortstack{58.10\%\\(61/105)} & \shortstack{64.00\%\\(48/75)} & \shortstack{66.67\%\\(50/75)} & \shortstack{63.33\%\\(76/120)} & \shortstack{75.24\%\\(79/105)} \\
+			Computer Science & \shortstack{89.33\%\\(201/225)} & \shortstack{79.05\%\\(166/210)} & \shortstack{71.43\%\\(150/210)} & \shortstack{68.67\%\\(103/150)} & \shortstack{83.03\%\\(137/165)} & \shortstack{70.83\%\\(85/120)} & \shortstack{89.33\%\\(134/150)} & \shortstack{72.50\%\\(87/120)} \\
+			Data \& Experimental Analysis & \shortstack{81.33\%\\(183/225)} & \shortstack{70.00\%\\(126/180)} & \shortstack{74.36\%\\(145/195)} & \shortstack{73.33\%\\(154/210)} & \shortstack{77.33\%\\(116/150)} & \shortstack{66.67\%\\(100/150)} & \shortstack{74.67\%\\(112/150)} & \shortstack{77.22\%\\(139/180)} \\
+			Constraint Following & \shortstack{90.00\%\\(189/210)} & \shortstack{76.92\%\\(150/195)} & \shortstack{91.43\%\\(192/210)} & \shortstack{90.48\%\\(95/105)} & \shortstack{81.82\%\\(135/165)} & \shortstack{75.76\%\\(125/165)} & \shortstack{83.89\%\\(151/180)} & \shortstack{81.82\%\\(135/165)} \\
+			Long Context \& Horizon & \shortstack{89.78\%\\(202/225)} & \shortstack{83.56\%\\(188/225)} & \shortstack{74.15\%\\(109/147)} & \shortstack{74.18\%\\(158/213)} & \shortstack{76.67\%\\(161/210)} & \shortstack{69.52\%\\(146/210)} & \shortstack{57.78\%\\(130/225)} & \shortstack{50.00\%\\(75/150)} \\
+			Multilingual & \shortstack{72.44\%\\(163/225)} & \shortstack{49.52\%\\(52/105)} & \shortstack{50.56\%\\(91/180)} & \shortstack{61.06\%\\(127/208)} & \shortstack{40.67\%\\(61/150)} & \shortstack{64.94\%\\(113/174)} & \shortstack{52.12\%\\(86/165)} & \shortstack{56.67\%\\(102/180)} \\
+			Eight-group total & \shortstack{86.88\%\\(1516/1745)} & \shortstack{76.94\%\\(1108/1440)} & \shortstack{71.85\%\\(1049/1460)} & \shortstack{68.47\%\\(925/1351)} & \shortstack{71.15\%\\(905/1272)} & \shortstack{69.75\%\\(791/1134)} & \shortstack{67.55\%\\(814/1205)} & \shortstack{69.56\%\\(866/1245)} \\
+			\bottomrule
+		\end{tabular}%
+		}
+	\end{table}
+
+	\begin{table}[htbp]
+		\centering
+		\caption{Detailed AutoBencher results with \texttt{qwen3.8-27b} as the
+			target model. Each cell reports accuracy above correct / total counts. R denotes the round; totals are weighted by item count.}
+		\label{tab:autobencher-qwen-results}
+		\scriptsize
+		\resizebox{\linewidth}{!}{%
+		\begin{tabular}{@{}lrrrrrrrr@{}}
+			\toprule
+			Group & R1 & R2 & R3 & R4 & R5 & R6 & R7 & R8 \\
+			\midrule
+			Knowledge & \shortstack{77.33\%\\(174/225)} & \shortstack{51.11\%\\(115/225)} & \shortstack{50.56\%\\(91/180)} & \shortstack{45.56\%\\(41/90)} & \shortstack{39.82\%\\(45/113)} & \shortstack{54.76\%\\(69/126)} & \shortstack{37.33\%\\(56/150)} & \shortstack{23.81\%\\(25/105)} \\
+			Reasoning & \shortstack{82.43\%\\(183/222)} & \shortstack{69.74\%\\(136/195)} & \shortstack{61.90\%\\(130/210)} & \shortstack{68.00\%\\(153/225)} & \shortstack{49.17\%\\(59/120)} & \shortstack{38.52\%\\(52/135)} & \shortstack{42.22\%\\(76/180)} & \shortstack{48.15\%\\(65/135)} \\
+			Mathematics & \shortstack{88.44\%\\(199/225)} & \shortstack{56.36\%\\(93/165)} & \shortstack{48.00\%\\(36/75)} & \shortstack{49.63\%\\(67/135)} & \shortstack{54.67\%\\(41/75)} & \shortstack{47.78\%\\(43/90)} & \shortstack{44.44\%\\(60/135)} & \shortstack{36.67\%\\(22/60)} \\
+			Computer Science & \shortstack{67.11\%\\(151/225)} & \shortstack{67.88\%\\(112/165)} & \shortstack{57.31\%\\(98/171)} & \shortstack{52.00\%\\(78/150)} & \shortstack{65.64\%\\(128/195)} & \shortstack{59.11\%\\(133/225)} & \shortstack{64.10\%\\(125/195)} & \shortstack{51.67\%\\(93/180)} \\
+			Data \& Experimental Analysis & \shortstack{83.11\%\\(187/225)} & \shortstack{70.26\%\\(137/195)} & \shortstack{55.90\%\\(109/195)} & \shortstack{65.56\%\\(118/180)} & \shortstack{52.47\%\\(85/162)} & \shortstack{75.76\%\\(125/165)} & \shortstack{53.33\%\\(96/180)} & \shortstack{42.96\%\\(58/135)} \\
+			Constraint Following & \shortstack{77.44\%\\(151/195)} & \shortstack{58.46\%\\(114/195)} & \shortstack{31.90\%\\(67/210)} & \shortstack{45.78\%\\(103/225)} & \shortstack{27.62\%\\(58/210)} & \shortstack{38.52\%\\(52/135)} & \shortstack{28.89\%\\(39/135)} & \shortstack{31.79\%\\(62/195)} \\
+			Long Context \& Horizon & \shortstack{89.78\%\\(202/225)} & \shortstack{71.11\%\\(160/225)} & \shortstack{50.87\%\\(88/173)} & \shortstack{40.95\%\\(86/210)} & \shortstack{54.29\%\\(114/210)} & \shortstack{41.67\%\\(75/180)} & \shortstack{46.15\%\\(54/117)} & \shortstack{35.83\%\\(43/120)} \\
+			Multilingual & \shortstack{53.78\%\\(121/225)} & \shortstack{52.75\%\\(96/182)} & \shortstack{29.09\%\\(48/165)} & \shortstack{36.42\%\\(63/173)} & \shortstack{31.43\%\\(66/210)} & \shortstack{32.22\%\\(58/180)} & \shortstack{36.41\%\\(71/195)} & \shortstack{45.33\%\\(68/150)} \\
+			Eight-group total & \shortstack{77.42\%\\(1368/1767)} & \shortstack{62.25\%\\(963/1547)} & \shortstack{48.37\%\\(667/1379)} & \shortstack{51.08\%\\(709/1388)} & \shortstack{46.02\%\\(596/1295)} & \shortstack{49.11\%\\(607/1236)} & \shortstack{44.83\%\\(577/1287)} & \shortstack{40.37\%\\(436/1080)} \\
+			\bottomrule
+		\end{tabular}%
+		}
+	\end{table}
+
+	\begin{table}[htbp]
+		\centering
+		\caption{Detailed AutoBencher results with \texttt{gpt-5.6-sol} as the
+			target model. Each cell reports accuracy above correct / total counts. R denotes the round; totals are weighted by item count.}
+		\label{tab:autobencher-gpt-results}
+		\scriptsize
+		\resizebox{\linewidth}{!}{%
+		\begin{tabular}{@{}lrrrr@{}}
+			\toprule
+			Group & R1 & R2 & R3 & R4 \\
+			\midrule
+			Knowledge & \shortstack{90.67\%\\(204/225)} & \shortstack{89.23\%\\(174/195)} & \shortstack{82.56\%\\(161/195)} & \shortstack{88.16\%\\(134/152)} \\
+			Reasoning & \shortstack{93.33\%\\(182/195)} & \shortstack{87.62\%\\(184/210)} & \shortstack{83.59\%\\(163/195)} & \shortstack{81.90\%\\(172/210)} \\
+			Mathematics & \shortstack{92.44\%\\(208/225)} & \shortstack{80.00\%\\(156/195)} & \shortstack{87.62\%\\(92/105)} & \shortstack{77.65\%\\(132/170)} \\
+			Computer Science & \shortstack{80.89\%\\(182/225)} & \shortstack{82.78\%\\(149/180)} & \shortstack{91.11\%\\(82/90)} & \shortstack{88.48\%\\(146/165)} \\
+			Data \& Experimental Analysis & \shortstack{90.95\%\\(191/210)} & \shortstack{77.03\%\\(161/209)} & \shortstack{80.56\%\\(145/180)} & \shortstack{83.33\%\\(150/180)} \\
+			Constraint Following & \shortstack{88.21\%\\(172/195)} & \shortstack{84.29\%\\(118/140)} & \shortstack{76.67\%\\(69/90)} & \shortstack{83.70\%\\(113/135)} \\
+			Long Context \& Horizon & \shortstack{94.22\%\\(212/225)} & \shortstack{87.78\%\\(158/180)} & \shortstack{77.01\%\\(144/187)} & \shortstack{79.52\%\\(167/210)} \\
+			Multilingual & \shortstack{82.67\%\\(186/225)} & \shortstack{73.44\%\\(141/192)} & \shortstack{68.67\%\\(103/150)} & \shortstack{56.92\%\\(111/195)} \\
+			Eight-group total & \shortstack{89.10\%\\(1537/1725)} & \shortstack{82.68\%\\(1241/1501)} & \shortstack{80.45\%\\(959/1192)} & \shortstack{79.39\%\\(1125/1417)} \\
+			\bottomrule
+		\end{tabular}%
+		}
+	\end{table}
+
+	\subsection{Results on Fifteen Frontier Evaluation Demands}
+
+	\begin{table}[htbp]
+		\centering
+		\caption{Detailed Petri results on frontier evaluation demands D7, D8, D9,
+			and D13. Per-demand results are reported as mean $\pm$ standard error.}
+		\label{tab:petri-results}
+		\small
+		\renewcommand{\arraystretch}{1.2}
+		\begin{tabular}{@{}lccc@{}}
+			\toprule
+			Demand & Qwen & DeepSeek & GPT \\
+			\midrule
+			D7 & $8.75 \pm 0.123$ & $8.95 \pm 0.135$ & $9.35 \pm 0.167$ \\
+			D8 & $9.60 \pm 0.112$ & $9.80 \pm 0.117$ & $9.65 \pm 0.150$ \\
+			D9 & $8.85 \pm 0.386$ & $9.50 \pm 0.115$ & $9.50 \pm 0.286$ \\
+			D13 & $8.20 \pm 0.277$ & $9.10 \pm 0.176$ & $6.70 \pm 0.411$ \\
+			\midrule
+			Average & 8.85 & 9.34 & 8.80 \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+
+	\begin{table}[htbp]
+	\centering
+	\caption{AutoControl Arena demand-based evaluation. Reports gives valid / planned reports. $x_1$ and $x_2$ are mean action and reasoning scores; converted scores are $100-25x_1$, $100-25x_2$, and $100-12.5(x_1+x_2)$, respectively. The final three columns count normal interaction endings, runs reaching the 200-step limit, and runs without reports.}
+	\label{tab:autocontrol-demand-results}
+	\footnotesize
+	\setlength{\tabcolsep}{3pt}
+	\renewcommand{\arraystretch}{1.2}
+	\resizebox{\linewidth}{!}{%
+	\begin{tabular}{@{}lrrrrrrrrr@{}}
+	\toprule
+	Demand & Reports & $x_1$ & $x_2$ & \shortstack{Action\\score} & \shortstack{Reasoning\\score} & \shortstack{Combined\\score} & \shortstack{Normal\\end} & \shortstack{Step\\limit} & \shortstack{No\\report} \\
+	\midrule
+	\multicolumn{10}{l}{\texttt{deepseek-flash}} \\
+	D5 & 19/20 & 0.132 & 0.105 & 96.711 & 97.368 & 97.039 & 18 & 1 & 1 \\
+	D10 & 20/20 & 0.150 & 0.150 & 96.250 & 96.250 & 96.250 & 19 & 1 & 0 \\
+	D11 & 19/20 & 0.000 & 0.000 & 100.000 & 100.000 & 100.000 & 19 & 0 & 1 \\
+	D12 & 20/20 & 0.000 & 0.000 & 100.000 & 100.000 & 100.000 & 20 & 0 & 0 \\
+	D14 & 20/20 & 0.800 & 0.300 & 80.000 & 92.500 & 86.250 & 19 & 1 & 0 \\
+	D15 & 20/20 & 0.200 & 0.050 & 95.000 & 98.750 & 96.875 & 20 & 0 & 0 \\
+	\midrule
+	\multicolumn{10}{l}{\texttt{qwen3.8-27b}} \\
+	D5 & 20/20 & 1.000 & 0.850 & 75.000 & 78.750 & 76.875 & 19 & 1 & 0 \\
+	D10 & 20/20 & 0.000 & 0.000 & 100.000 & 100.000 & 100.000 & 19 & 1 & 0 \\
+	D11 & 20/20 & 0.625 & 0.625 & 84.375 & 84.375 & 84.375 & 20 & 0 & 0 \\
+	D12 & 20/20 & 0.000 & 0.000 & 100.000 & 100.000 & 100.000 & 20 & 0 & 0 \\
+	D14 & 20/20 & 0.700 & 0.450 & 82.500 & 88.750 & 85.625 & 18 & 2 & 0 \\
+	D15 & 20/20 & 0.650 & 0.650 & 83.750 & 83.750 & 83.750 & 20 & 0 & 0 \\
+	\midrule
+	\multicolumn{10}{l}{\texttt{gpt-5.6-sol}} \\
+	D5 & 19/20 & 0.632 & 0.632 & 84.211 & 84.211 & 84.211 & 17 & 2 & 1 \\
+	D10 & 20/20 & 0.450 & 0.450 & 88.750 & 88.750 & 88.750 & 19 & 1 & 0 \\
+	D11 & 20/20 & 0.350 & 0.350 & 91.250 & 91.250 & 91.250 & 20 & 0 & 0 \\
+	D12 & 20/20 & 0.050 & 0.050 & 98.750 & 98.750 & 98.750 & 20 & 0 & 0 \\
+	D14 & 18/20 & 0.083 & 0.000 & 97.917 & 100.000 & 98.958 & 15 & 3 & 2 \\
+	D15 & 3/20 & 2.167 & 2.000 & 45.833 & 50.000 & 47.917 & 3 & 0 & 17 \\
+	\bottomrule
+	\end{tabular}%
+	}
+	\end{table}
+
+	\begin{table}[htbp]
+	\centering
+	\caption{AutoControl Arena supplementary native evaluation. Reports gives native / planned reports. $x_1$ and $x_2$ are mean native action and reasoning risk scores; converted scores are $100-25x_1$, $100-25x_2$, and $100-12.5(x_1+x_2)$, respectively. The final four columns count reports with intentional, unintentional, uncertain, and empty intent labels.}
+	\label{tab:autocontrol-native-results}
+	\footnotesize
+	\setlength{\tabcolsep}{3pt}
+	\renewcommand{\arraystretch}{1.2}
+	\resizebox{\linewidth}{!}{%
+	\begin{tabular}{@{}lrrrrrrrrrr@{}}
+	\toprule
+	Demand & Reports & $x_1$ & $x_2$ & \shortstack{Action\\score} & \shortstack{Reasoning\\score} & \shortstack{Combined\\score} & Intentional & Unintentional & Uncertain & Empty \\
+	\midrule
+	\multicolumn{11}{l}{\texttt{deepseek-flash}} \\
+	D5 & 19/20 & 0.105 & 0.158 & 97.368 & 96.053 & 96.711 & 0 & 1 & 0 & 18 \\
+	D10 & 20/20 & 0.300 & 0.200 & 92.500 & 95.000 & 93.750 & 2 & 1 & 0 & 17 \\
+	D11 & 19/20 & 0.000 & 0.000 & 100.000 & 100.000 & 100.000 & 1 & 0 & 0 & 18 \\
+	D12 & 20/20 & 0.000 & 0.000 & 100.000 & 100.000 & 100.000 & 0 & 0 & 0 & 20 \\
+	D14 & 20/20 & 0.200 & 0.100 & 95.000 & 97.500 & 96.250 & 0 & 3 & 0 & 17 \\
+	D15 & 20/20 & 0.150 & 0.000 & 96.250 & 100.000 & 98.125 & 0 & 2 & 0 & 18 \\
+	\midrule
+	\multicolumn{11}{l}{\texttt{qwen3.8-27b}} \\
+	D5 & 20/20 & 0.850 & 0.750 & 78.750 & 81.250 & 80.000 & 3 & 5 & 0 & 12 \\
+	D10 & 20/20 & 0.100 & 0.000 & 97.500 & 100.000 & 98.750 & 0 & 3 & 0 & 17 \\
+	D11 & 20/20 & 0.650 & 0.600 & 83.750 & 85.000 & 84.375 & 3 & 1 & 0 & 16 \\
+	D12 & 20/20 & 0.050 & 0.050 & 98.750 & 98.750 & 98.750 & 0 & 2 & 0 & 18 \\
+	D14 & 20/20 & 0.450 & 0.100 & 88.750 & 97.500 & 93.125 & 2 & 4 & 0 & 14 \\
+	D15 & 20/20 & 0.750 & 0.550 & 81.250 & 86.250 & 83.750 & 3 & 2 & 0 & 15 \\
+	\midrule
+	\multicolumn{11}{l}{\texttt{gpt-5.6-sol}} \\
+	D5 & 19/20 & 0.421 & 0.316 & 89.474 & 92.105 & 90.789 & 1 & 2 & 0 & 16 \\
+	D10 & 20/20 & 0.650 & 0.550 & 83.750 & 86.250 & 85.000 & 4 & 1 & 0 & 15 \\
+	D11 & 20/20 & 0.400 & 0.300 & 90.000 & 92.500 & 91.250 & 2 & 1 & 0 & 17 \\
+	D12 & 20/20 & 0.000 & 0.000 & 100.000 & 100.000 & 100.000 & 0 & 0 & 0 & 20 \\
+	D14 & 18/20 & 0.556 & 0.278 & 86.111 & 93.056 & 89.583 & 2 & 3 & 0 & 13 \\
+	D15 & 3/20 & 1.667 & 1.333 & 58.333 & 66.667 & 62.500 & 1 & 0 & 1 & 1 \\
+	\bottomrule
+	\end{tabular}%
+	}
+	\end{table}
 
 \end{document}
