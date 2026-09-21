@@ -341,6 +341,56 @@ def test_service_is_preserved_and_shell_binding_is_explicitly_rejected(tmp_path)
 
 
 @pytest.mark.skipif(os.environ.get("EVALCLAW_DOCKER_TESTS") != "1", reason="requires Docker")
+@pytest.mark.parametrize("action,passed", [("target_turn", True), ("target", False)])
+def test_author_episode_exercise_connects_real_controller_and_tools(tmp_path, monkeypatch, action, passed):
+    from evalclaw.authoring.readiness import exercise
+    root = service_package(tmp_path)
+    controller = '''from benchmark_io import serve
+def next_turn(params, config):
+    n = params.get('state') or 0
+    if n == 0: actions = [{'action': config['action']}]
+    elif n == 1:
+        actions = [{'action':'reset_session','session':'second',
+                    'messages':[{'role':'user','content':'Continue'}]}, {'action':config['action']}]
+    else: actions = [{'action':'end'}]
+    return {'state':n+1,'actions':actions}
+serve({'next':next_turn})
+'''
+    (root / "one/controller.py").write_text(controller)
+    definition = json.loads((root / "one/task.json").read_text())
+    definition["interaction"] = {"driver": {"image": "python:3.11-slim", "files": ["controller.py"],
+        "command": ["python", "-u", "controller.py"], "config": {"action": action}},
+        "actions": [action, "reset_session", "end"], "budget": {"controller_calls": 5}}
+    (root / "one/task.json").write_text(json.dumps(definition))
+    monkeypatch.setattr("evalclaw.execution.task_runtime.call_target_model_with_tools",
+                        lambda *a, **k: pytest.fail("No model calls in author tests"))
+    responses = [{"tool_calls": [{"id": "c1", "name": "increment"}]}, {"content": "Done"},
+                 {"tool_calls": [{"id": "c2", "name": "increment"}]}, {"content": "Done again"}]
+    report = exercise(load_package(root), [{"task": "one", "component": "episode", "responses": responses}])
+    assert (report["status"] == "passed") == passed, report
+    if passed:
+        episode = report["cases"][0]["episode"]
+        assert episode["final_state"] == 2
+        assert episode["usage"]["tool_calls"] == 2
+        assert len([e for e in episode["events"] if e["kind"] == "tool_result"]) == 2
+    else:
+        assert report["cases"][0]["error"]
+
+
+def test_episode_exercise_checks_response_consumption_without_model_calls(tmp_path, monkeypatch):
+    from evalclaw.authoring.readiness import exercise
+    monkeypatch.setattr("evalclaw.execution.task_runtime.call_target_model_with_tools",
+                        lambda *a, **k: pytest.fail("No model calls in author tests"))
+    suite = load_package(package(tmp_path))
+    assert exercise(suite, [{"task": "one", "component": "episode", "responses": [{"content": "42"}]}])["status"] == "passed"
+    result = exercise(suite, [{"task": "one", "component": "episode", "responses": [{"content": "42"}, {"content": "unused"}]}])
+    assert result["status"] == "failed"
+    suite.tasks[0].content.operation = "continuation_likelihood"
+    suite.tasks[0].content.continuations = ["42"]
+    assert exercise(suite, [{"task": "one", "component": "episode", "responses": [{"content": "42"}]}])["status"] == "failed"
+
+
+@pytest.mark.skipif(os.environ.get("EVALCLAW_DOCKER_TESTS") != "1", reason="requires Docker")
 def test_real_imported_service_executes_scores_exports_and_supports_review(tmp_path, monkeypatch):
     from evalclaw.quality.laaj_exploration import ContractExperiment
     item = pack(service_package(tmp_path), tmp_path / "bundle").tasks[0]
@@ -429,6 +479,67 @@ def test_cli_distinguishes_unverified_and_incompatible_roles(tmp_path):
         assert run.returncode == (0 if expected == "valid" else 1)
 
 
+@pytest.mark.parametrize("method", ["program", "environment"])
+def test_score_exercise_uses_runtime_payload_and_rejects_invented_inputs(tmp_path, monkeypatch, method):
+    from evalclaw.authoring.readiness import exercise
+    from evalclaw.execution.task_runtime import ContractSession
+
+    component = {"image": "python:3.11-slim", "command": ["python", "grader.py"], "files": ["grader.py"]}
+    grading = {"method": method, "answer": "42"}
+    declaration = {"id": "one", "prompt": "prompt.txt", "grading": grading}
+    if method == "program":
+        grading["program"] = component
+    else:
+        declaration["service"] = component
+    suite = load_package(package(tmp_path, declaration, {"grader.py": "# Transport mocked in this test"}))
+    payloads = []
+
+    class Component:
+        methods = ["initialize", "call_tool", "finalize", "score"]
+
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def close(self):
+            pass
+
+        def call(self, name, params):
+            if name == "initialize":
+                return {"state": None, "tools": []}
+            if name == "finalize":
+                return {"state": None, "artifacts": {}}
+            assert name == "score"
+            payloads.append(copy.deepcopy(params))
+            assert params["task"]["id"] == "one"
+            expected = params["references"][0]["value"]
+            return {"metrics": [{"metric": "score", "value": int(params["episode"]["outputs"][-1] == expected)}]}
+
+    monkeypatch.setattr("evalclaw.authoring.readiness.JsonComponent", Component)
+    monkeypatch.setattr("evalclaw.execution.task_runtime.call_target_model_with_tools", lambda *a, **k: response("42"))
+    session = ContractSession(suite.tasks[0], BenchmarkConfig(), TARGET, component_factory=Component)
+    try:
+        session.prepare()
+        session.run()
+        params = {"episode": session.episode.model_dump(mode="json")}
+        metrics = session.evaluate()
+        assert metrics[0].status == "valid" and metrics[0].value == 1
+    finally:
+        session.close()
+    component_name = "environment" if method == "environment" else "grader-0"
+    case = {"task": "one", "component": component_name, "calls": [{"method": "score", "params": params}]}
+    assert exercise(suite, [case])["status"] == "passed"
+    assert payloads[0] == payloads[1]
+
+    invalid = [dict(params, task="one"), dict(params, task=declaration), dict(params, references={}),
+               {"episode": {"task_id": "another"}}, {"episode": {"events": [{"kind": "read"}]}}]
+    for bad in invalid:
+        case["calls"][0]["params"] = bad
+        report = exercise(suite, [case])
+        assert report["status"] == "failed"
+        assert report["cases"][0]["error"]
+    assert len(payloads) == 2
+
+
 CONFORMANCE_SERVICE = '''from benchmark_io import serve
 def initialize(params, config):
     return {'state': 0, 'tools': [{'name':'read', 'parameters': {'type':'object'}}]}
@@ -438,7 +549,7 @@ def call_tool(params, config):
     return {'content':'', 'error':'Record not found'} if params.get('missing') else {'content':'record'}
 def score(params, config):
     return {'metrics':[{'metric':'score', 'value':1.0000000000000002,
-        'evidence': [{}] if params.get('bad_type') else ['event-1']}]}
+        'evidence': [{}] if params['episode']['final_state'] == 'bad_type' else ['event-1']}]}
 serve({'initialize':initialize, 'call_tool':call_tool, 'score':score})
 '''
 
@@ -455,7 +566,7 @@ def test_real_conformance_checks_success_error_and_grading_paths(tmp_path):
             {"method":"initialize"}, {"method":"call_tool"},
             {"method":"call_tool", "params":{"missing":True}}, {"method":"score"}]},
         {"task":"one", "component":"environment", "calls":[{"method":"call_tool", "params":{"bad_type":True}}]},
-        {"task":"one", "component":"environment", "calls":[{"method":"score", "params":{"bad_type":True}}]},
+        {"task":"one", "component":"environment", "calls":[{"method":"score", "params":{"episode":{"final_state":"bad_type"}}}]},
     ])
     assert [case["status"] for case in result["cases"]] == ["passed", "failed", "failed"]
     assert result["cases"][0]["calls"][2]["result"]["error"] == "Record not found"

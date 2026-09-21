@@ -156,10 +156,14 @@ To exercise the actual wire interface without a target model, write a JSON list:
 Run `benchmark-package exercise PACKAGE CASES.json`. Components are named
 `environment`, `controller`, or `grader-0`, `grader-1`, etc. in grading-rule
 order; suite programs use task `@suite` and their aggregation ID. Each case
-starts a fresh container; calls in a case share state. Add separate score
-cases with a representative `task`, exported `episode`, and `references`.
+starts a fresh container; calls in a case share state. For score cases, supply
+`params: {"episode": {...}}` using an exported episode or synthetic evidence.
+The runner supplies the selected task object and the scorer's references using
+the same payload builder as actual evaluation. Conflicting hand-written inputs
+are rejected. Synthetic episodes may omit task_id, task_digest and defaulted
+fields; supplied event records must follow the episode format below.
 Score results are checked against the declared metric names, types and bounds.
-Optional `result_schema` checks your expected result using JSON Schema.
+Use `result_schema` to check the expected score, not just that metrics exist.
 Callbacks to models are unavailable in these model-free cases. A passing report
 covers only the supplied paths, not task correctness or untested branches.
 No generated task, score or interface error is silently repaired.
@@ -209,7 +213,9 @@ Declare allowed action names in interaction `actions`. Payloads are:
 | Action | Fields |
 | --- | --- |
 | message | message |
-| target | no additional fields |
+| target | one model response; leaves requested tools pending |
+| target_turn | a complete assistant turn, executing environment tools until the model responds without tool calls |
+| execute_tool | call_id of a pending target call; executes it in the environment and delivers its result |
 | tool_call | call containing id, name, arguments |
 | tool_result | call_id, content, optional error |
 | register_tools | tools |
@@ -219,6 +225,40 @@ Declare allowed action names in interaction `actions`. Payloads are:
 | branch | id of a checkpoint, branch (new branch name) |
 | actor | recipient (actor ID), message |
 | end | no additional fields |
+
+Use `target_turn` for ordinary work sessions. For intervention between individual
+model responses, use `target`, inspect the returned `tool_call` events, then
+`execute_tool` for each call ID before requesting another response. To simulate
+a tool rather than execute it, use `tool_result`. `tool_call` is an independent
+controller operation: it neither resolves a target call nor counts as target
+work. All pending calls must be resolved before the next `target`/`target_turn`.
+Both modes share the task's token, tool, request and time budgets. A reset
+discards conversation and pending calls; it does not execute them.
+
+For example, a program with `actions:["target_turn","end"]` can return
+`{"state":1,"actions":[{"action":"target_turn"}]}` on its first call and
+`{"state":2,"actions":[{"action":"end"}]}` on its next call. It receives
+the entire turn's events on that next call. Use `message` or `reset_session`
+followed by `target_turn` for subsequent sessions.
+
+Test connected interaction with an episode case in the same `cases.json`:
+
+```json
+[{"task":"task-01","component":"episode","responses":[
+  {"tool_calls":[{"id":"c1","name":"read_file","arguments":{"path":"input.txt"}}]},
+  {"content":"Done"}
+]}]
+```
+
+Replace these example responses with your own scripted interaction. The real
+controller and environment execute with those responses instead of a target
+model. Include follow-up sessions and resets when present. Missing/unused
+responses, unresolved tools and protocol errors are reported with episode
+evidence. `expected_termination` defaults to `completed`; it may instead be
+`budget_exhausted`. Supply `usage.total_tokens` when testing a token budget.
+Episode cases test interaction and finalization, not grading or task quality;
+use component score cases for grading. They never invoke auxiliary models,
+so model-controlled or actor-dependent paths need separate component tests.
 
 Consult structural feedback for invalid action declarations. Conversation,
 environment and actor snapshots are distinct scopes. Rollback retains the
@@ -277,7 +317,20 @@ maximum, direction (higher/lower/descriptive), and unit. Each metric must have
 exactly one producer. Exact/JSON rules return 0/1 (or booleans); they do not
 rescale the result. A workspace environment evaluator returns one [0,1] score.
 
-Program score receives `task`, `episode` and `references`, and returns:
+Program score receives these JSON fields:
+
+- `task`: the converted task object, not an ID string or the delivery's
+  `task.json`. Read its identifier as `params["task"]["id"]`; public messages
+  are in `task.content.messages` and scoring definitions in `task.evaluation`.
+- `references`: a list of the current scorer's declared references, each with
+  `id`, `kind`, `value`, `asset_ids`, and `semantics`. Read answer content from
+  `value`. With no declared references this is `[]`, not an object.
+- `episode`: recorded evidence as described below. Earlier grading events are
+  excluded; `metrics` contains only the scorer's declared dependencies.
+- `submission_contract`: included only when the task declares a structured
+  submission contract.
+
+It returns:
 
 ```json
 {"metrics":[{"metric":"score","value":1,"status":"valid","reason":"...","evidence":[]}]}
@@ -286,10 +339,16 @@ Program score receives `task`, `episode` and `references`, and returns:
 Return exactly the rule's declared metric names. Status may instead be error
 or not_applicable, with a reason. `reason` is a string; `evidence` is a list of
 strings identifying evidence, not a list of objects. Both may be omitted.
-The episode contains events, initial_state,
-final_state, outputs, final_messages, artifacts, usage and termination.
-Events retain index, origin, session, branch, call_id, parent_id, timestamp and
-data. A score program is independent of target privileges and receives the
+The episode is an object containing task_id, task_digest, bindings, events,
+initial_state, final_state, outputs, final_messages, artifacts, usage,
+termination and metrics. `outputs` is a list of target responses;
+`final_messages` is a list of message objects with role, content and optional
+tool_calls. Initial and final state are the JSON values exported by the service.
+Each event has id, index, kind, origin, session, branch, call_id, parent_id,
+timestamp and data. For example, `event("read", {"path":"a.txt"})` from an
+environment is recorded with kind `component_event`, origin `environment`,
+and data `{"kind":"read","data":{"path":"a.txt"}}`.
+A score program is independent of target privileges and receives the
 recorded evidence; it must not pretend its own checks were target actions.
 
 For multiple metrics, optional task `primary` selects metric, minimum,

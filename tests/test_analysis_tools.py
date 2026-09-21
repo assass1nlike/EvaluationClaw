@@ -274,6 +274,7 @@ def test_analyser_tool_round_preserves_artifact_context(monkeypatch, tmp_path) -
         "read_run_artifact",
         "list_run_artifacts",
         "read_item_evidence",
+        "read_analysis_context",
     }
     assert calls[1]["messages"][-1]["role"] == "tool"
     assert "issues" in calls[1]["messages"][-1]["content"]

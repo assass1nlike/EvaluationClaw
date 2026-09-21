@@ -10,7 +10,14 @@ import pytest
 
 from evalclaw.execution.harness_evidence import cli_result, normalize_events
 from evalclaw.runners import harness
-from evalclaw.types import AgentEnvironmentType, AgentWorkflow, BenchmarkConfig, BenchmarkItem, TargetModelConfig, TaskType
+from evalclaw.types import (
+    AgentEnvironmentType,
+    AgentWorkflow,
+    BenchmarkConfig,
+    BenchmarkItem,
+    TargetModelConfig,
+    TaskType,
+)
 
 
 def item():
@@ -107,7 +114,8 @@ def test_workflow_delivers_only_current_stage_and_resets_session(monkeypatch):
     runner._workflow_turns(task, {}, {}, '', capture, 'docker', 'container', {}, 30)
     assert calls[0][-1].endswith('first') and 'surprise' not in calls[0][-1]
     assert calls[1][-1].endswith('surprise')
-    assert calls[0][2] == calls[1][2] != calls[2][2]
+    sessions = [call[call.index('--session') + 1] for call in calls]
+    assert sessions[0] == sessions[1] != sessions[2]
     assert len(capture['stages']) == 3
 
 
@@ -142,7 +150,7 @@ def test_verification_cases_use_fresh_instances_and_close(monkeypatch):
 def test_packaged_files_cannot_change_silently():
     from evalclaw.construction.packaging import pack_task_item
     from evalclaw.execution.evidence import validate_environment_files
-    from evalclaw.types import TaskDefinition, EvalDimension
+    from evalclaw.types import EvalDimension, TaskDefinition
 
     task = TaskDefinition(id='t', dimension_id='d', title='Task', task_type='agent',
         prompt='Do the work.', environment=item().metadata['agent_env'])
@@ -154,7 +162,7 @@ def test_packaged_files_cannot_change_silently():
 
 
 def test_budget_validation_is_target_aware_and_packaging_is_not_a_native_target():
-    from evalclaw.construction.validation import task_structure_issues, _has_environment_evaluator
+    from evalclaw.construction.validation import _has_environment_evaluator, task_structure_issues
     from evalclaw.types import TaskDefinition
 
     task = TaskDefinition(id='t', dimension_id='d', title='Task', task_type='agent',
@@ -188,9 +196,9 @@ def test_external_workflow_rejects_unimplemented_stage_contracts():
 
 @pytest.mark.skipif(os.environ.get('EVALCLAW_DOCKER_TESTS') != '1', reason='requires Docker')
 def test_real_builder_verification_tool_and_final_preflight_recheck(tmp_path, monkeypatch):
+    from evalclaw.construction.parsing import _task_from_raw
     from evalclaw.construction.research import _execute_task_builder_tool
     from evalclaw.construction.suite import _preflight_builder_environments
-    from evalclaw.construction.parsing import _task_from_raw
     from evalclaw.protocols.tool import ToolCall
     from evalclaw.types import EvalDimension
     from tests.blueprint_factory import make_blueprint
@@ -225,6 +233,7 @@ def test_real_builder_verification_tool_and_final_preflight_recheck(tmp_path, mo
 @pytest.mark.skipif(os.environ.get('EVALCLAW_DOCKER_TESTS') != '1', reason='requires Docker')
 def test_real_trial_budget_stops_background_work_between_tool_calls(tmp_path, monkeypatch):
     import time
+
     from evalclaw.quality.laaj_exploration import TaskExperiment
 
     runner = harness.ManifestHarnessRunner(harness.ManifestHarness(name='fixture', run='true', model_env={}))
@@ -274,8 +283,8 @@ def test_real_budget_expiry_scores_partial_state_after_slow_setup(tmp_path):
 
 @pytest.mark.skipif(os.environ.get('EVALCLAW_DOCKER_TESTS') != '1', reason='requires Docker and OpenClaw image')
 def test_real_openclaw_workflow_gateway_and_session_history(tmp_path):
-    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
     requests = []
     class Provider(BaseHTTPRequestHandler):

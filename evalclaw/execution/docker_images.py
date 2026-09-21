@@ -469,11 +469,12 @@ def _run_image_build(
         except (ImageAcquisitionError, ValueError) as exc:
             (log_dir / "dependency-failure.json").write_text(json.dumps({
                 "image": image, "error_type": type(exc).__name__, "error": str(exc),
+                "source_failures": exc.failures if isinstance(exc, ImageAcquisitionError) else [],
                 "started_at": started_at, "dependency_seconds": time.monotonic() - started,
             }, indent=2), encoding="utf-8")
             message = f"{exc}\nBuild dependency logs: {log_dir}"
             if isinstance(exc, ImageAcquisitionError):
-                raise ImageAcquisitionError(message) from exc
+                raise type(exc)(message, image=exc.image, failures=exc.failures) from exc
             raise DockerImageBuildError(image, message) from exc
         env["EXPERIMENTAL_BUILDKIT_SOURCE_POLICY"] = str(policy)
     build_started = time.monotonic()
@@ -797,6 +798,7 @@ def start_inspection_container(
     docker_executable: str = "docker",
     network: str = "default",
     timeout_s: int = 120,
+    pull_timeout_s: int = 300,
     memory_mb: int = 8192,
     pids_limit: int = 512,
     workspace: Path | None = None,
@@ -818,7 +820,7 @@ def start_inspection_container(
     resolved = resolve_docker_executable(docker_executable)
     if not resolved:
         raise RuntimeError("Docker executable is not available for inspection containers.")
-    image_name = acquire_image(image_name, docker_executable=docker_executable, timeout_s=timeout_s, allow_pull=allow_pull)
+    image_name = acquire_image(image_name, docker_executable=docker_executable, timeout_s=pull_timeout_s, allow_pull=allow_pull)
     container = f"evalclaw-inspect-{uuid.uuid4().hex[:12]}"
     if resource_guard is not None:
         resource_guard.register("container", container)

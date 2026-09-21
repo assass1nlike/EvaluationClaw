@@ -20,6 +20,9 @@ def registry(monkeypatch):
     monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:7890")
     monkeypatch.setattr(acquisition, "resolve_docker_executable", lambda _: "/docker")
     monkeypatch.setattr(acquisition.shutil, "which", lambda _: "/crane")
+    monkeypatch.setattr(acquisition, "inspect_registry_failure", lambda source, *a: {
+        "source": source, "kind": "unknown", "status": None, "codes": [],
+    })
     images, calls, failures = set(), [], []
 
     def run(args, *, timeout, env):
@@ -171,6 +174,26 @@ def test_unavailable_sources_raise_infrastructure_error(registry):
     assert all(c[1] != "pull" for c in calls if c[0] == "/docker")
 
 
+def test_successful_fallback_needs_no_diagnostic_requests(registry, monkeypatch):
+    registry[2].append("unavailable")
+    monkeypatch.setattr(acquisition, "inspect_registry_failure", lambda *a: pytest.fail("unneeded diagnostic"))
+    assert acquisition.acquire_image("org/fixture:valid") == "org/fixture:valid"
+
+
+def test_daemon_failure_with_explicit_platform_is_not_a_reference_error(registry, monkeypatch):
+    original = acquisition.run_bounded
+    def run(args, **kwargs):
+        if args[1] == "info":
+            return subprocess.CompletedProcess(args, 1, "", "daemon unavailable")
+        return original(args, **kwargs)
+    monkeypatch.setattr(acquisition, "run_bounded", run)
+    monkeypatch.setattr(acquisition, "inspect_registry_failure", lambda *a: pytest.fail("daemon failure must not reach registry"))
+    with pytest.raises(acquisition.ImageAcquisitionError) as caught:
+        acquisition.acquire_image("org/fixture:tag", platform="linux/amd64")
+    assert type(caught.value) is acquisition.ImageAcquisitionError
+    assert not [c for c in registry[1] if c[0] == "/crane"]
+
+
 def test_existing_local_image_and_pull_disabled(registry):
     images, calls, _ = registry
     images.add("task:built")
@@ -204,7 +227,9 @@ def test_concurrent_requests_share_one_download(registry):
     assert len([c for c in calls if c[0] == "/crane"]) == 1
 
 
-def test_preflight_propagates_acquisition_failure_without_task_repair(monkeypatch, tmp_path):
+@pytest.mark.parametrize("repairable", [False, True])
+@pytest.mark.parametrize("contract", [False, True])
+def test_preflight_separates_reference_repair_from_infrastructure_failure(monkeypatch, tmp_path, repairable, contract):
     from evalclaw.construction.suite import _preflight_builder_environments
     from evalclaw.types import (
         AgentEnvironmentSpec,
@@ -223,14 +248,18 @@ def test_preflight_propagates_acquisition_failure_without_task_repair(monkeypatc
         prompt="Work.",
         environment=AgentEnvironmentSpec(type="docker_workspace", test_command="true"),
     )
+    if contract:
+        task = task.model_copy(update={"content": {"messages": []}})
     dimension = EvalDimension(id="d", name="d", description="d", approach="d")
 
     def unavailable(*args, **kwargs):
-        raise acquisition.ImageAcquisitionError("All registries unavailable")
+        error = acquisition.ImageReferenceError if repairable else acquisition.ImageAcquisitionError
+        raise error("image acquisition failed", image="org/fixture:tag")
 
     monkeypatch.setattr("evalclaw.runners.harness.preflight_harness_environments", unavailable)
-    with pytest.raises(acquisition.ImageAcquisitionError):
-        _preflight_builder_environments(
+    monkeypatch.setattr("evalclaw.execution.task_runtime.preflight_contract", unavailable)
+    def preflight():
+        return _preflight_builder_environments(
             [task],
             dimension=dimension,
             blueprint=make_blueprint("b", "d", "Test", task_type=TaskType.agent),
@@ -238,9 +267,18 @@ def test_preflight_propagates_acquisition_failure_without_task_repair(monkeypatc
             config=BenchmarkConfig(),
             trace_dir=tmp_path,
         )
-    failure = json.loads((tmp_path / "t/failure.json").read_text())
-    assert failure["status"] == "evaluation_blocked"
-    assert failure["error_type"] == "ImageAcquisitionError"
+    if repairable:
+        issues, failed, blocked = preflight()
+        assert failed == {"t"}
+        assert len(issues) == 1
+        assert blocked == {}
+    else:
+        with pytest.raises(acquisition.ImageAcquisitionError):
+            preflight()
+        if not contract:
+            failure = json.loads((tmp_path / "t/failure.json").read_text())
+            assert failure["status"] == "evaluation_blocked"
+            assert failure["error_type"] == "ImageAcquisitionError"
 
 
 def test_builder_tool_does_not_turn_registry_failure_into_task_feedback(monkeypatch):
@@ -257,3 +295,59 @@ def test_builder_tool_does_not_turn_registry_failure_into_task_feedback(monkeypa
             ToolCall(id="image-check", name="run_image_check", arguments={"image": "node:20", "command": "true"}),
             BenchmarkConfig(), max_chars=1000,
         )
+
+
+@pytest.mark.parametrize("kinds,expected", [
+    (["reference", "reference", "permission"], acquisition.ImageReferenceError),
+    (["reference"] * 3, acquisition.ImageReferenceError),
+    (["permission"] * 3, acquisition.ImageAcquisitionError),
+    (["reference", "network", "permission"], acquisition.ImageAcquisitionError),
+    (["reference", "service", "permission"], acquisition.ImageAcquisitionError),
+    (["reference", "unknown", "permission"], acquisition.ImageAcquisitionError),
+])
+def test_source_evidence_controls_repair_without_assuming_global_absence(registry, monkeypatch, kinds, expected):
+    _, _, failures = registry
+    failures.extend(["unavailable"] * 3)
+    evidence = iter(kinds)
+
+    def inspect(source, *args):
+        kind = next(evidence)
+        return {"source": source, "kind": kind, "status": 404 if kind == "reference" else None,
+                "codes": ["MANIFEST_UNKNOWN"] if kind == "reference" else []}
+
+    monkeypatch.setattr(acquisition, "inspect_registry_failure", inspect)
+    with pytest.raises(expected) as caught:
+        acquisition.acquire_image("org/fixture:unavailable")
+    assert type(caught.value) is expected
+    assert caught.value.image == "org/fixture:unavailable"
+    assert [f["kind"] for f in caught.value.failures] == kinds
+
+
+def test_builder_receives_reference_failure_and_can_retry(monkeypatch):
+    from evalclaw.construction import research
+    from evalclaw.execution.docker_images import DockerImageCheckResult
+    from evalclaw.protocols.tool import ToolCall
+    from evalclaw.types import BenchmarkConfig
+
+    checked = []
+    def check(image, command, **kwargs):
+        checked.append(image)
+        if image == "org/fixture:bad":
+            raise acquisition.ImageReferenceError("reference unavailable", image=image, failures=[
+                {"source": "first.example/org/fixture:bad", "kind": "reference", "codes": ["MANIFEST_UNKNOWN"]},
+            ])
+        return DockerImageCheckResult(image, command, 0)
+
+    monkeypatch.setattr(research, "run_docker_image_check", check)
+    state = {}
+    for image, error in [("org/fixture:bad", "image_reference_unavailable"), ("org/fixture:valid", None)]:
+        result = research._execute_task_builder_tool(
+            ToolCall(id=image, name="run_image_check", arguments={"image": image, "command": "true"}),
+            BenchmarkConfig(), max_chars=5000, tool_state=state,
+        )
+        assert result.error == error
+        if error:
+            feedback = json.loads(result.content)
+            assert feedback["image"] == image
+            assert feedback["sources"][0]["codes"] == ["MANIFEST_UNKNOWN"]
+    assert checked == ["org/fixture:bad", "org/fixture:valid"]

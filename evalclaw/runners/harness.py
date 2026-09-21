@@ -1531,7 +1531,9 @@ class ManifestHarnessRunner:
                 if value:
                     docker_env[var_name] = str(value)
                     create_args += ["-e", var_name]
-            shell_command = shlex.join(command)
+            # A lingering shell retains the prompt in argv and can be mistaken
+            # for a task service by process-management tools such as pkill -f.
+            shell_command = "exec " + shlex.join(command)
             create_args += [
                 image,
                 "sh",
@@ -1751,6 +1753,11 @@ class ManifestHarnessRunner:
             if controller is not None:
                 controller.raise_if_failed()
             structured = cli_result(self.name, proc.stdout)
+            if not budget_expired and not preflight_only:
+                from ..execution.harness_evidence import terminal_model_error
+                model_error = terminal_model_error(lifecycle.get("model_events", []))
+                if model_error:
+                    raise HarnessExecutionError(model_error, proc.stdout, proc.stderr)
             if not budget_expired and (proc.returncode != 0 or structured["status"] == "failed"):
                 details = _redact_secret(proc.stderr or proc.stdout, target.api_key)
                 raise HarnessExecutionError(
@@ -1835,7 +1842,7 @@ for pid in stopped:
                       "prompt": prompt, "started_at": time.time(), "status": "running"}
             lifecycle["stages"].append(record)
             proc = _run_bounded(_container_exec_command(
-                docker, container, prefix + f"export EVALCLAW_EPISODE_ID={shlex.quote(container)}; " + command,
+                docker, container, prefix + f"export EVALCLAW_EPISODE_ID={shlex.quote(container)}; exec " + command,
                 user=_target_container_user(), env_names=tuple(self._manifest.model_env.values())),
                 timeout=remaining, env=docker_env, failure_markers=self._manifest.failure_markers)
             envelope = cli_result(self.name, proc.stdout)
@@ -1843,6 +1850,14 @@ for pid in stopped:
             record.update(output=envelope["final_response"], returncode=proc.returncode,
                           status=envelope["status"], tool_call_count=envelope.get("tool_call_count"),
                           finished_at=time.time())
+            if lifecycle.get("gateway_name"):
+                from ..execution.harness_evidence import terminal_model_error
+                events = self._gateway_evidence(docker, lifecycle["gateway_name"])
+                lifecycle["model_events"] = events
+                error = terminal_model_error([e for e in events if e.get("time", 0) >= record["started_at"]])
+                if error:
+                    record.update(status="failed", error=error)
+                    raise HarnessExecutionError(f"Workflow stage {stage.id}: {error}", proc.stdout, proc.stderr)
             if proc.returncode or envelope["status"] == "failed" or any(
                 marker in proc.stdout or marker in proc.stderr for marker in self._manifest.failure_markers
             ):

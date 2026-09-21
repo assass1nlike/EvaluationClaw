@@ -3711,7 +3711,7 @@ def test_complex_code_smoke_requires_second_repair(monkeypatch) -> None:
     assert trace[4]["score_after_step"] == 1.0
 
 
-def test_llm_qc_receives_agent_env_metadata(monkeypatch) -> None:
+def test_llm_qc_receives_agent_env_metadata_and_preserves_content_errors(monkeypatch) -> None:
     captured_payload = {}
 
     def fake_call_llm(request, *args, **kwargs):
@@ -3723,8 +3723,8 @@ def test_llm_qc_receives_agent_env_metadata(monkeypatch) -> None:
                         "item_id": "code_agent_item",
                         "severity": "error",
                         "category": "scoring",
-                        "message": "Hidden tests are not visible to the target, so the item is unverifiable.",
-                        "suggested_action": "Expose test details.",
+                        "message": "The target cannot access the hidden task specification: the prompt omits the rule defining max_pair_sum, which exists only in tests.py.",
+                        "suggested_action": "Disclose the function contract while keeping evaluation cases private.",
                     }
                 ],
                 "summary": "ok",
@@ -3780,8 +3780,8 @@ def test_llm_qc_receives_agent_env_metadata(monkeypatch) -> None:
     qc = run_qc_gate(TaskSuite(spec=spec, objective=spec.objective, tasks=[item]), config)
 
     agent_env = captured_payload["items"][0]["metadata"]["agent_env"]
-    assert qc.rejected_item_ids == []
-    assert any("demoted from an LLM QC blocking error" in issue.message for issue in qc.issues)
+    assert qc.rejected_item_ids == [item.id]
+    assert any(issue.severity == QcSeverity.error and issue.item_id == item.id for issue in qc.issues)
     assert agent_env["type"] == "docker_workspace"
     assert agent_env["visible_files_names"] == ["solution.py"]
     assert agent_env["hidden_files_names"] == ["tests.py"]

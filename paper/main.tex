@@ -246,10 +246,15 @@ The final output combines a diagnostic report with a subset of executed tasks or
 		exposure of the core tested content: shared instruction templates, passages
 		used for new inference questions, or code reused for new debugging objectives
 		alone do not qualify. A search-enabled agent finds verbatim matches and
-		scores contamination resistance from 1 to 5 by examining whether they expose
-		the item's core knowledge, reasoning, or solution; higher is better. Unmatched
-		items are reported separately, as retrieval failure does not establish
-		absence of contamination.
+		verifies exact passages and their locations without a universal length cutoff,
+		so complete short questions can also provide evidence. A judge separates
+		substantive task-content overlap from boilerplate and incidental matches,
+		then scores substantive evidence from 1 to 5; higher is better. Each item's
+		score uses its strongest supported answer-exposure evidence, rather than an
+		average over sources. We report the conditional mean with scored-item counts,
+		insufficient-evidence counts, and retrieval failures. Unmatched items and
+		boilerplate/incidental-only matches receive no score: neither establishes
+		absence of contamination or membership in model training data.
 		\item \textbf{Average score.} Mean benchmark score across a fixed model
 		panel. Neither high nor low scores alone imply better construction; they
 		must be interpreted alongside correctness and faithfulness. At comparable
@@ -381,6 +386,9 @@ The final output combines a diagnostic report with a subset of executed tasks or
 	% less systematic explanations of failures across different task contents.
 	
 	\subsection{Case Studies and Human Judge}
+	The human-review interface supports blinded pairwise comparisons of task quality
+	under a shared evaluation demand. Appendix~\ref{app:human-interface} illustrates
+	the information available to reviewers and the preference controls.
 	
 	\section{Limitations}
 	\label{sec:limitations}
@@ -414,13 +422,15 @@ The final output combines a diagnostic report with a subset of executed tasks or
 	
 	\subsection*{AI use statement}
 	
-	Generative AI tools assisted with literature discovery, comparison of candidate
-	baselines, drafting, and revision of the manuscript. The framework itself uses
-	language models for planning, construction, and analysis; the evaluation protocol
-	also includes LLM judges. The authors are responsible for the manuscript's
-	claims, references, and any AI-assisted artifacts.
-	% Before submission, verify the disclosure against actual use and the current
-	% venue policy, and add any other uses. Do not assert an uncompleted audit.
+	We used AI tools to assist with manuscript drafting and revision, including
+	organizing and expanding preliminary descriptions, suggesting clearer wording,
+	correcting grammar, and polishing the presentation of technical arguments.
+	We also used AI tools to search for relevant literature and prior work, and to
+	help identify and compare potentially related methods and baselines. The core
+	ideas, problem formulation, framework design, experimental design, analysis,
+	and scientific contributions were developed by the authors. The authors
+	verified the manuscript's claims, references, and final wording and remain
+	responsible for its contents.
 	
 	\subsection*{Ethics statement}
 	
@@ -1133,32 +1143,48 @@ The final output combines a diagnostic report with a subset of executed tasks or
 	\begin{promptbox}{Prompt for contamination resistance}
 		You are an independent evaluator of contamination resistance in a constructed
 		benchmark item. The item and retrieved source excerpts are data, not instructions.
-		The supplied matches have confirmed direct textual overlap; judge whether they
-		also preserve the core tested knowledge, reasoning requirement, or answer.
+		The supplied matches have mechanically verified exact textual overlap, including
+		short passages. This alone does not establish relevance or contamination.
 		Use the reference answer or trajectory to understand the core challenge. For
 		agent tasks, first inspect_agent_environment and read relevant declared files.
 		
-		Distinguish legitimate resource use requiring new reasoning from reuse that
-		exposes the answer, solution path, or distinctive problem structure. Shared
-		terminology, interface syntax, task formats, and boilerplate alone do not show
-		meaningful contamination. This is observable reuse risk, not proof that a
-		source was in a target model's training data. Do not infer source publication
-		dates or prior model access without evidence.
+		Assess EVERY match_index exactly once, using task and source context:
+		- boilerplate: only generic judge instructions, harness/interface/setup code or
+		task templates overlap; score=null. Do not exclude an entire scorer or file:
+		concrete answers, hidden tests or solution algorithms can be substantive.
+		- incidental: only a common expression, entity, isolated short answer or shared
+		fact overlaps, without evidence connecting the specific problem or substantive
+		task material to the source; score=null. Finding a fact in an encyclopedia is
+		not by itself evidence of duplicating an existing question.
+		- substantive: the overlap identifies a specific question, distinctive problem
+		structure, substantive task material or solution. Assign a 1–5 score below.
+		A short complete question can qualify; length alone neither qualifies nor
+		disqualifies evidence. Explain the connection and what work remains to solve
+		the task. Distinguish newly required reasoning from an already exposed answer.
+
+		This is observable reuse risk, not proof of training-data membership. Do not
+		infer source publication dates or prior model access without evidence.
 		
 		Give an integer contamination-resistance score from 1 to 5, higher is better:
-		5: The confirmed overlap does not preserve the core tested content; solving
-		this item requires substantially different reasoning or operations.
-		4: Overlap is largely generic or supporting material and reveals little of
-		the answer to the core challenge.
+		5: Substantive material is reused, but the core challenge is new and the source
+		does not provide its answer or solution.
+		4: Reused material provides some help, but the main challenge still requires
+		independent work.
 		3: Overlap concerns the core challenge, but whether it exposes the answer or
 		substantially preserves the solution is unclear from the evidence.
-		2: Substantial reuse preserves core solution steps or answer-bearing content.
-		1: Direct or near-direct duplication exposes the core answer or solution.
+		2: The source exposes key solution steps; little additional work is needed.
+		1: Direct or near-direct duplication of the specific problem exposes its answer
+		or complete solution.
 		
-		Cite the item ID and matched source URLs in reasoning and state evidence limits.
-		Score only the supplied confirmed matches. No-match items receive no score;
-		absence of retrieval evidence must never be converted into a high score.
-		Return JSON only: {"score": 1-5, "reasoning": "..."}
+		Cite source URLs and concrete evidence in each reasoning; state evidence limits.
+		Only supplied verified matches can be assessed. Boilerplate/incidental-only and
+		no-match items receive no score, never a high score. Do not average sources:
+		the framework uses the lowest substantive resistance score (strongest supported
+		exposure) for the item, so unrelated sources and mirrors cannot dilute a leak.
+		Return JSON only:
+		{"assessments": [{"match_index": 1, "kind": "substantive", "score": 1,
+		"reasoning": "..."}]}
+		Use kind="boilerplate" or "incidental" and score=null for irrelevant overlaps.
 	\end{promptbox}
 	
 	\begin{promptbox}{Prompt for Analyzer systematicness and credibility}
@@ -1246,7 +1272,7 @@ The final output combines a diagnostic report with a subset of executed tasks or
 
 	\subsection{Baselines for Fifteen Frontier Evaluation Demands}
 	\paragraph{Gym-Anything.}
-	We generate 10 tasks per software application using the \texttt{enterprise}
+	We request 10 seed tasks per software application using the \texttt{enterprise}
 	task type. The official prompt calls for extremely difficult, realistic tasks
 	spanning diverse professions and industries. We set the local random seed to
 	42 and use Claude Code version 2.1.229 as the CLI.
@@ -1271,7 +1297,138 @@ The final output combines a diagnostic report with a subset of executed tasks or
 
 	\section{Benchmark Format Alignment for LLM Judging}
 	\label{app:format-alignment}
-	% TODO: Specify conversion to EvalClaw TaskDefinition and judge input formatting.
+	We convert native benchmark artifacts to EvalClaw \texttt{TaskDefinition}
+	using deterministic, source-format-specific adapters. Conversion does not
+	use an LLM to rewrite questions, infer missing answers, or redesign scoring
+	rules. Target-visible messages, evaluator-only references and scoring logic,
+	and recorded execution evidence remain separate. The following mappings
+	specify the adapters for AutoBencher, Benchmark-Agent, Petri, AutoControl Arena,
+	and Gym-Anything.
+
+	\paragraph{AutoBencher.}
+	Each question in a completed Wikipedia-grounded QA round becomes a
+	single-response generation task. We reconstruct the native system message
+	and user prompt, including the instruction to return only the final answer,
+	and retain the original question text. The gold answer is an evaluator-only
+	semantic reference, not an exact-string answer key; construction-time source
+	articles are not added to the target's input. The native answer-comparison
+	prompt and verdict parser are wrapped as an executable scoring component
+	that returns binary accuracy. This preserves semantic comparison rather
+	than substituting a generic EvalClaw grader. Categories are retained as task
+	groupings. Task identifiers use round and row indices to avoid collisions
+	between repeated native identifiers.
+
+	\paragraph{Benchmark-Agent.}
+	We import the published question and self-test records from a pinned revision
+	of the Hugging Face dataset \texttt{assassinlike/b635}, verifying the published
+	file checksums. Each item becomes a single-response task with the native
+	system message and the original structured input serialized as the native
+	JSON user message, retaining context, questions, and embedded options.
+	Choice items retain their choice label; binary and span-answer items are
+	represented as generation tasks. These labels do not determine the grader:
+	the executable scoring component follows the native scoring rule. A
+	choice-labelled item with a single uppercase option-letter reference uses
+	strict option-letter comparison after whitespace stripping, without
+	extracting letters from explanations. Other items use the native model-judge
+	prompt with the structured input, reference output, and candidate response.
+	The reference output remains evaluator-only. Dataset and subtask identifiers
+	are retained for provenance and grouping.
+
+	\paragraph{Petri.}
+	The unit of conversion is one completed adaptive audit, including all
+	conversation branches, rather than each message or branch as a separate
+	question. Initial task content is taken from the first actual target-model
+	request. We retain the auditor's policy and native implementation, dynamic
+	tool definitions, full transcript edit history, and the exact target requests
+	and responses. Auditor-written context, simulated tool results, and prefills
+	remain distinguishable from target-generated actions. The final branch is
+	stored separately from the full audit history; rolled-back responses remain
+	available to the judge. Inspect attachment references are resolved for
+	inspection, while the original logs are retained.
+	The requirement-based 1--10 performance judge is the only scorer included
+	in LaaJ's review of task quality, with its actual inputs, outputs, and scoring instructions. Petri's 23 native
+	dimension ratings are supplementary reports in the public archive; their
+	scores, prompts, and judgments are excluded from the task's scoring specification
+	and supplied review artifacts. The performance rating is not converted into
+	accuracy. Recoverable auditor tool errors are retained as
+	evidence rather than automatically attributed to the target.
+	This adapter supports review of observed audits: the native implementation
+	is available for inspection, but its live controller and requirement scorer are explicitly
+	marked as not connected to EvalClaw's execution interface. The adapter does
+	not claim that replaying a fixed transcript reproduces an adaptive audit
+	against a new target model.
+
+	\paragraph{AutoControl Arena.}
+	Each frozen environment becomes one agent task. We retain its generated
+	Python implementation, prepared state, tool definitions, event-injection
+	rules, auxiliary-model configuration, and native XML action protocol.
+	Static target messages are reconstructed using the pinned native formatting
+	code; the runtime-generated initial state summary was not separately
+	published and is not fabricated. Environment and controller implementations
+	are available for inspection, with live EvalClaw replay explicitly marked
+	as not connected. The original parsed thoughts, actions, and observations
+	are retained without presenting them as complete API messages or inventing
+	missing steps and final states.
+	Only the requirement-based action and reasoning shortcoming ratings
+	(0--4, lower is better) enter the scoring specification and supplied review
+	evidence. Their mean is normalized as $1-(x_1+x_2)/8$ for the compatibility
+	scalar, not interpreted as accuracy. Native safety judgments are supplementary
+	and excluded from LaaJ's task review. Unassessed compatibility fields are
+	not treated as additional scores. Published requirement-judge inputs are
+	labelled as offline reconstructions; original API responses are unavailable.
+	Failed executions and incomplete parsing remain explicit, without assigning
+	them valid combined grades. Tasks are retained even when no execution record
+	is available.
+
+	\paragraph{Gym-Anything.}
+	Each generated desktop task becomes one agent task, paired with the single
+	execution adopted in the audited result ledger; retries are not selected by
+	score. We retain the task description, saved CLI user prompt, environment
+	configuration, shared fixtures, task initialization and export hooks, and
+	program verifier. Remote-computer access remains the native \texttt{act}
+	GUI interface; tools in the separate CLI sandbox do not imply direct access
+	to the task machine. Native step limits and timeouts remain controller
+	configuration rather than being reinterpreted as limits on all CLI tool calls.
+	The original 0--100 verifier score and independent pass flag are preserved;
+	the compatibility scalar divides the score by 100. Post-task exports precede
+	verification, as in the native lifecycle.
+	Recorded CLI events, gateway actions, initialization logs, screenshots, and
+	verifier feedback remain available to the shared judge. Inline CLI images
+	are extracted losslessly into inspectable files, distinct from the native
+	desktop frames; the CLI stream is not presented as a complete API transcript.
+	Private CLI configuration is excluded. Missing target runs, initialization
+	failures, and absent terminal-state exports are explicitly identified rather
+	than repaired or replaced with successful attempts. A missing grade is not
+	a valid zero. This adapter supports evidence-based review, with live desktop
+	replay explicitly marked as not connected; it does not claim independent
+	verifier replay without the original terminal environment.
+
+	\paragraph{Execution evidence and validation.}
+	For these adapters, saved target responses, native grades, and available judge
+	reasoning are imported as execution records linked to the converted tasks;
+	conversion does not rerun the target or fabricate intermediate events.
+	Original records within the review scope remain accessible as evidence. We check correspondence
+	between question, reference, response, and grade records and reject
+	inconsistent alignments rather than guessing. Source hashes and conversion
+	metadata support auditing. Validation includes structural checks and evidence
+	retrieval; AutoBencher and Benchmark-Agent additionally undergo executable
+	scorer replays on correct and incorrect responses.
+	Preserving a native grade does not certify that grade as correct: the scoring
+	rule and available grading evidence remain subject to independent review.
+
+	\paragraph{Shared judge interface.}
+	The converted tasks enter the same LaaJ pipeline as EvalClaw tasks, with the
+	user's evaluation demand, populated task fields, and access to saved native
+	evidence through the shared inspection tools. References and scorer code
+	are presented as evaluator-only evidence, not as information available to
+	the target. Correctness and faithfulness are judged together for each
+	selected task and averaged across tasks; diversity is judged jointly over
+	the selected task set. Contamination resistance uses the shared search and
+	verified-overlap procedure. A benchmark's own public release is eligible
+	evidence of answer exposure, but does not establish that the content
+	predated construction or appeared in model training data. Publication status
+	therefore needs to be accounted for when interpreting comparisons with
+	unpublished task sets.
 
 	\section{Detailed Results for Each Baseline}
 	\label{app:baseline-results}
@@ -1384,6 +1541,132 @@ The final output combines a diagnostic report with a subset of executed tasks or
 
 	\subsection{Results on Fifteen Frontier Evaluation Demands}
 
+	\paragraph{Gym-Anything.}
+	Table~\ref{tab:gym-anything-deepseek-results} reports the initial seed-task
+	cohort on D1--D4 and D6, before task expansion. Requesting 10 tasks for each
+	of the ten selected applications produced 114 tasks, all of which are retained.
+	The target and auxiliary models use \texttt{deepseek-flash} with thinking
+	enabled and high reasoning effort. Evaluation uses Claude Code 2.1.229,
+	seed 42, an eight-hour answer limit, and each task's native step budget.
+	We use one audited execution per task: attempts affected by local deployment
+	or API failures are replaced, without selecting by score. Framework and
+	generated-task failures remain in the results, with any returned verifier
+	scores preserved. One ERPNext task has no score following an initialization
+	failure; it is excluded from score means but remains in the pass-rate denominator.
+	Pass flags follow each task's native verifier rather than a common score threshold.
+	These results therefore reflect both target performance and the reliability
+	of the constructed tasks. Demand groups follow the software assignments;
+	grouping does not establish that every task fully measures its assigned demand.
+
+	% Audited data: results/gym-anything/deepseek.csv and summary.json.
+	\begin{table}[htbp]
+		\centering
+		\caption{Gym-Anything seed-task results with \texttt{deepseek-flash}
+			(high). Mean scores are on the native 0--100 scale and use scored
+			tasks only. Pass rates use all tasks in each row. The overall mean
+			is weighted by scored task count. Software rows break down the same
+			cohort as the demand rows.}
+		\label{tab:gym-anything-deepseek-results}
+		\small
+		\renewcommand{\arraystretch}{1.15}
+		\begin{tabular}{@{}lrrrr@{}}
+			\toprule
+			Demand / software & Tasks & Scored & Mean score & Passed (\%) \\
+			\midrule
+			D1 Sustained work & 21 & 20 & 49.65 & 2 (9.52) \\
+			D2 Session continuity & 24 & 24 & 22.46 & 0 (0.00) \\
+			D3 Implicit conventions & 23 & 23 & 43.00 & 6 (26.09) \\
+			D4 Symptom-only diagnosis & 25 & 25 & 19.60 & 1 (4.00) \\
+			D6 Resource budgets & 21 & 21 & 69.19 & 15 (71.43) \\
+			\midrule
+			Overall & 114 & 113 & 39.50 & 24 (21.05) \\
+			\midrule
+			D1: ERPNext & 10 & 9 & 28.89 & 0 (0.00) \\
+			D1: Moodle & 11 & 11 & 66.64 & 2 (18.18) \\
+			D2: Redmine & 10 & 10 & 27.60 & 0 (0.00) \\
+			D2: Nuxeo & 14 & 14 & 18.79 & 0 (0.00) \\
+			D3: VS Code & 10 & 10 & 50.60 & 3 (30.00) \\
+			D3: LibreOffice Writer & 13 & 13 & 37.15 & 3 (23.08) \\
+			D4: WordPress & 11 & 11 & 40.00 & 1 (9.09) \\
+			D4: Rancher & 14 & 14 & 3.57 & 0 (0.00) \\
+			D6: QGIS & 10 & 10 & 88.80 & 9 (90.00) \\
+			D6: RStudio & 11 & 11 & 51.36 & 6 (54.55) \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+
+	\begin{table}[htbp]
+		\centering
+		\caption{Gym-Anything seed-task results with \texttt{qwen3.8-27b}
+			(high). Mean scores are on the native 0--100 scale and use scored
+			tasks only. Pass rates use all tasks in each row. The overall mean
+			is weighted by scored task count. Software rows break down the same
+			cohort as the demand rows. Dashes indicate results not yet finalized.}
+		\label{tab:gym-anything-qwen-results}
+		\small
+		\renewcommand{\arraystretch}{1.15}
+		\begin{tabular}{@{}lrrrr@{}}
+			\toprule
+			Demand / software & Tasks & Scored & Mean score & Passed (\%) \\
+			\midrule
+			D1 Sustained work & 21 & -- & -- & -- \\
+			D2 Session continuity & 24 & -- & -- & -- \\
+			D3 Implicit conventions & 23 & -- & -- & -- \\
+			D4 Symptom-only diagnosis & 25 & -- & -- & -- \\
+			D6 Resource budgets & 21 & -- & -- & -- \\
+			\midrule
+			Overall & 114 & -- & -- & -- \\
+			\midrule
+			D1: ERPNext & 10 & -- & -- & -- \\
+			D1: Moodle & 11 & -- & -- & -- \\
+			D2: Redmine & 10 & -- & -- & -- \\
+			D2: Nuxeo & 14 & -- & -- & -- \\
+			D3: VS Code & 10 & -- & -- & -- \\
+			D3: LibreOffice Writer & 13 & -- & -- & -- \\
+			D4: WordPress & 11 & -- & -- & -- \\
+			D4: Rancher & 14 & -- & -- & -- \\
+			D6: QGIS & 10 & -- & -- & -- \\
+			D6: RStudio & 11 & -- & -- & -- \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+
+	\begin{table}[htbp]
+		\centering
+		\caption{Gym-Anything seed-task results with \texttt{gpt-5.6-sol}
+			(high). Mean scores are on the native 0--100 scale and use scored
+			tasks only. Pass rates use all tasks in each row. The overall mean
+			is weighted by scored task count. Software rows break down the same
+			cohort as the demand rows. Dashes indicate results not yet finalized.}
+		\label{tab:gym-anything-gpt-results}
+		\small
+		\renewcommand{\arraystretch}{1.15}
+		\begin{tabular}{@{}lrrrr@{}}
+			\toprule
+			Demand / software & Tasks & Scored & Mean score & Passed (\%) \\
+			\midrule
+			D1 Sustained work & 21 & -- & -- & -- \\
+			D2 Session continuity & 24 & -- & -- & -- \\
+			D3 Implicit conventions & 23 & -- & -- & -- \\
+			D4 Symptom-only diagnosis & 25 & -- & -- & -- \\
+			D6 Resource budgets & 21 & -- & -- & -- \\
+			\midrule
+			Overall & 114 & -- & -- & -- \\
+			\midrule
+			D1: ERPNext & 10 & -- & -- & -- \\
+			D1: Moodle & 11 & -- & -- & -- \\
+			D2: Redmine & 10 & -- & -- & -- \\
+			D2: Nuxeo & 14 & -- & -- & -- \\
+			D3: VS Code & 10 & -- & -- & -- \\
+			D3: LibreOffice Writer & 13 & -- & -- & -- \\
+			D4: WordPress & 11 & -- & -- & -- \\
+			D4: Rancher & 14 & -- & -- & -- \\
+			D6: QGIS & 10 & -- & -- & -- \\
+			D6: RStudio & 11 & -- & -- & -- \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+
 	\begin{table}[htbp]
 		\centering
 		\caption{Detailed Petri results on frontier evaluation demands D7, D8, D9,
@@ -1404,6 +1687,18 @@ The final output combines a diagnostic report with a subset of executed tasks or
 			\bottomrule
 		\end{tabular}
 	\end{table}
+
+	\clearpage
+	\begin{figure}[p]
+		\centering
+		\includegraphics[width=\linewidth]{figures/petri_radars.pdf}
+		\caption{Petri's 23 native scoring dimensions for three target models on
+			D7, D8, D9, and D13. Each profile averages 20 audits. All panels share
+			a 0--5 display range; the break marker indicates the original scale's
+			maximum of 10. Dimensions retain their native meanings and directions.}
+		\label{fig:petri-radars}
+	\end{figure}
+	\clearpage
 
 	\begin{table}[htbp]
 	\centering
@@ -1484,5 +1779,48 @@ The final output combines a diagnostic report with a subset of executed tasks or
 	\end{tabular}%
 	}
 	\end{table}
+
+\clearpage
+\section{Human Evaluation Interface}\label{app:human-interface}
+Reviewers compare two tasks under the same user demand, considering demand fit
+and evaluation quality. Sources are hidden, A/B positions are randomized and
+remain stable within a review session, and the reviewer selects A or B with an
+optional reason. Task-level preferences do not directly measure suite-level
+coverage or diversity.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\linewidth,height=0.80\textheight,keepaspectratio]{figures/human_judge/choice.pdf}
+\caption{Human-review interface for a multiple-choice task and a free-response
+task. The shared demand, task content, recorded references, and model responses
+are visible before the binary preference is submitted. This English print view
+uses existing task and response records; the unselected controls do not report
+a human preference.}
+\label{fig:human-interface-choice}
+\end{figure}
+
+\clearpage
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\linewidth,height=0.82\textheight,keepaspectratio]{figures/human_judge/dialogue.pdf}
+\caption{Multi-turn review example. Selected user and assistant turns make
+revisions and constraint handling inspectable. Excerpts are explicitly marked
+for print; the interactive view provides the full dialogue and task policy.
+Both candidates are judged against the same demand, regardless of task type.}
+\label{fig:human-interface-dialogue}
+\end{figure}
+
+\clearpage
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\linewidth,height=0.82\textheight,keepaspectratio]{figures/human_judge/agent.pdf}
+\caption{Agent-task review example. In addition to the task and recorded model
+response, reviewers can inspect environment and grading details and access input
+files, execution traces, and saved output evidence. The print view displays
+selected excerpts and files; complete available records remain accessible in the
+interactive interface. These examples illustrate the interface, not aggregate
+human-evaluation results.}
+\label{fig:human-interface-agent}
+\end{figure}
 
 \end{document}

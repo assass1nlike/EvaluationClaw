@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import random
 import secrets
 import shutil
 import subprocess
@@ -29,7 +30,8 @@ def freeze(config, output):
     # Ensure credentials exist before creating a launchable snapshot, never save them.
     for variable in (settings.author_key_env, settings.evaluation_key_env,
                      settings.task_key_env if settings.task_model else settings.evaluation_key_env,
-                     settings.laaj_key_env if settings.laaj_model else settings.evaluation_key_env):
+                     settings.laaj_key_env if settings.laaj_model else settings.evaluation_key_env,
+                     *(key for pool in settings.key_pools.values() for key in pool)):
         if not os.environ.get(variable):
             raise ValueError(f"Missing credential environment variable: {variable}")
     image = docker("image", "inspect", settings.author_image, "--format", "{{.Id}}",
@@ -92,6 +94,8 @@ def author(root, settings, job, gateway, token, image):
         "Read DELIVERY.md first; consult INTERFACES.md as needed. "
         "benchmark-package is on PATH: check, prepare and exercise use the operator's isolated runtime. "
         "Put program interface call cases in /work/package/cases.json and exercise them before finishing. "
+        "For program-controlled interaction, also include episode cases with scripted target tool calls "
+        "and follow-up responses to test the connected interaction without a target model. "
         "Static tasks without programs do not need cases. These checks provide interface feedback only. "
         "Use obtainable images or declare their sources/build files in benchmark.json. "
         "The target uses a native model/tool interface with these supported message roles: "
@@ -147,7 +151,7 @@ def evaluate(root, settings, job):
     out.mkdir()
     config = evaluation_config(settings, out, bindings=json.loads(os.environ.get("EVALCLAW_AUTHORING_BINDINGS", "{}")))
     suite = load_bundle(directory / "bundle")
-    config.laaj_sample_size = len(suite.tasks)
+    config.laaj_sample_size = min(settings.laaj_sample_size or len(suite.tasks), len(suite.tasks))
     save(directory / "status.json", {"stage": "preparing"})
     issues = {task.id: binding_issues(task, config, config.targets[0]) for task in suite.tasks}
     save(out / "binding-issues.json", issues)
@@ -161,7 +165,7 @@ def evaluate(root, settings, job):
     cases_file = directory / "bundle/original/cases.json"
     if cases_file.exists():
         from .readiness import exercise
-        save(out / "interface-tests.json", exercise(suite, json.loads(cases_file.read_text())))
+        save(out / "interface-tests.json", exercise(suite, json.loads(cases_file.read_text()), config=config))
     else:
         save(out / "interface-tests.json", {"status": "not_supplied"})
     accepted = [t.id for t in suite.tasks if not issues[t.id]]
@@ -173,8 +177,15 @@ def evaluate(root, settings, job):
                            config, trace_dir=out / "run")
             save(out / "run.json", run.model_dump(mode="json"))
         save(directory / "status.json", {"stage": "quality"})
-        quality = evaluate_with_laaj(suite.objective, suite, None, config, run=run,
+        selected = random.Random(settings.seed).sample(sorted(suite.tasks, key=lambda t: t.id), config.laaj_sample_size)
+        selected_ids = {task.id for task in selected}
+        quality_suite = suite.model_copy(update={"tasks": [t for t in suite.tasks if t.id in selected_ids]})
+        save(out / "laaj-sampling.json", {"strategy": "uniform_without_replacement", "seed": settings.seed,
+            "total_items": len(suite.tasks), "sample_size": len(selected),
+            "item_ids": [t.id for t in quality_suite.tasks]})
+        quality = evaluate_with_laaj(suite.objective, quality_suite, None, config, run=run,
                                     artifact_dir=out, trace_dir=out / "laaj")
+        quality.total_item_count = len(suite.tasks)
         save(out / "laaj.json", quality.model_dump(mode="json"))
     results = run.results if run else []
     valid = [r for r in results if not r.error]

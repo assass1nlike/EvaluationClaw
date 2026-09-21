@@ -58,7 +58,6 @@ def test_per_item_means_are_computed_and_overall_cannot_override_them(monkeypatc
                 for name, score in zip(("correctness", "faithfulness"),
                                        scores[request["item"]["id"]])
             })
-        assert "analyser_output" in request
         # Extraneous model-generated aggregates must never replace the arithmetic means.
         return _response(analyser=True)
 
@@ -67,8 +66,10 @@ def test_per_item_means_are_computed_and_overall_cannot_override_them(monkeypatc
         "Goal", _suite(), AnalysisReport(analysis="Supported weaknesses"),
         BenchmarkConfig(laaj_model="judge", laaj_api_key="test"), trace_dir=tmp_path,
     )
-    assert len(requests) == 4
-    assert {r["item"]["id"] for r in requests[:-1]} == set(scores)
+    assert len(requests) == 5
+    assert {r["item"]["id"] for r in requests[:-2]} == set(scores)
+    assert "analyser_output" not in requests[-2]
+    assert "analyser_output" in requests[-1]
     assert len(requests[-1]["benchmark"]["items"]) == 3
     assert "clarity" not in report.model_dump()
     assert all("clarity" not in item.model_dump() for item in report.item_results)

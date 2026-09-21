@@ -80,6 +80,7 @@ def setup_proxy():
     subprocess.run([
         "docker", "run", "-d", "--name", "gym-eval-proxy", "--restart", "unless-stopped",
         "--label", "gym-anything-role=evaluation-proxy", "--network", "host", "--read-only",
+        "--memory", "512m", "--memory-swap", "1g",
         "--cap-drop", "ALL", "--user", f"{os.getuid()}:{os.getgid()}",
         "--mount", f"type=bind,src={ROOT / 'local/eval_proxy.py'},dst=/relay.py,readonly",
         AGENT_IMAGE, "python3", "/relay.py", "--listen", "127.0.0.1:17891",

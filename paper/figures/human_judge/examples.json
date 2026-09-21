@@ -1,0 +1,114 @@
+[
+  {
+    "name": "choice",
+    "source_pair_id": "knowledge-08",
+    "requirement": "I want to evaluate whether a model can answer broad and expert-level factual questions and correctly apply the relevant knowledge.",
+    "candidates": [
+      {
+        "kind": "choice",
+        "task": "Consider the human body.\n\nSelect every option that is accurate. At least one option is accurate.\n\nA. The adult human heart is divided into three chambers.\nB. Insulin is produced by the alpha cells of the pancreatic islets.\nC. DNA replication takes place during the G1 phase of the cell cycle.\nD. Mature human red blood cells lack a cell nucleus.\nE. A typical adult human skeleton contains 206 bones.\nF. The femur is the shortest bone in the human body.",
+        "response": "[\"D\",\"E\"]",
+        "sections": [
+          {
+            "title": "Recorded answer key",
+            "content": "D, E"
+          }
+        ],
+        "artifacts": []
+      },
+      {
+        "kind": "generation",
+        "task": "Output just with the final answer to the question.\nQuestion:What is a major disadvantage of immunohistochemistry?\nAnswer:",
+        "response": "A major disadvantage of immunohistochemistry is that it depends on specific antibodies and can produce false-positive or false-negative results due to cross-reactivity, antigen loss from fixation, or variability in tissue processing and interpretation.",
+        "sections": [
+          {
+            "title": "Recorded reference answer",
+            "content": "impossible to show that the staining corresponds with the protein of interest"
+          }
+        ],
+        "artifacts": []
+      }
+    ]
+  },
+  {
+    "name": "dialogue",
+    "source_pair_id": "instruction-following-02",
+    "requirement": "I want to evaluate whether a model can satisfy multiple instructions and constraints that are simultaneous, compositional, and out-of-distribution when serving as an AI assistant.",
+    "candidates": [
+      {
+        "kind": "generation",
+        "task": "Output just with the final answer to the question.\nQuestion:Which rare-earth subgroup has ore bodies that are more rare, smaller, and less concentrated?\nAnswer:",
+        "response": "Heavy rare-earth elements (HREE)",
+        "sections": [
+          {
+            "title": "Recorded reference answer",
+            "content": "HREE"
+          }
+        ],
+        "artifacts": []
+      },
+      {
+        "kind": "multi_turn",
+        "task": "Write an incident timeline for last night's payment disruption. Reply with the timeline and nothing else.\n\nFormat: exactly five numbered entries, one per line, each exactly 'N.\n[Excerpt; continued in the full record.]",
+        "response": "User (turn 3; excerpt):\nAdd a sixth entry at 14:04 as the last numbered item, with its own text. Where that clashes with anything I said earlier, the new value wins for the new\n[Excerpt; continued in the full record.]\n\nAssistant (turn 3; excerpt):\n[Entries 1–4 omitted here.]\n5. 13:55 - Engineering restored normal payment flow.\n6. 14:04 - Fixes verified across transaction channels.\nEven-minute entries: 5",
+        "sections": [
+          {
+            "title": "Scoring rubric (excerpt)",
+            "content": "Grading unit: the whole transcript plus the final timeline.\n\nSettled set at the last turn: R1 six times strictly increasing; R2 consecutive gaps between 5 and 20 minutes, including the gap between the fifth and sixth entries; R3 the six texts' first letters\n[Excerpt; continued in the full record.]"
+          },
+          {
+            "title": "Dialogue policy and all turns",
+            "content": "Available in the complete task and execution records."
+          }
+        ],
+        "artifacts": []
+      }
+    ]
+  },
+  {
+    "name": "agent",
+    "source_pair_id": "data-analysis-03",
+    "requirement": "I want to evaluate whether a model can interpret semi-structured data and experimental results, perform operations and analysis, and derive the correct conclusion.",
+    "candidates": [
+      {
+        "kind": "agent",
+        "task": "An incident review needs clean request statistics for one day of traffic hitting two edge nodes.\n\nSources in /workspace:\n- t7_edge_a.log and t7_edge_b.log - two shards of the same access\n[Excerpt; continued in the full record.]",
+        "response": "{\n  \"n_source_lines\": 1207,\n  \"n_request_lines\": 1200,\n  \"n_requests\": 920,\n[Further output fields in the full response.]",
+        "sections": [
+          {
+            "title": "Environment and grading (excerpt)",
+            "content": "environment.test_command runs /workspace/tests/check.py /workspace/tests/ref.json. Fixture hashes gate the run. Three averaged parts: the\n[Excerpt; continued in the full record.]"
+          },
+          {
+            "title": "Full trace, outputs and grader files",
+            "content": "Available in the complete task and execution records."
+          }
+        ],
+        "artifacts": [
+          {
+            "index": 0,
+            "label": "t7_edge_a.log",
+            "bytes": 98409
+          },
+          {
+            "index": 1,
+            "label": "t7_edge_b.log",
+            "bytes": 50237
+          }
+        ]
+      },
+      {
+        "kind": "generation",
+        "task": "Output just with the final answer to the question.\nQuestion:What do noncompartmental methods estimate PK parameters directly from?\nAnswer:",
+        "response": "Directly from the concentration-time data (e.g., plasma drug concentration versus time curve) without assuming a compartmental model.",
+        "sections": [
+          {
+            "title": "Recorded reference answer",
+            "content": "a table of concentration-time measurements"
+          }
+        ],
+        "artifacts": []
+      }
+    ]
+  }
+]

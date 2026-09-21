@@ -46,6 +46,9 @@ JSON call cases covering initialization, successful and unsuccessful operations,
 and grading; `benchmark-package exercise PACKAGE CASES.json` runs these with the
 same wire validation as the evaluator, without a target model. See the optional
 manual for the case format. Use your normal development tools for content tests.
+For a program-controlled interaction, also provide episode cases with scripted
+target responses, including tool calls, to test the controller and environment
+together. Component calls alone do not verify this connected protocol.
 Declare obtainable runtime images or include image dependencies as described
 in the manual; the operator prepares these with `benchmark-package prepare PACKAGE`.
 The operator checks declared model compatibility with `check --config CONFIG.json`.

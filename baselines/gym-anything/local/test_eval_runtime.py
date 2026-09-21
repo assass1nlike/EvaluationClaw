@@ -25,11 +25,31 @@ def test_dedicated_endpoint_does_not_inherit_default_context(monkeypatch, tmp_pa
                ("DOCKER_CONTEXT", "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH"))
 
 
-def test_preflight_rejects_shared_docker_before_other_checks():
+@pytest.mark.parametrize("check_network", [True, False])
+def test_preflight_rejects_shared_docker_before_other_checks(check_network):
     from local.eval_runtime import check_host
     with patch("local.eval_runtime.subprocess.check_output", return_value="/data3/docker\n"):
         with pytest.raises(RuntimeError):
-            check_host()
+            check_host(check_network=check_network)
+
+
+def test_worker_local_preflight_keeps_resource_and_base_checks(tmp_path, monkeypatch):
+    from local import eval_runtime
+    monkeypatch.setattr(eval_runtime, "BASE_CACHE", tmp_path)
+    with patch.object(eval_runtime.subprocess, "check_output", return_value="/data1/evaluationclaw/docker\n"), \
+         patch.object(Path, "read_text", return_value="128"), \
+         patch.object(eval_runtime.urllib.request, "build_opener") as network, \
+         patch.object(eval_runtime.subprocess, "run") as execute:
+        with pytest.raises(RuntimeError, match="inotify"):
+            eval_runtime.check_host(check_network=False)
+        with patch.object(Path, "read_text", return_value="1024"):
+            with pytest.raises(RuntimeError, match="prepare_eval_base"):
+                eval_runtime.check_host(check_network=False)
+            (tmp_path / "READY").touch()
+            result = eval_runtime.check_host(check_network=False)
+        assert result["network_checked"] is False
+        network.assert_not_called()
+        execute.assert_not_called()
 
 
 def test_start_failure_is_recorded_without_retry_or_suppression():

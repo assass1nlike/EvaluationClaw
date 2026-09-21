@@ -9,16 +9,18 @@ Usage::
 
     python -m evalclaw.execution.model_gateway --upstream https://api.deepseek.com --port 18080
 """
+
 from __future__ import annotations
 
 import argparse
+import asyncio
 import codecs
 import json
 import os
 import time
 import uuid
-from pathlib import Path
 from collections.abc import Mapping
+from pathlib import Path
 
 import aiohttp
 from aiohttp import web
@@ -90,47 +92,102 @@ async def _forward(request: web.Request) -> web.StreamResponse:
     if request.path not in _ALLOWED_PATHS:
         raise web.HTTPNotFound()
     upstream = request.app["upstream"]
-    body = _configured_body(await request.read(), request.app["model"], request.app.get("extra_body", {}))
+    body = _configured_body(
+        await request.read(), request.app["model"], request.app.get("extra_body", {})
+    )
     api_key = request.app["api_key"]
     headers = _upstream_headers(request.headers, request.app["provider"], api_key)
     request_id = uuid.uuid4().hex
-    _record(request.app, {"kind": "request", "id": request_id,
-                          "path": request.path, "payload": json.loads(body)})
-    async with aiohttp.ClientSession() as session:
-        async with session.request(
-            request.method,
-            upstream + request.path_qs,
-            headers=headers,
-            data=body,
-            timeout=aiohttp.ClientTimeout(total=300, sock_connect=30),
-        ) as response:
-            # aiohttp already decompresses the body, so drop the encoding header.
-            out_headers = {
-                key: value
-                for key, value in response.headers.items()
-                if key.lower() not in _STRIP_RESPONSE_HEADERS
-            }
-            out = web.StreamResponse(status=response.status, headers=out_headers)
-            _record(request.app, {"kind": "response_start", "id": request_id, "status": response.status})
-            await out.prepare(request)
-            decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
-            complete = False
+    _record(
+        request.app,
+        {"kind": "request", "id": request_id, "path": request.path, "payload": json.loads(body)},
+    )
+    # Heartbeats indicate a live provider request. The owning episode enforces
+    # its wall-clock budget; a fixed 300s gateway total truncated healthy waits.
+    async with aiohttp.ClientSession(
+        timeout=aiohttp.ClientTimeout(total=None, sock_connect=30, sock_read=300)
+    ) as session:
+        for attempt in range(8):
             try:
-                async for chunk in response.content.iter_any():
-                    _record(request.app, {"kind": "response_chunk", "id": request_id,
-                                          "body": decoder.decode(chunk)})
-                    await out.write(chunk)
-                await out.write_eof()
-                complete = True
-            finally:
-                _record(request.app, {"kind": "response_end", "id": request_id,
-                                      "complete": complete, "body": decoder.decode(b"", final=True)})
-            return out
+                response = await session.request(
+                    request.method,
+                    upstream + request.path_qs,
+                    headers=headers,
+                    data=body,
+                )
+            except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+                _record(
+                    request.app,
+                    {
+                        "kind": "upstream_error",
+                        "id": request_id,
+                        "attempt": attempt + 1,
+                        "error": type(exc).__name__,
+                    },
+                )
+                if attempt == 7:
+                    raise web.HTTPBadGateway(reason="Model upstream connection failed") from exc
+                await asyncio.sleep(min(5 * 2**attempt, 60))
+                continue
+            if response.status in {408, 429, 500, 502, 503, 504} and attempt < 7:
+                _record(
+                    request.app,
+                    {
+                        "kind": "upstream_retry",
+                        "id": request_id,
+                        "attempt": attempt + 1,
+                        "status": response.status,
+                    },
+                )
+                response.release()
+                await asyncio.sleep(min(5 * 2**attempt, 60))
+                continue
+            async with response:
+                # aiohttp already decompresses the body, so drop the encoding header.
+                out_headers = {
+                    key: value
+                    for key, value in response.headers.items()
+                    if key.lower() not in _STRIP_RESPONSE_HEADERS
+                }
+                out = web.StreamResponse(status=response.status, headers=out_headers)
+                _record(
+                    request.app,
+                    {"kind": "response_start", "id": request_id, "status": response.status},
+                )
+                await out.prepare(request)
+                decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
+                complete = False
+                try:
+                    async for chunk in response.content.iter_any():
+                        _record(
+                            request.app,
+                            {
+                                "kind": "response_chunk",
+                                "id": request_id,
+                                "body": decoder.decode(chunk),
+                            },
+                        )
+                        await out.write(chunk)
+                    await out.write_eof()
+                    complete = True
+                finally:
+                    _record(
+                        request.app,
+                        {
+                            "kind": "response_end",
+                            "id": request_id,
+                            "complete": complete,
+                            "body": decoder.decode(b"", final=True),
+                        },
+                    )
+                return out
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--upstream", required=True, help="Model API base URL, e.g. https://api.deepseek.com")
+    parser.add_argument(
+        "--upstream", required=True, help="Model API base URL, e.g. https://api.deepseek.com"
+    )
     parser.add_argument("--provider", required=True)
     parser.add_argument("--model", required=True)
     parser.add_argument("--port", type=int, default=18080)

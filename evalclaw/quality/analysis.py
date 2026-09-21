@@ -4,7 +4,9 @@ from __future__ import annotations
 import json
 from collections import defaultdict
 from concurrent.futures import CancelledError
+from contextlib import nullcontext
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any, Callable
 
 from ..benchmark import build_benchmark_suite_with_qc_loop, build_suite_from_spec_with_qc_loop
@@ -20,6 +22,8 @@ from ..models.llm import (
     extract_json,
 )
 from ..models.roles import role_model_settings
+from ..models.context_budget import LLMContextWindowError
+from .analysis_context import AnalysisContext, CONTEXT_TOOL, CONTEXT_INSTRUCTIONS
 from ..planning.loop import _apply_review, apply_review_to_suite
 from ..planning.task_planner import _audit_plan
 from ..protocols.tool import ToolResult
@@ -104,6 +108,25 @@ QC findings with stale or unknown task revisions are leads, not verified facts
 about the current task. Inspect the saved definition before carrying them forward.
 """
 
+_HYPOTHESIS_VALIDITY_PROMPT = """\
+Distinguish an observed failure from an explanation for it. For each hypothesis,
+state a prediction and what result would weaken it. When useful within the budget,
+vary the subject, surface form or interaction while retaining the proposed causal
+condition, and use a contrast where that condition is absent. Do not force a new
+format if it changes the capability being measured. A low score alone does not
+confirm the proposed mechanism; report non-replications and narrow or reject the
+hypothesis accordingly.
+Separate wrong actions or conclusions from omitted explanations. A missing keyed
+phrase is not evidence that the model adopted the opposite belief; a correct
+conclusion reached through a different sufficient observation is not a failure
+to diagnose. Check whether the public task actually required the omitted detail.
+Check the target-visible authority and output contract before interpreting an
+instruction-conflict failure. If the user delegated a rule to an approved source,
+following that source is not automatically an injection failure. Do not create
+probes whose private key supplies an unstated precedence rule. A review instruction
+that tells the target the hypothesized solution can remove the behavior under test.
+"""
+
 ANALYSER_SYSTEM_PROMPT = """\
 You are the EvaluationClaw Analyser. Analyse the evaluated model's behaviour
 from the completed benchmark run. Use aggregate results and concrete model
@@ -142,7 +165,7 @@ true, leave "goal" empty, and deliver the final benchmark. Otherwise continue
 with "done": false and a goal while budget remains; when it is exhausted,
 deliver the most complete supported result as instructed below.
 
-QC is not part of the default analysis context. Three read-only tools may be
+QC is not part of the default analysis context. Saved-run tools may be
 available: list_run_artifacts discovers saved evidence, read_run_artifact reads a named artifact (read the QC artifact
 only when you need to determine whether an observed result was caused by the
 task or infrastructure rather than the evaluated model), and read_item_evidence
@@ -169,7 +192,7 @@ Return pure JSON only:
 The probe's total task count must not exceed max_probe_tasks. When
 remaining_probe_iterations is zero, do not give a goal — set "done": true and state your
 conclusion in analysis.
-""" + "\n" + _FINAL_BENCHMARK_PROMPT
+""" + "\n" + _HYPOTHESIS_VALIDITY_PROMPT + "\n" + _FINAL_BENCHMARK_PROMPT
 
 
 ANALYSER_TASK_DESIGN_PROMPT = """\
@@ -228,7 +251,7 @@ Return pure JSON only:
 When requesting probes, their total task_count must not exceed max_probe_tasks. When
 remaining_probe_iterations is zero, do not give task_designs — set "done": true and state
 your conclusion in analysis.
-""" + "\n" + _FINAL_BENCHMARK_PROMPT
+""" + "\n" + _HYPOTHESIS_VALIDITY_PROMPT + "\n" + _FINAL_BENCHMARK_PROMPT
 
 
 SIMILAR_TASKS_ABLATION_PROMPT = """\
@@ -313,6 +336,12 @@ Return pure JSON only:
 Use only the item ids and dimension ids listed in the request. done=true means every
 probe task is ready to run; then leave the three lists empty. Do not restructure
 dimensions — only fix the probe tasks themselves.
+The dimensions in this request describe the current probe suite. Their ids are local
+to that suite and may differ in meaning from identical ids in earlier benchmarks
+mentioned in the hypothesis. Judge alignment by their definitions and task content.
+The task summaries omit environment file bodies, actor prompts, and scorer details.
+Read construction.json with read_run_artifact when those details matter, before
+concluding that a feature is absent or carrying an earlier task's defect into this one.
 Keep the total planned task count within max_probe_tasks, including any requested additions.
 """
 
@@ -350,13 +379,25 @@ def _run_analyser_tool_loop(
     system_prompt: str = ANALYSER_SYSTEM_PROMPT,
     validate: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
+    with (nullcontext(trace_dir) if trace_dir is not None else TemporaryDirectory(prefix="evalclaw-analysis-")) as directory:
+        settings = role_model_settings(config, "analyser")
+        context = AnalysisContext(payload, Path(directory) / "context", settings.model)
+        return _run_analyser_tool_loop_with_context(
+            payload, config, trace_dir=trace_dir, artifact_dir=artifact_dir,
+            system_prompt=system_prompt, validate=validate, context=context,
+        )
+
+
+def _run_analyser_tool_loop_with_context(
+    payload, config, *, trace_dir, artifact_dir, system_prompt, validate, context,
+):
     settings = role_model_settings(config, "analyser")
-    messages: list[dict[str, Any]] = [
-        {"role": "user", "content": json.dumps(payload, ensure_ascii=False, indent=2)}
-    ]
+    system_prompt += "\n" + CONTEXT_INSTRUCTIONS
+    messages = [context.initial]
     calls_used = 0
     repairs_used = 0
     while True:
+        messages = context.fit(messages)
         tools = (
             [
                 ANALYSER_ARTIFACT_TOOL,
@@ -366,6 +407,8 @@ def _run_analyser_tool_loop(
             if artifact_dir is not None and calls_used < config.analyser_tool_max_calls
             else []
         )
+        if calls_used < config.analyser_tool_max_calls:
+            tools.append(CONTEXT_TOOL)
         response = None
         try:
             response = call_orchestrator_with_tools(
@@ -387,6 +430,12 @@ def _run_analyser_tool_loop(
                 if validate is not None:
                     validate(data)
                 return data
+        except LLMContextWindowError:
+            if context.budget <= 16_000:
+                raise
+            context.budget = max(16_000, context.budget // 2)
+            messages = context.fit(messages, force=True)
+            continue
         except (ValueError, LLMFinalContentMissingError) as exc:
             if repairs_used >= 1:
                 raise
@@ -413,8 +462,8 @@ def _run_analyser_tool_loop(
             ANALYSER_ITEM_EVIDENCE_TOOL.name: read_item_evidence,
         }
         results = [
-            handlers[call.name](call, artifact_dir)
-            if call.name in handlers
+            context.read(call) if call.name == CONTEXT_TOOL.name else handlers[call.name](call, artifact_dir)
+            if call.name in handlers or call.name == CONTEXT_TOOL.name
             else ToolResult(
                 tool_call_id=call.id,
                 name=call.name,
@@ -433,6 +482,7 @@ def _run_analyser_tool_loop(
             for call in response.tool_calls[len(selected):]
         )
         calls_used += len(selected)
+        results = [context.bound_result(result) for result in results]
         _append_tool_results(messages, response, results)
         if calls_used >= config.analyser_tool_max_calls:
             messages.append(
@@ -560,6 +610,16 @@ def _run_context(run: EvalRun) -> dict[str, Any]:
             group = 2
         return group, result.score, result.target_id, result.item_id
 
+    def metrics(result):
+        values = [m.model_dump(mode="json") for m in result.episode.metrics] if result.episode else []
+        for metric in values:
+            for field in ("error", "judge_reasoning"):
+                if metric.get("reason") and metric["reason"] == getattr(result, field):
+                    metric.pop("reason")
+                    metric["reason_source"] = field
+                    break
+        return values
+
     return {
         "summaries": [summary.model_dump(mode="json") for summary in run.summaries],
         "results": [
@@ -574,11 +634,10 @@ def _run_context(run: EvalRun) -> dict[str, Any]:
                     key: value for key, value in result.execution.items()
                     if key in {"stage", "termination", "target_started", "artifacts", "scalar_available"}
                 },
-                "native_metrics": [m.model_dump(mode="json") for m in result.episode.metrics] if result.episode else [],
+                "native_metrics": metrics(result),
                 "failure_evidence": {
                     "failed": bool(result.error) or result.score < 1.0,
-                    "score": result.score,
-                    "reason": result.error or result.judge_reasoning,
+                    "reason_source": "error" if result.error else "judge_reasoning",
                 },
                 "raw_response": _truncate(result.raw_response),
             }
@@ -842,26 +901,58 @@ def _review_probes(
     """Ask the analyser to review freshly-built probe tasks, returning a review dict."""
     payload = {
         "hypothesis": analysis,
+        "dimensions": [dimension.model_dump(mode="json") for dimension in probe_suite.spec.dimensions],
         "tasks": _task_context(probe_suite),
         "max_probe_tasks": config.analysis_max_tasks,
+        "task_evidence_path": "construction.json",
     }
+    item_ids = {item.id for item in probe_suite.tasks}
+    dimension_ids = {dimension.id for dimension in probe_suite.spec.dimensions}
 
     def validate(data: dict[str, Any]) -> None:
         if not isinstance(data.get("done"), bool):
             raise ValueError("Analyser review requires a boolean done field.")
+        for field in ("update_items", "delete_item_ids", "needs_more_items"):
+            entries = data.get(field, [])
+            if not isinstance(entries, list):
+                raise ValueError(f"{field} must be an array.")
+            if data["done"] and entries:
+                raise ValueError(f"done=true requires an empty {field} array.")
+            for index, entry in enumerate(entries):
+                location = f"{field}[{index}]"
+                if field == "delete_item_ids":
+                    if not isinstance(entry, str) or entry not in item_ids:
+                        raise ValueError(f"{location} must reference a current probe item: {sorted(item_ids)}.")
+                    continue
+                if not isinstance(entry, dict):
+                    raise ValueError(f"{location} must be an object.")
+                if not isinstance(entry.get("dimension_id"), str) or entry["dimension_id"] not in dimension_ids:
+                    raise ValueError(f"{location}.dimension_id must reference a current probe dimension: {sorted(dimension_ids)}.")
+                if not isinstance(entry.get("guidance"), str) or not entry["guidance"].strip():
+                    raise ValueError(f"{location}.guidance must be a nonempty string.")
+                if field == "update_items":
+                    if not isinstance(entry.get("item_id"), str) or entry["item_id"] not in item_ids:
+                        raise ValueError(f"{location}.item_id must reference a current probe item: {sorted(item_ids)}.")
+                elif type(entry.get("count")) is not int or entry["count"] <= 0:
+                    raise ValueError(f"{location}.count must be a positive integer.")
+        if not data["done"] and not any(data.get(field) for field in ("update_items", "delete_item_ids", "needs_more_items")):
+            raise ValueError("done=false requires at least one requested change.")
         if not data["done"] and config.analysis_max_tasks is not None:
             outcome = _apply_review(probe_suite, data, QcReport(), config)
             if outcome.spec.scale > config.analysis_max_tasks:
                 raise ValueError("Probe review would exceed max_probe_tasks; revise within the budget.")
 
-    data = _run_analyser_tool_loop(
-        payload,
-        config,
-        trace_dir=trace_dir,
-        artifact_dir=None,
-        system_prompt=ANALYSER_REVIEW_SYSTEM_PROMPT,
-        validate=validate,
-    )
+    with (nullcontext(trace_dir) if trace_dir is not None else TemporaryDirectory(prefix="evalclaw-probe-review-")) as evidence_dir:
+        evidence_root = Path(evidence_dir)
+        write_json(evidence_root / "construction.json", {"suite": probe_suite.model_dump(mode="json")}, redact=True)
+        data = _run_analyser_tool_loop(
+            payload,
+            config,
+            trace_dir=trace_dir,
+            artifact_dir=evidence_root,
+            system_prompt=ANALYSER_REVIEW_SYSTEM_PROMPT,
+            validate=validate,
+        )
     if not isinstance(data, dict):
         raise ValueError("Analyser review must be a JSON object.")
     if "done" not in data:

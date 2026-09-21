@@ -19,6 +19,7 @@ from ..diagnostics import _io_path, error_record, write_json
 from ..execution.agent_envs import build_agent_environment
 from ..execution.docker import require_docker_available
 from ..execution.errors import EvaluationExecutionError, JudgeResponseError
+from ..execution.image_acquisition import ImageReferenceError
 from ..execution.memory_budget import memory_job, worker_count
 from ..models.llm import (
     DEFAULT_MAX_OUTPUT_TOKENS,
@@ -216,6 +217,9 @@ def _preflight_builder_environments(
                 try:
                     preflight_contract(task, config, target,
                                        trace_dir / _debug_slug(task.id) / _debug_slug(target.id) if trace_dir else None)
+                except ImageReferenceError as exc:
+                    failed_ids.add(task.id)
+                    issues.append(f"task #{index} ({task.id}): image reference needs repair: {exc}")
                 except EvaluationExecutionError as exc:
                     if not isinstance(exc, JudgeResponseError):
                         raise
@@ -260,6 +264,11 @@ def _preflight_builder_environments(
             outcome = preflight()
             if item_trace_dir is not None:
                 write_json(item_trace_dir / "result.json", outcome.as_dict())
+        except ImageReferenceError as exc:
+            failed_ids.add(task.id)
+            issues.append(f"task #{index} ({task.id}): image reference needs repair: {exc}")
+            if item_trace_dir is not None:
+                write_json(item_trace_dir / "failure.json", error_record(exc))
         except EvaluationExecutionError as exc:
             if item_trace_dir is not None:
                 write_json(item_trace_dir / "failure.json", {

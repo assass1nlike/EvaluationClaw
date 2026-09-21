@@ -1,4 +1,5 @@
 import copy
+from contextlib import closing
 import json
 import os
 from pathlib import Path
@@ -13,6 +14,15 @@ from evalclaw.protocols.tool import ToolCall
 from evalclaw.types import BenchmarkConfig, BenchmarkItem, TargetModelConfig, TaskDefinition
 
 
+def test_judge_evidence_view_bounds_large_maps_and_retains_exact_pointer_access():
+    from evalclaw.execution.judge_evidence import evidence_page, evidence_view
+    original = {"files": {f"file/{i}~.txt": "x" * 10000 for i in range(500)}}
+    summary = evidence_view(original, budget=4000)
+    assert len(json.dumps(summary, ensure_ascii=False)) <= 4000
+    page = evidence_page(original, "/files/file~1499~0.txt", 9980)
+    assert page == {"content": "x" * 20, "total_chars": 10000, "next_offset": None}
+
+
 def task(**updates):
     values = dict(id="test", title="Task", content={"messages": [{"role": "user", "content": "Reply 42."}]},
         evaluation={"references": [{"id": "answer", "kind": "answer", "value": "42", "semantics": "exhaustive"}],
@@ -23,6 +33,25 @@ def task(**updates):
 
 
 TARGET = TargetModelConfig(id="target", provider="openai", model="test", api_key="not-a-real-key")
+
+
+@pytest.mark.parametrize("budget,termination,has_error", [
+    (3_000_000, "error", True), (5, "budget_exhausted", False),
+])
+def test_provider_truncation_is_not_automatically_episode_exhaustion(monkeypatch, budget, termination, has_error):
+    from evalclaw.models.llm import LLMOutputTruncatedError
+
+    def model(*args, **kwargs):
+        raise LLMOutputTruncatedError("provider output cap", partial_output="partial",
+                                      raw_response={"usage": {"total_tokens": 5}})
+
+    monkeypatch.setattr("evalclaw.execution.task_runtime.call_target_model_with_tools", model)
+    result = run_contract(task(interaction={"protocol": "response", "budget": {"target_tokens": budget}}),
+                          BenchmarkConfig(), TARGET)
+    assert bool(result.error) == has_error
+    assert result.episode.termination == termination
+    assert result.episode.usage["target_tokens"] == 5
+    assert result.episode.outputs == ["partial"]
 
 
 def answer(text="42", calls=()):
@@ -139,6 +168,30 @@ def test_native_service_lifecycle_scoring_and_permissions(monkeypatch):
     assert original.closed
 
 
+@pytest.mark.parametrize("mode", ["target_turn", "execute_tool"])
+def test_controller_executes_target_tools_with_target_permissions_and_accounting(mode):
+    item = service_task(interaction={"protocol": "program",
+        "controller": {"image": "test", "command": ["controller"], "version": "1"},
+        "controller_actions": ["target", "target_turn", "execute_tool", "end"]})
+    class Components(Service):
+        methods = Service.methods | {"next"}
+    with closing(ContractSession(item, BenchmarkConfig(), TARGET, component_factory=Components)) as session:
+        session.prepare()
+        session.trial_responses = iter([{"tool_calls": [{"id": "c1", "name": "increment"}]}, {"content": "Done"}])
+        if mode == "target_turn":
+            assert session.control({"action": "target_turn"})["content"] == "Done"
+        else:
+            session.control({"action": "target"})
+            session.control({"action": "execute_tool", "call_id": "c1"})
+            session.control({"action": "target"})
+        assert not session.pending
+        assert session.episode.usage["tool_calls"] == 1
+        assert session.episode.usage["target_calls"] == 2
+        assert session.environment.state == 1
+        assert session.messages[-2]["role"] == "tool"
+        assert session.messages[-2]["tool_call_id"] == "c1"
+
+
 @pytest.mark.parametrize("missing", ["finalize", "call_tool", "restore", "score"])
 def test_missing_environment_methods_fail_before_target(missing):
     class IncompleteService(Service):
@@ -213,6 +266,36 @@ def test_budget_preserves_partial_response_and_scorer_errors(monkeypatch):
     assert result.error
     assert result.episode.metrics[0].status == "error"
     assert result.execution["scalar_available"] is False
+
+
+@pytest.mark.parametrize("kind", ["llm", "agent"])
+def test_judge_large_evidence_is_paged_without_losing_access(monkeypatch, tmp_path, kind):
+    item = task()
+    item.evaluation.scorers[0].kind = kind
+    session = ContractSession(item, BenchmarkConfig(task_models=[TARGET]), TARGET, tmp_path)
+    session.episode.outputs = ["Final answer"]
+    session.episode.artifacts["large"] = {"base64": "X" * 2_000_000, "sha256": "recorded"}
+    session.emit("observation", "environment", {"large": "Y" * 2_000_000})
+    event_id = session.emit("observation", "environment", {"decisive": "correct"})
+    calls = 0
+    def model(messages, target, tools, **kwargs):
+        nonlocal calls
+        calls += 1
+        assert len(json.dumps(messages)) < 100_000
+        assert [tool.name for tool in tools] == ["read_evidence"]
+        if calls == 1:
+            return answer("", [ToolCall(id="read", name="read_evidence", arguments={"path":"/episode/events/1"})])
+        result = json.loads(messages[-1]["content"])["result"]
+        evidence = json.loads(result["content"])
+        assert evidence["id"] == event_id
+        assert evidence["data"] == {"decisive":"correct"}
+        return answer('{"metrics":[{"metric":"accuracy","value":1,"status":"valid"}]}')
+    monkeypatch.setattr("evalclaw.execution.task_runtime.call_target_model_with_tools", model)
+    results = session.evaluate()
+    assert results[0].status == "valid"
+    assert results[0].value == 1
+    assert calls == 2
+    session.close()
 
 
 def test_unsupported_prefill_fails_before_model_call(monkeypatch):

@@ -1498,16 +1498,22 @@ HTML_TEMPLATE = """<!doctype html>
         const scored = items.filter(item => item.contamination).length;
         const score = contamination.conditional_score;
         section.append(node("p", {},
-          `Assessed ${items.length}/${contamination.total_item_count} items; confirmed overlap ${matched}/${items.length}; ` +
+          `Attempted ${items.length}/${contamination.total_item_count} items; ${matched} with verified textual overlap (not a contamination rate); ` +
+          `overlap fraction: ${contamination.confirmed_overlap_fraction == null ? "unavailable (unresolved assessments)" : (100 * contamination.confirmed_overlap_fraction).toFixed(1) + "%"}; ` +
           `conditional score: ${score == null ? "not assigned" : Number(score).toFixed(2) + "/5"} (${scored} scored items).`));
         section.append(node("p", {},
           `Failed assessments: ${items.filter(item => item.status === "failed").length}; ` +
-          `not searchable as text: ${items.filter(item => item.status === "not_searchable").length}.`));
+          `not searchable as text: ${items.filter(item => item.status === "not_searchable").length}; ` +
+          `insufficient evidence (boilerplate/incidental only): ${items.filter(item => item.status === "insufficient_evidence").length}; ` +
+          `no confirmed match: ${items.filter(item => item.status === "no_confirmed_match").length}.`));
+        section.append(node("p", {}, `Evidence policy: ${contamination.evidence_policy || "legacy_min_chars"}. Compare conditional scores together with scored counts and evidence coverage.`));
         section.append(node("p", {}, "No confirmed match does not establish absence of contamination or training-data membership."));
         section.append(table(["Task", "Status", "Score (1-5)", "Evidence", "Limitations"], items.map(item => [
           item.item_id, item.status,
           item.contamination ? item.contamination.score : "Not assigned",
-          markdownNode((item.contamination ? item.contamination.reasoning + "\\n\\n" : "") + (item.checked_urls || []).join("\\n\\n")),
+          markdownNode((item.contamination ? item.contamination.reasoning + "\\n\\n" : "") +
+            (item.assessments || []).map(a => `Match ${a.match_index}: ${a.kind}; score ${a.score == null ? "not assigned" : a.score}. ${a.reasoning}`).join("\\n\\n") +
+            "\\n\\n" + (item.checked_urls || []).join("\\n\\n")),
           [item.research_summary || "", item.stop_reason || "", ...(item.limitations || []), ...(item.unresolved_urls || [])].join(" "),
         ])));
       }

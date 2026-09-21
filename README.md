@@ -31,6 +31,8 @@ scoring, or source choices. It is not intended to produce a general field survey
   `azure/<deployment-name>` model names, plus explicit native protocol adapters where required.
 - lm-eval-harness interoperability via generated JSONL/YAML artifacts and optional runner.
 - Markdown reports with source coverage, canonical JSON packages, and artifact manifests.
+- [Human pairwise review](docs/human-judge.zh.md): source-blind A/B task comparison,
+  complete task/response evidence, resumable decisions, and researcher exports.
 - An A/B experiment harness under `experiments/` (baseline vs deep-research, plus a
   ranking-preservation check) with dataset-quality metrics.
 
@@ -210,9 +212,12 @@ per sampled task and no fixed concurrency cap. The contamination stage likewise
 runs one independent research agent per sampled task concurrently. Results retain
 sample order and separate per-task evidence; tool steps within each agent remain
 sequential when they depend on earlier results.
-Agent tasks retain private environment exploration. A separate overall judgment
-scores diversity and, when analysis is available, the Analyser's systematicness
-and credibility. Failed item judgments are retried; exhausted failures stop the
+Task-quality judgments, including contamination research, receive the original user
+goal, final task content, and target/scoring evidence. Their tools exclude planning,
+construction QC, and Analyser conclusions. Agent tasks retain private environment
+exploration. Diversity uses a separate overall judgment; optional Analyser
+systematicness and credibility use another independent conversation.
+Failed item judgments are retried; exhausted failures stop the
 evaluation rather than becoming zero scores or disappearing from the average.
 Malformed final judgments receive field or JSON parsing errors in the same
 conversation, with up to three format repairs using the existing evidence and

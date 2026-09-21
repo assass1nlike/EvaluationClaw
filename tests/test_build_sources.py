@@ -7,7 +7,7 @@ import pytest
 
 from evalclaw.execution import build_sources as sources
 from evalclaw.execution import docker_images as images
-from evalclaw.execution.image_acquisition import ImageAcquisitionError
+from evalclaw.execution.image_acquisition import ImageAcquisitionError, ImageReferenceError
 
 
 def test_real_dockerfile_syntax_and_reachable_stage_dependencies():
@@ -101,7 +101,8 @@ def test_failed_local_dependency_cannot_be_pulled(prepared):
 
 
 @pytest.mark.parametrize("entrypoint", ["builder", "environment"])
-def test_build_stops_before_docker_when_sources_are_unavailable(monkeypatch, prepared, entrypoint):
+@pytest.mark.parametrize("error", [ImageAcquisitionError, ImageReferenceError])
+def test_build_stops_before_docker_when_sources_are_unavailable(monkeypatch, prepared, entrypoint, error):
     dockerfile, _, _, _, _ = prepared
     monkeypatch.setenv(images.DOCKER_BUILD_DIR_ENV_VAR, str(dockerfile.parent / "builds"))
     monkeypatch.setattr(images, "resolve_docker_executable", lambda _: "docker")
@@ -109,10 +110,10 @@ def test_build_stops_before_docker_when_sources_are_unavailable(monkeypatch, pre
     monkeypatch.setattr(images.subprocess, "run", lambda *a, **kw: pytest.fail("build started without sources"))
 
     def fail(*a, **kw):
-        raise ImageAcquisitionError("image sources unreachable")
+        raise error("image source failed", image="python:3.11", failures=[{"kind": "reference"}])
 
     monkeypatch.setattr(images, "prepare_build_sources", fail)
-    with pytest.raises(ImageAcquisitionError):
+    with pytest.raises(error) as caught:
         if entrypoint == "builder":
             images.build_docker_image_from_context(dockerfile.parent)
         else:
@@ -121,6 +122,10 @@ def test_build_stops_before_docker_when_sources_are_unavailable(monkeypatch, pre
             }})
     failures = list((dockerfile.parent / "builds/logs").glob("*/dependency-failure.json"))
     assert len(failures) == 1
+    assert type(caught.value) is error
+    assert caught.value.image == "python:3.11"
+    assert caught.value.failures == [{"kind": "reference"}]
+    assert json.loads(failures[0].read_text())["source_failures"] == caught.value.failures
 
 
 def test_build_command_receives_policy_with_custom_dockerfile(monkeypatch, prepared):

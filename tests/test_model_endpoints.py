@@ -706,6 +706,8 @@ def test_responses_stream_returns_incomplete_response(monkeypatch) -> None:
     }
 
     class FakeStream:
+        is_error = False
+
         def __enter__(self):
             return self
 
@@ -847,6 +849,29 @@ def test_target_call_sends_model_max_output_budget(monkeypatch) -> None:
 
     assert llm.call_target_model("question", target, user_content="question") == "answer"
     assert captured["body"]["max_tokens"] == 393_216
+
+
+@pytest.mark.parametrize("remaining,expected", [(3_000_000, 393_216), (64, 64)])
+@pytest.mark.parametrize("provider", ["openai_compatible", "anthropic"])
+def test_target_episode_budget_respects_provider_output_limit(monkeypatch, remaining, expected, provider):
+    captured = {}
+
+    def chat(url, headers, body, **kwargs):
+        captured.update(body)
+        return {"choices": [{"message": {"role": "assistant", "content": "done"}, "finish_reason": "stop"}]}
+
+    def anthropic_stream(client, **kwargs):
+        captured.update(kwargs)
+        return SimpleNamespace(stop_reason="end_turn", content=[])
+
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", chat)
+    monkeypatch.setattr(llm, "_get_anthropic_client", lambda *a: object())
+    monkeypatch.setattr(llm, "_stream_anthropic_message", anthropic_stream)
+    target = TargetModelConfig(provider=provider, model="deepseek-flash", api_key="test",
+                               base_url="https://model.example/v1")
+    llm.call_target_model_with_tools([{"role": "user", "content": "Work"}], target, [],
+                                     hard_max_tokens=remaining)
+    assert captured["max_tokens"] == expected
 
 
 def test_target_multimodal_call_uses_streaming_route(monkeypatch) -> None:

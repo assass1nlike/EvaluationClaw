@@ -2,6 +2,7 @@
 
 import json
 import os
+import shlex
 from dataclasses import replace
 
 import pytest
@@ -14,6 +15,25 @@ from evalclaw.types import BenchmarkConfig, BenchmarkItem, TargetModelConfig, Ta
 pytestmark = pytest.mark.skipif(
     os.environ.get("EVALCLAW_DOCKER_TESTS") != "1", reason="requires local Docker images",
 )
+
+
+def test_launch_replaces_prompt_bearing_shell(tmp_path):
+    # Process-management tools may match a service name anywhere in argv.
+    # The launch shell must not survive carrying that name in its prompt.
+    script = """import os
+from pathlib import Path
+parent = Path('/proc') / str(os.getppid()) / 'cmdline'
+assert not parent.exists() or b'audit-service-marker' not in parent.read_bytes()
+print('completed')
+"""
+    runner = ManifestHarnessRunner(ManifestHarness(
+        name="fixture", run="python3 -c " + shlex.quote(script) + " {task}", model_env={},
+    ))
+    item = BenchmarkItem(id="shell-lifecycle", task_type="agent", prompt="Restart audit-service-marker.",
+                         metadata={"agent_env": {"type": "docker_workspace", "network": "none"}})
+    output = runner._launch(item, TargetModelConfig(model="test", provider="openai"),
+                            BenchmarkConfig(), "python:3.11", tmp_path)
+    assert output.strip() == "completed"
 
 
 @pytest.mark.parametrize("termination", ["completed", "budget_exhausted"])
