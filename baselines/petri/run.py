@@ -9,6 +9,8 @@ from pathlib import Path
 
 import numpy as np
 import deepseek_api  # Registers the DeepSeek reasoning/prefill provider.
+import qwen_api  # Registers the DashScope reasoning/partial provider.
+import sol_api  # Registers the streaming Responses provider and shared RPM limit.
 from dotenv import load_dotenv
 from inspect_ai import eval
 from inspect_ai.model import GenerateConfig, get_model
@@ -37,13 +39,18 @@ def main():
     for role in ("auditor", "target", "judge"):
         parser.add_argument(f"--{role}", default=os.getenv("PETRI_MODEL"),
                             required=not os.getenv("PETRI_MODEL"), help="Inspect model ID, e.g. openai/gpt-4o")
+        parser.add_argument(f"--{role}-base-url", help="Override the shared API URL for this role")
     parser.add_argument("--base-url", default=os.getenv("PETRI_API_BASE"),
-                        required=not os.getenv("PETRI_API_BASE"), help="API base URL shared by the three roles")
+                        help="Default API base URL for roles without an override")
     parser.add_argument("--instruction", type=Path, help="UTF-8 file containing one audit instruction")
     parser.add_argument("--max-turns", type=int, default=200)
+    parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--thinking", choices=("enabled", "disabled"), default="disabled")
     parser.add_argument("--reasoning-effort", choices=("low", "high", "max"))
     parser.add_argument("--max-tokens", type=int, help="Per-call output limit for all roles, including reasoning")
+    parser.add_argument("--sol-rpm", type=float, default=50)
+    parser.add_argument("--sol-rate-limit-file", type=Path,
+                        default=Path(os.getenv("XDG_STATE_HOME", str(root / ".local/state"))) / "sol-rate-limit")
     parser.add_argument("--request-timeout", type=int, default=120)
     parser.add_argument("--time-limit", type=int, default=900, help="Sample time limit in seconds; 0 disables it")
     parser.add_argument("--prefill-mode", choices=("no-prefill", "prefill"), default="no-prefill",
@@ -53,13 +60,25 @@ def main():
     parser.add_argument("--rubric", type=Path, help="Predefined scoring criteria for requirement mode")
     parser.add_argument("--output-dir", type=Path, help="New directory for this run's artifacts")
     args = parser.parse_args()
+    base_urls = {role: getattr(args, f"{role}_base_url") or args.base_url
+                 for role in ("auditor", "target", "judge")}
+    if not all(base_urls.values()):
+        parser.error("Provide --base-url or an explicit --ROLE-base-url for every role")
     if args.allow_prefill:
         if args.prefill_mode != "no-prefill":
             parser.error("--allow-prefill and --prefill-mode cannot be combined")
         args.prefill_mode = "prefill"
     if args.rubric and args.scoring == "native":
         parser.error("--rubric requires --scoring both or requirement")
-    seed_everything(42)
+    sol_roles = [role for role in ("auditor", "target", "judge")
+                 if getattr(args, role).startswith("sol/")]
+    if sol_roles and (args.thinking != "enabled" or not args.reasoning_effort):
+        parser.error("Sol requires enabled thinking and an explicit reasoning effort")
+    if sol_roles and args.prefill_mode != "no-prefill":
+        parser.error("Sol Responses requires --prefill-mode no-prefill")
+    if not 0 < args.sol_rpm <= 50:
+        parser.error("--sol-rpm must be in (0, 50]")
+    seed_everything(args.seed)
     instruction = args.instruction.read_text().strip() if args.instruction else AUDITOR_INSTRUCTIONS[14]
     rubric = args.rubric.read_text().strip() if args.rubric else DEFAULT_RUBRIC
     if not instruction or not rubric:
@@ -76,16 +95,21 @@ def main():
             dimensions=_format_dimensions(DIMENSIONS), scores_format=_format_scores_section(DIMENSIONS)))
     configs = {
         role: GenerateConfig(
-            seed=42, max_tokens=args.max_tokens or (8192 if role == "judge" else 4096),
+            seed=None if role in sol_roles else args.seed,
+            max_tokens=args.max_tokens or (8192 if role == "judge" else 4096),
             max_connections=2 if role == "judge" and args.scoring == "both" else 1,
             max_retries=2, timeout=args.request_timeout,
             reasoning_effort=args.reasoning_effort,
-            extra_body={"thinking": {"type": args.thinking}},
+            extra_body=(None if role in sol_roles else {"enable_thinking": args.thinking == "enabled"}
+                        if getattr(args, role).partition("/")[0] == "qwen"
+                        else {"thinking": {"type": args.thinking}}),
         )
         for role in ("auditor", "target", "judge")
     }
     models = {
-        role: get_model(getattr(args, role), base_url=args.base_url, config=config, memoize=False)
+        role: get_model(getattr(args, role), base_url=base_urls[role], config=config, memoize=False,
+                        **({"rpm": args.sol_rpm, "rate_limit_file": str(args.sol_rate_limit_file.resolve()),
+                            "call_log": str(output / "sol-calls.jsonl")} if role in sol_roles else {}))
         for role, config in configs.items()
     }
     manifest = {
@@ -95,9 +119,10 @@ def main():
         ).strip(),
         "versions": {name: version(name) for name in ("petri", "inspect-ai", "openai", "anthropic")},
         "base_url": args.base_url,
+        "base_urls": base_urls,
         "models": {role: getattr(args, role) for role in models},
         "generation": {role: config.model_dump(exclude_none=True) for role, config in configs.items()},
-        "seed": 42,
+        "seed": args.seed,
         "max_turns": args.max_turns,
         "allow_prefill": args.prefill_mode == "prefill",
         "prefill_mode": args.prefill_mode,
@@ -111,6 +136,16 @@ def main():
         "epochs": 1,
         "time_limit": args.time_limit or None,
     }
+    if sol_roles:
+        manifest["sol_transport"] = {
+            "protocol": "streaming Responses", "rpm": args.sol_rpm,
+            "rate_limit_file": str(args.sol_rate_limit_file.resolve()),
+            "rate_limit_scope": "All local Petri Sol processes and HTTP attempts sharing the lock file",
+            "sdk_retries": 0, "api_seed_supported": False,
+            "model_mismatch_retries": configs[sol_roles[0]].max_retries,
+            "model_mismatch_exhaustion": "Fail epoch without scoring",
+            "max_output_tokens": "Requested limit; relay does not confirm its effective value",
+        }
     (output / "config.json").write_text(json.dumps(manifest, indent=2) + "\n")
     auditor_prompt = (AUDITOR_SYSTEM_PROMPT if args.prefill_mode == "prefill"
                       else NO_PREFILL_SYSTEM_PROMPT)
@@ -121,15 +156,18 @@ def main():
         task.scorer = [requirement_judge(instruction, rubric)]
     elif args.scoring == "both":
         task.scorer = dual_judges(instruction, rubric)
+    auditor_tools = []
+    for factory in ALIGNMENT_AUDITOR_TOOLS:
+        calls_target = factory in (send_message, send_tool_call_result)
+        tool = factory(prefill=args.prefill_mode == "prefill") if calls_target else factory()
+        if calls_target and "target" in sol_roles:
+            tool = models["target"].api.guard_tool(tool)
+        auditor_tools.append(tool)
     logs = eval(
         task,
         model=None, model_roles=models, log_dir=str(output / "logs"),
         solver=auditor_agent(max_turns=args.max_turns, auditor_system_message=auditor_prompt,
-                             auditor_tools=[
-            factory(prefill=args.prefill_mode == "prefill")
-            if factory in (send_message, send_tool_call_result) else factory()
-            for factory in ALIGNMENT_AUDITOR_TOOLS
-        ]),
+                             auditor_tools=auditor_tools),
         epochs=1, max_samples=1, fail_on_error=True, time_limit=args.time_limit or None, display="plain",
     )
     log = logs[0]

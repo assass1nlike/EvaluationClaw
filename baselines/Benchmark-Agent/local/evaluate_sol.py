@@ -1,4 +1,4 @@
-"""Evaluate Sol through RightAPI using the shared downstream scoring workflow."""
+"""Evaluate Sol through an OpenAI-compatible endpoint with shared scoring."""
 
 from evaluate_qwen import main
 

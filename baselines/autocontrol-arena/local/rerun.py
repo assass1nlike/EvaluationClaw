@@ -6,7 +6,8 @@ from pathlib import Path
 import signal
 import subprocess
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from datetime import datetime, timezone
 
 
@@ -32,6 +33,8 @@ def run_item(item, manifest, run_dir):
     })
     if manifest.get('environment_profile'):
         env['AUTOCONTROL_ARENA_ENVIRONMENT_PROFILE'] = manifest['environment_profile']
+    if item.get('target_api_key_env'):
+        env['AUTOCONTROL_ARENA_TARGET_API_KEY'] = os.environ[item['target_api_key_env']]
     command = [
         sys.executable, '-m', 'local.run', 'run',
         '--profile', manifest['profile'], '--intent', item['user_intent'],
@@ -66,6 +69,17 @@ def run_item(item, manifest, run_dir):
             'execution_status': report['metadata']['execution_status'],
         })
     result.update(state='finished', finished_at=now(), reports=reports)
+    retired_codes = set(manifest.get('retire_error_codes', []))
+    rejected = output / 'rejected-responses.jsonl'
+    if retired_codes:
+        observed = {(json.loads(line)['response'].get('error') or {}).get('code')
+                    for line in rejected.read_text().splitlines()} if rejected.exists() else set()
+        errors = output / 'request-errors.jsonl'
+        if errors.exists():
+            observed.update(json.loads(line).get('code') for line in errors.read_text().splitlines())
+        matched = sorted(retired_codes & observed)
+        if matched:
+            result.update(exclude_from_future_retries=True, retry_exclusion_codes=matched)
     save(output / 'status.json', result)
     return result
 
@@ -76,21 +90,41 @@ def main():
     os.nice(5)
     completed = []
     save(run_dir / 'progress.json', {'started_at': now(), 'total': len(manifest['items']), 'completed': 0})
+    pending = iter(manifest['items'])
+    remaining = len(manifest['items'])
     with ThreadPoolExecutor(max_workers=manifest['max_workers']) as pool:
-        futures = {pool.submit(run_item, item, manifest, run_dir): item for item in manifest['items']}
-        for future in as_completed(futures):
-            item = futures[future]
-            try:
-                result = future.result()
-            except Exception as error:
-                result = {'id': item['id'], 'state': 'runner_error', 'error': str(error)}
-                save(run_dir / 'items' / item['id'] / 'status.json', result)
-            completed.append(result)
-            save(run_dir / 'progress.json', {
-                'updated_at': now(), 'total': len(manifest['items']),
-                'completed': len(completed), 'results': completed,
-            })
-            print(f"{len(completed)}/{len(manifest['items'])} {result}", flush=True)
+        futures = {}
+        while remaining or futures:
+            reserved = 0
+            for previous in manifest.get('concurrent_with', []):
+                previous = Path(previous)
+                previous_manifest = json.loads((previous / 'manifest.json').read_text())
+                for item in previous_manifest['items']:
+                    status = previous / 'items' / item['id'] / 'status.json'
+                    if not status.exists() or json.loads(status.read_text())['state'] == 'running':
+                        reserved += 1
+            available = max(0, manifest['max_workers'] - reserved - len(futures))
+            for _ in range(min(remaining, available)):
+                item = next(pending)
+                futures[pool.submit(run_item, item, manifest, run_dir)] = item
+                remaining -= 1
+            if not futures:
+                time.sleep(2)
+                continue
+            done, _ = wait(futures, timeout=2, return_when=FIRST_COMPLETED)
+            for future in done:
+                item = futures.pop(future)
+                try:
+                    result = future.result()
+                except Exception as error:
+                    result = {'id': item['id'], 'state': 'runner_error', 'error': str(error)}
+                    save(run_dir / 'items' / item['id'] / 'status.json', result)
+                completed.append(result)
+                save(run_dir / 'progress.json', {
+                    'updated_at': now(), 'total': len(manifest['items']),
+                    'completed': len(completed), 'results': completed,
+                })
+                print(f"{len(completed)}/{len(manifest['items'])} {result}", flush=True)
     save(run_dir / 'summary.json', {'finished_at': now(), 'results': completed})
 
 

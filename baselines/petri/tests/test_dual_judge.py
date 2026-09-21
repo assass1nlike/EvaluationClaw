@@ -126,11 +126,16 @@ def test_default_runner_exports_primary_and_reference(tmp_path, monkeypatch):
     monkeypatch.setattr("sys.argv", ["run.py", "--auditor", "mockllm/auditor",
                                     "--target", "mockllm/target", "--judge", "mockllm/judge",
                                     "--base-url", "https://example.invalid",
+                                    "--seed", "61",
                                     "--output-dir", str(tmp_path / "run")])
     run.main()
     directory = tmp_path / "run"
     config = json.loads((directory / "config.json").read_text())
     assert config["scoring"] == "both"
+    assert config["seed"] == 61
+    assert all(role["seed"] == 61 for role in config["generation"].values())
+    log = read_eval_log(next((directory / "logs").glob("*.eval")))
+    assert all(event.config.seed == 61 for event in log.samples[0].events if event.event == "model")
     assert config["generation"]["judge"]["max_connections"] == 2
     assert config["generation"]["auditor"]["max_connections"] == 1
     assert config["generation"]["target"]["max_connections"] == 1
