@@ -641,11 +641,86 @@ def test_probe_review_rejects_budget_expansion_before_construction(monkeypatch) 
     suite, _ = _suite_and_run()
 
     def loop(payload, config, **kwargs):
-        kwargs["validate"]({"done": False, "needs_more_items": [{"dimension_id": "reasoning", "count": 4}]})
+        kwargs["validate"]({"done": False, "needs_more_items": [{"dimension_id": "reasoning", "count": 4, "guidance": "Add counterexamples."}]})
 
     monkeypatch.setattr(analysis_module, "_run_analyser_tool_loop", loop)
     with pytest.raises(ValueError, match="exceed"):
         analysis_module._review_probes(suite, "Hypothesis", _config(analysis_max_tasks=2), trace_dir=None)
+
+
+def test_probe_review_repairs_foreign_dimension_reference(monkeypatch) -> None:
+    from evalclaw.models.llm import TargetToolModelResponse
+
+    suite, _ = _suite_and_run()
+    calls = []
+    corrected = {"done": False, "update_items": [{
+        "item_id": "reasoning_1", "dimension_id": "reasoning", "guidance": "Add conflicting evidence.",
+    }]}
+
+    def model(messages, **kwargs):
+        calls.append(list(messages))
+        if len(calls) == 1:
+            payload = json.loads(messages[0]["content"])
+            assert payload["dimensions"][0]["measurement_target"] == "Reach supported conclusions."
+            result = {"done": False, "needs_more_items": [{
+                "dimension_id": "main_suite_dimension", "count": 1, "guidance": "Replace the probe.",
+            }]}
+        else:
+            result = corrected
+        content = json.dumps(result)
+        return TargetToolModelResponse(adapter="openai", raw_response={}, content=content, tool_calls=[],
+            assistant_message={"role": "assistant", "content": content})
+
+    monkeypatch.setattr(analysis_module, "call_orchestrator_with_tools", model)
+    assert analysis_module._review_probes(suite, "Original dimension differs.", _config(), trace_dir=None) == corrected
+    assert len(calls) == 2
+    assert "needs_more_items[0].dimension_id" in calls[1][-1]["content"]
+
+
+@pytest.mark.parametrize("save_trace", [False, True])
+def test_probe_review_can_read_full_current_task(monkeypatch, tmp_path, save_trace) -> None:
+    from evalclaw.protocols.tool import ToolCall
+
+    suite, _ = _suite_and_run()
+    suite.tasks[0].metadata["agent_env"] = {
+        "actors": [{"id": "colleague", "system_prompt": "State your own uncertain observations."}],
+        "hidden_files": {"grade.py": "print(0)"},
+    }
+    roots = []
+
+    def loop(payload, config, **kwargs):
+        root = kwargs["artifact_dir"]
+        roots.append(root)
+        result = analysis_module.read_run_artifact(ToolCall(id="read", name="read_run_artifact",
+            arguments={"path": payload["task_evidence_path"]}), root)
+        assert not result.error
+        saved = json.loads(json.loads(result.content)["content"])
+        assert saved["suite"]["tasks"][0]["metadata"]["agent_env"] == suite.tasks[0].metadata["agent_env"]
+        return {"done": True}
+
+    monkeypatch.setattr(analysis_module, "_run_analyser_tool_loop", loop)
+    analysis_module._review_probes(suite, "Hypothesis", _config(), trace_dir=tmp_path if save_trace else None)
+    assert roots[0].exists() == save_trace
+
+
+@pytest.mark.parametrize("review", [
+    {"done": False, "delete_item_ids": ["absent"]},
+    {"done": False, "update_items": [{"item_id": "absent", "dimension_id": "reasoning", "guidance": "fix"}]},
+    {"done": False, "needs_more_items": [{"dimension_id": [], "count": 1, "guidance": "fix"}]},
+    {"done": False, "needs_more_items": [{"dimension_id": "reasoning", "count": True, "guidance": "fix"}]},
+    {"done": False, "update_items": {}},
+    {"done": True, "delete_item_ids": ["reasoning_1"]},
+    {"done": False},
+])
+def test_probe_review_rejects_invalid_actions(monkeypatch, review) -> None:
+    suite, _ = _suite_and_run()
+
+    def loop(payload, config, **kwargs):
+        kwargs["validate"](review)
+
+    monkeypatch.setattr(analysis_module, "_run_analyser_tool_loop", loop)
+    with pytest.raises(ValueError):
+        analysis_module._review_probes(suite, "Hypothesis", _config(), trace_dir=None)
 
 
 def test_final_benchmark_resolves_colliding_ids_by_iteration_and_target() -> None:

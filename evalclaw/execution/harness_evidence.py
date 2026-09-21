@@ -128,6 +128,44 @@ def _assemble_responses(events: list[dict]) -> list[dict]:
     return ordered
 
 
+def terminal_model_error(events: list[dict]) -> str | None:
+    """Reject CLI success after the final observed inference actually failed."""
+    requests = [event for event in events if event.get("kind") == "request"]
+    if not requests:
+        return None
+    request_id = requests[-1]["id"]
+    responses = [event for event in _assemble_responses(events)
+                 if event.get("kind") == "response" and event.get("id") == request_id]
+    if not responses:
+        return "The final model request has no completed upstream response"
+    response = responses[-1]
+    if response.get("status", 0) >= 400:
+        return f"The final model request failed with HTTP {response['status']}"
+    if not response.get("complete"):
+        return "The final model response was interrupted before completion"
+    body = response.get("body", "")
+    try:
+        values = [json.loads(body)]
+    except ValueError:
+        values = []
+        for line in body.splitlines():
+            if line.startswith("data:") and line[5:].strip() != "[DONE]":
+                try:
+                    values.append(json.loads(line[5:]))
+                except ValueError:
+                    continue
+    for value in reversed(values):
+        if not isinstance(value, dict):
+            continue
+        if value.get("error") or value.get("type") in {"error", "response.failed", "response.incomplete"}:
+            return "The final model stream reported an API error or incomplete response"
+        if (any(choice.get("finish_reason") for choice in value.get("choices", []))
+                or value.get("type") in {"message_stop", "response.completed"}
+                or value.get("stop_reason") or value.get("status") == "completed"):
+            return None
+    return "The final model stream ended without a terminal completion event"
+
+
 def normalize_events(events: list[dict], name: str, raw: str, stderr: str = "", *, stages: Sequence[dict] = ()) -> dict:
     cli = cli_result(name, raw)
     histories = []

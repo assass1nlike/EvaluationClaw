@@ -18,8 +18,8 @@ LAAJ_INSPECT_AGENT_TOOL = ToolSpec(
     name="inspect_agent_environment",
     description=(
         "Inspect the complete non-file contract for one or more sampled agent tasks, including "
-        "actor roles and permissions, execution limits, evaluator configuration, workflow, and "
-        "the originating TaskDesign. File contents are listed separately and can be read with "
+        "actor roles and permissions, execution limits, evaluator configuration, and workflow. "
+        "File contents are listed separately and can be read with "
         "read_task_file."
     ),
     parameters={
@@ -188,14 +188,6 @@ def _declared_files(item: BenchmarkItem, area: str) -> dict[str, Any]:
     return files
 
 
-def _task_design(suite: TaskSuite, item: BenchmarkItem) -> dict[str, Any] | None:
-    for blueprint in suite.blueprints:
-        for design in blueprint.task_designs:
-            if design.id == item.task_design_id:
-                return design.model_dump(mode="json")
-    return None
-
-
 def agent_environment_overview(item: BenchmarkItem) -> dict[str, Any]:
     """Return a compact inventory without embedding task file contents."""
     env = _agent_env(item)
@@ -303,7 +295,6 @@ def _environment_contract(suite: TaskSuite, item: BenchmarkItem) -> dict[str, An
         "agent_task_package": item.metadata.get("agent_task_package"),
         "workflow": item.workflow.model_dump(mode="json") if item.workflow is not None else None,
         "builder_contract": builder_contract,
-        "task_design": _task_design(suite, item),
         "asset_files": agent_environment_overview(item).get("assets", []),
     })
 

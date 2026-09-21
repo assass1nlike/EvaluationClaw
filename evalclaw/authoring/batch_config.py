@@ -26,7 +26,9 @@ class Settings(Contract):
     author_timeout_seconds: int = Field(default=5400, gt=0)
     author_memory_gib: int = Field(default=4, gt=0)
     author_cpus: int = Field(default=2, gt=0)
-    request_spacing_seconds: float = Field(default=2.1, ge=2.1)
+    request_spacing_seconds: float = Field(default=2.1, gt=0)
+    key_pools: dict[str, list[str]] = Field(default_factory=dict)
+    model_identity_attempts: int = Field(default=3, ge=1)
     gateway_host: str = "10.253.240.1"
     proxy: str | None = "http://127.0.0.1:17891"
     direct_hosts: list[str] = Field(default_factory=list)
@@ -38,6 +40,7 @@ class Settings(Contract):
     laaj_model: TargetModelConfig | None = None
     laaj_key_env: str = "FRONTIER_API_KEY"
     contamination_enabled: bool = False
+    laaj_sample_size: int | None = Field(default=None, ge=1)
     memory_budget_gib: int = 600
     memory_job_gib: int = 1
     memory_headroom_gib: int = 16
@@ -46,6 +49,8 @@ class Settings(Contract):
     def validate_experiment(self):
         if len({j.id for j in self.jobs}) != len(self.jobs):
             raise ValueError("Job IDs must be unique")
+        if any(not pool or len(pool) != len(set(pool)) for pool in self.key_pools.values()):
+            raise ValueError("Credential pools must contain distinct environment variable names")
         if any(model.api_key for model in (self.evaluation_model, self.task_model, self.laaj_model) if model):
             raise ValueError("Credentials must be supplied through the configured environment variable")
         if self.evaluation_model.supported_message_roles is None:

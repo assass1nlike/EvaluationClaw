@@ -40,7 +40,7 @@ from ..execution.docker_images import (
     start_inspection_container,
     stop_inspection_container,
 )
-from ..execution.image_acquisition import ImageAcquisitionError, canonical_image
+from ..execution.image_acquisition import ImageAcquisitionError, ImageReferenceError, canonical_image
 from ..execution.resource_guard import DockerResourceGuard
 from ..execution.vm_provider import (
     build_vm_image,
@@ -1562,6 +1562,7 @@ def _execute_task_builder_tool(
                 )
             result = start_inspection_container(
                 image, docker_executable=config.docker_executable,
+                pull_timeout_s=config.docker_pull_timeout_s,
                 memory_mb=config.builder_memory_mb, pids_limit=config.builder_pids_limit,
                 workspace=work_dir, resource_guard=guard,
                 allow_pull=allow_pull,
@@ -2022,6 +2023,17 @@ def _execute_task_builder_tool(
         )
     except SearchError as exc:
         return search_failure_result(call, exc)
+    except ImageReferenceError as exc:
+        return ToolResult(
+            tool_call_id=call.id, name=call.name, error="image_reference_unavailable",
+            content=_tool_content({
+                "image": exc.image, "sources": exc.failures, "error": str(exc),
+                "action": "Verify the image reference and repair your image or Dockerfile dependency, "
+                          "preserving the task's required runtime and dependencies, then retry. "
+                          "These source failures do not prove the image is absent everywhere. "
+                          "Do not change registry credentials or bypass the configured mirror policy.",
+            }, max_chars=max_chars),
+        )
     except (ImageAcquisitionError, DockerBuildExecutionError):
         raise
     except DockerImageBuildError as exc:

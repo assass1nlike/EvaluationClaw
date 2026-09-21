@@ -458,7 +458,7 @@ def test_laaj_requires_analyser_metrics_when_analysis_is_present(monkeypatch) ->
         BenchmarkConfig(laaj_model="judge", laaj_api_key="key"),
     )
     assert report.overall_error
-    assert report.diversity is None
+    assert report.diversity.score == 3
     assert report.systematicness is None and report.credibility is None
     assert report.correctness.score == 4
 

@@ -43,7 +43,7 @@ RESEARCH_TOOLS = [
     _tool("list_url_links", "Inspect static page links to find deeper pages or downloadable files (up to 200 links).", {"url": _STRING}, ["url"]),
     _tool("download_source", "Download text, PDF, ZIP, or TAR resources. Read archive members without extracting or executing them. Returns document IDs for read_source.", {"url": _STRING}, ["url"]),
     _tool("read_source", "Read another portion of a fetched source or archive member.", {"source_id": _STRING, **_PAGE}, ["source_id"]),
-    _tool("confirm_overlap", "Verify a substantial contiguous exact passage occurs both in a task field/file and in a retrieved original source. Only verified passages become evidence.", {
+    _tool("confirm_overlap", "Verify exact text in a task field/file and a retrieved original source, recording locations and coverage. Short complete questions are allowed. Confirmation proves text overlap, not contamination; isolated answers/common phrases need context and may be excluded by the judge.", {
         "source_id": _STRING, "text": _STRING,
         "area": {"type": "string", "enum": ["task", "visible", "runtime", "hidden", "session", "image_build", "asset", "definition"]},
         "path": _STRING,
@@ -55,15 +55,15 @@ def normalize(text: str) -> str:
     return " ".join(text.split())
 
 
-def _strings(value: Any):
+def _text_fields(value: Any, path: str = ""):
     if isinstance(value, str):
-        yield value
+        yield path, value
     elif isinstance(value, dict):
-        for child in value.values():
-            yield from _strings(child)
+        for key, child in value.items():
+            yield from _text_fields(child, path + "/" + str(key).replace("~", "~0").replace("/", "~1"))
     elif isinstance(value, list):
-        for child in value:
-            yield from _strings(child)
+        for index, child in enumerate(value):
+            yield from _text_fields(child, f"{path}/{index}")
 
 
 class ContaminationResearchTools:
@@ -166,24 +166,37 @@ class ContaminationResearchTools:
         source = self.sources[args["source_id"]]
         text = args["text"]
         quote = normalize(text)
-        if len(quote) < self.config.contamination_min_overlap_chars:
-            raise ValueError(f"The contiguous overlap must contain at least {self.config.contamination_min_overlap_chars} normalized characters.")
+        if not quote:
+            raise ValueError("Provide a nonempty exact passage, preferably a complete question or distinctive content unit.")
         area, path = args.get("area", "task"), args.get("path", "")
         from ..protocols.task_view import definition_data
         task_source = definition_data(self.item) if self.item.content is not None else _item_payload(self.item)
-        task_texts = _strings(task_source) if area == "task" else [_declared_text(self.item, area, path) or ""]
-        if not any(quote in normalize(value) for value in task_texts):
+        fields = _text_fields(task_source) if area == "task" else [(path, _declared_text(self.item, area, path) or "")]
+        found = next(((field_path, normalize(value)) for field_path, value in fields
+                      if (area != "task" or not path or field_path == path) and quote in normalize(value)), None)
+        if found is None:
             raise ValueError("Passage does not occur verbatim in the specified task field/file.")
+        path, task_text = found
+        if area == "task":
+            area = "definition" if self.item.content is not None else "task"
         normalized = normalize(source["text"])
         offset = normalized.find(quote)
         if offset < 0:
             raise ValueError("Passage does not occur verbatim in the retrieved original source.")
+        task_offset = task_text.index(quote)
         match = ContaminationMatch(url=source["url"], source_location=source["location"],
                                    task_area=area, task_path=path, task_quote=text,
+                                   overlap_chars=len(quote), task_field_chars=len(task_text),
+                                   task_offset=task_offset, source_offset=offset,
+                                   task_excerpt=task_text[max(0, task_offset - 1000):task_offset + len(quote) + 1000],
                                    source_excerpt=normalized[max(0, offset - 1000):offset + len(quote) + 1000])
-        if match not in self.result.matches:
-            self.result.matches.append(match)
-        return {"confirmed": True, "match": match.model_dump(mode="json"), "total_matches": len(self.result.matches)}
+        for index, previous in enumerate(self.result.matches, 1):
+            if (previous.url, previous.source_location, normalize(previous.task_quote)) == (match.url, match.source_location, quote):
+                return {"confirmed": True, "duplicate": True, "match_index": index,
+                        "match": previous.model_dump(mode="json"), "total_matches": len(self.result.matches)}
+        self.result.matches.append(match)
+        return {"confirmed": True, "match_index": len(self.result.matches),
+                "match": match.model_dump(mode="json"), "total_matches": len(self.result.matches)}
 
     def dispatch(self, call: ToolCall) -> ToolResult:
         try:

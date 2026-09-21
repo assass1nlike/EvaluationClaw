@@ -293,7 +293,7 @@ def test_manifest_runner_launches_and_scores(monkeypatch) -> None:
     assert target_exec[target_exec.index("--user") + 1] == harness_module._target_container_user()
     assert target_exec[-2] == "-lc"
     assert shlex.split(target_exec[-1].split("; ")[-1]) == [
-        "my-agent", "--key", "evalclaw-gateway", "--task", "Write a function.",
+        "exec", "my-agent", "--key", "evalclaw-gateway", "--task", "Write a function.",
         "--image", "img", "--workdir", "/workspace",
     ]
 
@@ -575,6 +575,34 @@ def test_openclaw_preserves_cleanup_error_after_successful_stop(monkeypatch) -> 
     assert caught.value.stdout == '{"status":"ok"}'
 
 
+@pytest.mark.parametrize("complete,status", [(False, 200), (True, 503)])
+def test_successful_cli_does_not_score_an_interrupted_model_request(monkeypatch, tmp_path, complete, status):
+    import subprocess
+
+    output = '{"status":"ok"}'
+    monkeypatch.setattr(harness_module.subprocess, "run", lambda command, **kwargs:
+                        subprocess.CompletedProcess(command, 0, output, ""))
+    monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
+    monkeypatch.setattr(harness_module, "_start_model_gateway", lambda *args, **kwargs:
+                        ("network", "gateway", "http://gateway:18080"))
+    monkeypatch.setattr(harness_module, "_stop_model_gateway", lambda *args: None)
+    events = [{"kind": "request", "id": "last"},
+              {"kind": "response", "id": "last", "status": status,
+               "complete": complete, "body": ": keep-alive\n"}]
+    monkeypatch.setattr(harness_module.ManifestHarnessRunner, "_gateway_evidence",
+                        staticmethod(lambda *args: events))
+    manifest = harness_module.ManifestHarness(
+        name="openclaw", run="openclaw agent exec {task}", model_env={}, gateway=True,
+    )
+    capture = {}
+    with pytest.raises(harness_module.HarnessExecutionError) as caught:
+        harness_module.ManifestHarnessRunner(manifest)._launch(
+            _item(), _target(), BenchmarkConfig(), "img", tmp_path, capture=capture,
+        )
+    assert caught.value.stdout == output
+    assert capture["model_events"] == events
+
+
 def test_builtin_harnesses_registered() -> None:
     expected = {"openhands", "miniswe", "codex", "claude-code", "cursor", "grok", "opencode", "aider", "goose", "openclaw"}
     for name in expected:
@@ -620,6 +648,7 @@ def test_config_args_rendered_into_command(monkeypatch) -> None:
         if command[1] == "exec" and "codex exec" in command[-1]
     )
     assert shlex.split(target_exec[-1].split("; ")[-1]) == [
+        "exec",
         "codex",
         "exec",
         "-c",
@@ -658,7 +687,7 @@ def test_manifest_launch_runs_in_container(monkeypatch) -> None:
     assert create[create.index("-w") + 1] == "/workspace"
     assert "/tmp/work:/workspace" in create
     assert target_exec[-2] == "-lc"
-    assert target_exec[-1].split("; ")[-1] == shlex.join(["my-agent", "Write a function."])
+    assert target_exec[-1].split("; ")[-1] == shlex.join(["exec", "my-agent", "Write a function."])
 
 
 def test_manifest_runs_setup_as_root_and_target_as_host_user(monkeypatch) -> None:

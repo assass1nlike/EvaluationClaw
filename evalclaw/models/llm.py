@@ -29,6 +29,7 @@ from ..protocols.tool_adapters import (
 from ..types import FailoverEndpoint, Message, TargetModelConfig
 from .json_utils import extract_json
 from .providers import infer_provider
+from .context_budget import LLMContextWindowError, context_window_error, remaining_output
 
 
 class LLMOutputTruncatedError(RuntimeError):
@@ -89,6 +90,7 @@ def _is_failover_eligible(exc: Exception) -> bool:
         (
             LLMOutputTruncatedError,
             LLMProtocolAdapterError,
+            LLMContextWindowError,
             concurrent.futures.CancelledError,
             asyncio.CancelledError,
         ),
@@ -243,9 +245,9 @@ def _post_streaming_openai_compatible(
     headers: dict,
     body: dict[str, Any],
     *,
-    max_retries: int = 3,
+    max_retries: int = 8,
     request_timeout_s: float = 300.0,
-    total_timeout_s: float = 300.0,
+    total_timeout_s: float = 1800.0,
     raw_events: list[dict[str, Any]] | None = None,
     on_token: Optional[Any] = None,
     trace_dir: str | Path | None = None,
@@ -259,7 +261,8 @@ def _post_streaming_openai_compatible(
     delay = 5.0
     started = time.monotonic()
     endpoint = httpx.URL(url).host or "model endpoint"
-    for attempt in range(max_retries):
+    context_adjusted = False
+    for attempt in range(max_retries + 1):
         trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
         request = {"url": url, "body": stream_body}
         remaining = total_timeout_s - (time.monotonic() - started)
@@ -281,6 +284,8 @@ def _post_streaming_openai_compatible(
                     response.read()
                 response.raise_for_status()
                 for line in response.iter_lines():
+                    if time.monotonic() - started >= total_timeout_s:
+                        raise TimeoutError(f"Streaming model request to {endpoint} exceeded {total_timeout_s:.0f}s overall deadline.")
                     if not line:
                         continue
                     if not line.startswith("data:"):
@@ -309,7 +314,7 @@ def _post_streaming_openai_compatible(
                     f"Model endpoint {endpoint} ended a stream after "
                     f"{len(attempt_events)} events without a finish reason."
                 )
-        except (httpx.TransportError, httpx.HTTPStatusError, RuntimeError) as exc:
+        except (httpx.TransportError, httpx.HTTPStatusError, RuntimeError, TimeoutError) as exc:
             if raw_events is not None:
                 raw_events.extend(attempt_events)
             _write_llm_trace(
@@ -323,7 +328,15 @@ def _post_streaming_openai_compatible(
                 ),
                 error=exc,
             )
-            if attempt == max_retries - 1 or not _is_transient_streaming_error(exc):
+            context_error = context_window_error(exc, stream_body.get("max_tokens"))
+            if context_error is not None:
+                if context_adjusted:
+                    raise context_error from exc
+                stream_body["max_tokens"] = remaining_output(context_error, stream_body["max_tokens"])
+                body["max_tokens"] = stream_body["max_tokens"]
+                context_adjusted = True
+                continue
+            if attempt >= max_retries - 1 + int(context_adjusted) or not _is_transient_streaming_error(exc):
                 raise
             retry_after = None
             if isinstance(exc, httpx.HTTPStatusError):
@@ -334,7 +347,7 @@ def _post_streaming_openai_compatible(
                 requested_wait = delay
             wait_s = min(
                 max(0.0, requested_wait),
-                30.0,
+                60.0,
                 max(0.0, total_timeout_s - (time.monotonic() - started)),
             )
             if wait_s <= 0:
@@ -348,7 +361,7 @@ def _post_streaming_openai_compatible(
                 f"retrying in {wait_s:.0f}s."
             )
             time.sleep(wait_s)
-            delay = min(delay * 2, 30.0)
+            delay = min(delay * 2, 60.0)
             continue
         if raw_events is not None:
             raw_events.extend(attempt_events)
@@ -484,7 +497,8 @@ def _post_streaming_responses(
     delay = 5.0
     started = time.monotonic()
     endpoint = httpx.URL(url).host or "model endpoint"
-    for attempt in range(max_retries):
+    context_adjusted = False
+    for attempt in range(max_retries + 1):
         trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
         request = {"url": url, "body": {**body, "stream": True}}
         events: list[dict[str, Any]] = []
@@ -502,6 +516,8 @@ def _post_streaming_responses(
                 json={**body, "stream": True},
                 timeout=min(request_timeout_s, remaining),
             ) as response:
+                if response.is_error:
+                    response.read()
                 response.raise_for_status()
                 for line in response.iter_lines():
                     if not line or not line.startswith("data:"):
@@ -545,10 +561,18 @@ def _post_streaming_responses(
                 trace_path,
                 request=request,
                 status="failed",
-                response=events,
+                response=({"status_code": exc.response.status_code, "body": exc.response.text}
+                          if isinstance(exc, httpx.HTTPStatusError) else events),
                 error=exc,
             )
-            if attempt == max_retries - 1 or not _is_transient_streaming_error(exc):
+            context_error = context_window_error(exc, body.get("max_output_tokens"))
+            if context_error is not None:
+                if context_adjusted:
+                    raise context_error from exc
+                body["max_output_tokens"] = remaining_output(context_error, body["max_output_tokens"])
+                context_adjusted = True
+                continue
+            if attempt >= max_retries - 1 + int(context_adjusted) or not _is_transient_streaming_error(exc):
                 raise
             wait_s = min(
                 delay,
@@ -640,11 +664,11 @@ def _call_openai_responses(
                 response=response,
                 finish_reason=reason,
             )
-            if retry_on_truncation and attempt == 0:
+            if retry_on_truncation and attempt == 0 and body["max_output_tokens"] >= budget:
                 budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                 continue
             raise LLMOutputTruncatedError(
-                f"Responses API output truncated at {budget} output tokens for model {model}.",
+                f"Responses API output truncated at {body['max_output_tokens']} output tokens for model {model}.",
                 raw_response=_jsonable(response),
             )
         _write_llm_trace(
@@ -856,6 +880,20 @@ def _stream_litellm_response(
     *,
     on_token: Optional[Any] = None,
 ) -> tuple[dict[str, Any], list[Any]]:
+    for attempt in range(2):
+        try:
+            return _stream_litellm_once(litellm, kwargs, on_token=on_token)
+        except Exception as exc:
+            error = context_window_error(exc, kwargs.get("max_tokens"))
+            if error is None:
+                raise
+            if attempt:
+                raise error from exc
+            kwargs["max_tokens"] = remaining_output(error, kwargs["max_tokens"])
+    raise AssertionError("unreachable")
+
+
+def _stream_litellm_once(litellm, kwargs, *, on_token=None):
     kwargs["stream"] = True
     # Ask the endpoint to report token usage on the final chunk; without this a
     # streaming provider returns no usage and the trace records none.
@@ -972,11 +1010,11 @@ def _call_litellm(
                 response=response,
                 finish_reason=finish_reason,
             )
-            if retry_on_truncation and attempt == 0:
+            if retry_on_truncation and attempt == 0 and kwargs["max_tokens"] >= budget:
                 budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                 continue
             raise LLMOutputTruncatedError(
-                f"LLM output truncated at {budget} completion tokens "
+                f"LLM output truncated at {kwargs['max_tokens']} completion tokens "
                 f"(finish_reason=length) for model {model}",
                 raw_response=_jsonable(chunks),
             )
@@ -1258,11 +1296,11 @@ def _call_llm_once(
                     response=raw_response,
                     finish_reason=finish_reason,
                 )
-                if retry_on_truncation and attempt == 0:
+                if retry_on_truncation and attempt == 0 and body["max_tokens"] >= budget:
                     budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                     continue
                 raise LLMOutputTruncatedError(
-                    f"LLM output truncated at {budget} completion tokens "
+                    f"LLM output truncated at {body['max_tokens']} completion tokens "
                     f"(finish_reason=length) for model {model_name}",
                     raw_response=raw_response,
                 )
@@ -1380,11 +1418,11 @@ def _call_openai_compatible_tools(
                 response=raw_events,
                 finish_reason=finish_reason,
             )
-            if retry_on_truncation and attempt == 0:
+            if retry_on_truncation and attempt == 0 and body["max_tokens"] >= budget:
                 budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                 continue
             raise LLMOutputTruncatedError(
-                f"Orchestrator tool response truncated at {budget} completion tokens "
+                f"Orchestrator tool response truncated at {body['max_tokens']} completion tokens "
                 f"(finish_reason=length) for model {model}.",
                 raw_response=raw_events,
             )
@@ -1680,11 +1718,11 @@ def _call_orchestrator_with_tools_once(
                 response=response,
                 finish_reason=finish_reason,
             )
-            if retry_on_truncation and attempt == 0:
+            if retry_on_truncation and attempt == 0 and kwargs["max_tokens"] >= budget:
                 budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                 continue
             raise LLMOutputTruncatedError(
-                f"Orchestrator tool response truncated at {budget} completion tokens "
+                f"Orchestrator tool response truncated at {kwargs['max_tokens']} completion tokens "
                 f"(finish_reason=length) for model {model_name}.",
                 raw_response=_jsonable(chunks),
             )
@@ -1824,7 +1862,8 @@ def _call_target_model_with_tools_once(
             "provider": "anthropic",
             "stream": True,
             "model": _anthropic_model_name(target.model),
-            "max_tokens": hard_max_tokens if hard_max_tokens is not None else _effective_max_tokens(target.model, max_tokens),
+            "max_tokens": min(hard_max_tokens, _effective_max_tokens(target.model, max_tokens))
+                if hard_max_tokens is not None else _effective_max_tokens(target.model, max_tokens),
             "system": system_prompt,
             "messages": messages,
             "tools": anthropic_tools(tools),
@@ -1889,7 +1928,10 @@ def _call_target_model_with_tools_once(
     }
     body.update(target.extra_body or {})
     if hard_max_tokens is not None:
-        body["max_tokens"] = hard_max_tokens
+        # The remaining episode budget is an upper bound, not a request to
+        # generate that many tokens in a single provider call.
+        body["max_tokens"] = min(body["max_tokens"], hard_max_tokens,
+                                 _effective_max_tokens(target.model, max_tokens))
     if not tools:
         body.pop("tools", None)
         body.pop("tool_choice", None)

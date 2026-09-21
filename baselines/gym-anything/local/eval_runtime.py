@@ -50,7 +50,7 @@ class NetworkPreflightError(RuntimeError):
     """A transient connectivity failure; queue may probe again later."""
 
 
-def check_host():
+def check_host(*, check_network=True):
     docker_root = subprocess.check_output(["docker", "info", "--format", "{{.DockerRootDir}}"],
                                           text=True, timeout=15).strip()
     if docker_root != "/data1/evaluationclaw/docker":
@@ -60,6 +60,9 @@ def check_host():
         raise RuntimeError(f"inotify max_user_instances={limit}; this run requires the approved 1024 limit")
     if not (BASE_CACHE / "READY").is_file():
         raise RuntimeError("Run local/prepare_eval_base.py to verify the guest Docker proxy first")
+    if not check_network:
+        return dict(inotify_max_user_instances=limit, docker_root=docker_root, network_checked=False,
+                    evaluation_base=str(BASE_CACHE / "base_ubuntu_gnome.qcow2"))
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({"https": "http://" + UPSTREAM_PROXY}))
     for attempt in range(4):
         try:

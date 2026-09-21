@@ -21,13 +21,23 @@ from urllib.parse import urlsplit
 from .docker import docker_subprocess_env, resolve_docker_executable
 from .errors import EvaluationExecutionError
 from .process import run_bounded
+from .registry_errors import inspect_registry_failure
 
 MIRRORS_ENV = "EVALCLAW_DOCKER_MIRRORS"
 ROUTES_ENV = "EVALCLAW_IMAGE_ROUTES"
 
 
 class ImageAcquisitionError(EvaluationExecutionError):
-    """Image infrastructure is unavailable; do not rewrite the task to repair it."""
+    """Image acquisition failed; preserve the per-source diagnostic evidence."""
+
+    def __init__(self, message: str, *, image: str = "", failures: list[dict] | None = None):
+        super().__init__(message)
+        self.image = image
+        self.failures = failures or []
+
+
+class ImageReferenceError(ImageAcquisitionError):
+    """A registry reports an unusable reference; repair only during authoring."""
 
 
 def mirror_hosts(mirrors: list[str]) -> list[str]:
@@ -171,9 +181,11 @@ def acquire_image(
                 raise ImageAcquisitionError(
                     "Configured Docker mirrors require crane; set EVALCLAW_CRANE_EXECUTABLE."
                 )
+            # A missing local image and an unavailable daemon both make inspect
+            # fail. Confirm Docker health before diagnosing registry references.
+            info = json.loads(checked([docker, "info", "--format", "{{json .}}"]).stdout)
             pull_platform = platform
             if not pull_platform:
-                info = json.loads(checked([docker, "info", "--format", "{{json .}}"]).stdout)
                 architecture = {"x86_64": "amd64", "aarch64": "arm64"}.get(info["Architecture"], info["Architecture"])
                 pull_platform = f"{info['OSType']}/{architecture}"
             failures = []
@@ -189,10 +201,13 @@ def acquire_image(
                             env=source_env,
                         )
                     except subprocess.TimeoutExpired:
-                        failures.append(f"{source}: timed out after {timeout_s}s")
+                        failures.append({"source": source, "kind": "timeout", "status": None,
+                                         "codes": [], "detail": f"timed out after {timeout_s}s"})
                         continue
                     if result.returncode:
-                        failures.append(f"{source}: {(result.stderr or result.stdout)[-1500:]}")
+                        failures.append({"source": source, "kind": "unknown", "status": None,
+                                         "codes": [], "exit_code": result.returncode,
+                                         "detail": (result.stderr or result.stdout)[-1500:]})
                         continue
                     # Assign the local name in the archive itself. Docker's
                     # containerd image store uses manifest IDs, whereas the
@@ -226,9 +241,24 @@ def acquire_image(
                         flush=True,
                     )
                     return cached
-            raise ImageAcquisitionError(
+            # Only diagnose once every transfer failed; a working fallback does
+            # not need additional network calls. A killed downloader is not a
+            # registry reference error.
+            for failure in failures:
+                if failure.get("exit_code", 0) > 0:
+                    failure.update(inspect_registry_failure(
+                        failure["source"], image_source_env(failure["source"], env), timeout_s,
+                    ))
+            # Missing references mixed with mirror permission failures can be
+            # returned to the author without claiming global nonexistence. An
+            # unknown/transport/service failure is not evidence to rewrite a task.
+            repairable = any(f["kind"] == "reference" for f in failures) and all(
+                f["kind"] in {"reference", "permission"} for f in failures
+            )
+            error = ImageReferenceError if repairable else ImageAcquisitionError
+            raise error(
                 f"All attempted image sources failed for {image!r}; no direct Docker Hub fallback.\n"
-                + "\n".join(failures)
+                + json.dumps(failures, ensure_ascii=False), image=image, failures=failures,
             )
         except (OSError, subprocess.SubprocessError, ValueError, tarfile.TarError) as exc:
             raise ImageAcquisitionError(f"Could not acquire image {image!r}: {exc}") from exc

@@ -10,7 +10,6 @@ from evalclaw.benchmark import (
     build_suite_from_spec_with_qc_loop,
 )
 from evalclaw.execution.plan import build_execution_plan
-from evalclaw.quality.llm_checks import _stabilize_llm_issue
 from evalclaw.types import (
     AgentEnvironmentType,
     BenchmarkConfig,
@@ -572,70 +571,6 @@ def test_initial_builder_keeps_individual_tasks_across_repairs(monkeypatch, tmp_
         assert [resources[rid] for rid in task.source_definition.resource_ids] == [
             f"https://example.org/source-{index}",
         ]
-
-
-def test_real_partial_credit_evaluator_error_is_not_demoted() -> None:
-    item = BenchmarkItem(
-        id="partial_task",
-        dimension_id="first",
-        task_type=TaskType.agent,
-        prompt="Complete the task.",
-        metadata={
-            "agent_env": {
-                "type": "docker_workspace",
-                "hidden_files": {"evaluate.py": "raise SystemExit(0)"},
-                "test_command": "python3 evaluate.py",
-            }
-        },
-    )
-    issue = QcIssue(
-        item_id=item.id,
-        severity=QcSeverity.error,
-        category=QcCategory.scoring,
-        message=(
-            "The deterministic evaluator returns exit code 0 for partial credit 0.5, "
-            "so partial and pass are indistinguishable."
-        ),
-        suggested_action="Use distinct evaluator results.",
-    )
-
-    stabilized = _stabilize_llm_issue(issue, {item.id: item})
-
-    assert stabilized.severity == QcSeverity.error
-
-
-def test_valid_vm_provider_request_false_positive_is_demoted() -> None:
-    item = BenchmarkItem(
-        id="vm_task",
-        dimension_id="vm",
-        task_type=TaskType.agent,
-        prompt="Repair the prepared workstation.",
-        metadata={
-            "agent_env": {
-                "type": "vm",
-                "requires_vm": True,
-                "vm": {
-                    "guest_os": "windows",
-                    "required_capabilities": ["desktop_bridge", "cloudbase_init_nocloud"],
-                },
-            }
-        },
-    )
-    issue = QcIssue(
-        item_id=item.id,
-        severity=QcSeverity.error,
-        category=QcCategory.schema,
-        message=(
-            "The task has no concrete boot source or externally managed desktop bridge "
-            "endpoint, so there is no resolvable Windows desktop."
-        ),
-        suggested_action="Hard-code a template.",
-    )
-
-    stabilized = _stabilize_llm_issue(issue, {item.id: item})
-
-    assert stabilized.severity == QcSeverity.warning
-    assert "VM Provider resolution request" in stabilized.message
 
 
 def test_qc_repair_replaces_only_failed_task_inside_multi_task_blueprint(monkeypatch) -> None:

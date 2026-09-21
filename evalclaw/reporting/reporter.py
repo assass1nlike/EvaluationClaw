@@ -337,15 +337,20 @@ def build_report(
         score = contamination.conditional_score
         matched = sum(bool(item.matches) for item in contamination.items)
         scored = sum(item.contamination is not None for item in contamination.items)
+        score_scope = "substantive evidence only" if contamination.evidence_policy == "exact_content_v2" else "confirmed matches only"
         lines.extend([
             "### Contamination Resistance", "",
-            f"- Items assessed: {len(contamination.items)}/{contamination.total_item_count}",
+            f"- Items attempted: {len(contamination.items)}/{contamination.total_item_count}",
             f"- Failed assessments: {sum(item.status == 'failed' for item in contamination.items)}; "
             f"not searchable as text: {sum(item.status == 'not_searchable' for item in contamination.items)}",
-            f"- Confirmed overlap: {matched}/{len(contamination.items)}"
-            + (f" ({_pct(fraction)})" if fraction is not None else ""),
-            f"- Conditional score (confirmed matches only): {score:.2f}/5 ({scored} items)"
-            if score is not None else "- Conditional score: not available; no scored confirmed matches.",
+            f"- Insufficient evidence (boilerplate/incidental only): {sum(item.status == 'insufficient_evidence' for item in contamination.items)}; "
+            f"no confirmed match: {sum(item.status == 'no_confirmed_match' for item in contamination.items)}",
+            f"- Items with verified textual overlap (not a contamination rate): {matched}; "
+            + (f"observed fraction in the assessed sample: {_pct(fraction)}" if fraction is not None
+               else "overlap fraction unavailable: unresolved assessments."),
+            f"- Conditional score ({score_scope}): {score:.2f}/5 ({scored} items)"
+            if score is not None else "- Conditional score: not available; insufficient evidence or incomplete judgments.",
+            f"- Evidence policy: {contamination.evidence_policy}. Compare scores together with assessed/scored counts and evidence coverage.",
             f"- Per-item budget: {contamination.max_queries_per_item} queries, "
             f"{contamination.max_sources_per_item} source URLs, {contamination.source_character_limit} characters per document.",
             "- No confirmed match does not establish absence of contamination or training-data membership.",
@@ -354,7 +359,9 @@ def build_report(
         if contamination.max_tool_calls_per_item is not None:
             lines.extend([
                 f"Research-agent budget: {contamination.max_tool_calls_per_item} tool calls per item. "
-                f"Minimum exact overlap: {contamination.min_overlap_chars} characters after whitespace normalization.", "",
+                + (f"Long-passage search hint: {contamination.long_overlap_chars} characters; no minimum evidence length."
+                   if contamination.evidence_policy == "exact_content_v2" else
+                   f"Minimum exact overlap: {contamination.min_overlap_chars} characters after whitespace normalization."), "",
             ])
         for item in contamination.items:
             lines.extend([
@@ -365,6 +372,9 @@ def build_report(
             ])
             if item.contamination is not None:
                 lines.extend([item.contamination.reasoning, ""])
+            for assessment in item.assessments:
+                lines.extend([f"- Match {assessment.match_index}: {assessment.kind}; "
+                              f"score {assessment.score if assessment.score is not None else 'not assigned'}. {assessment.reasoning}"])
             if item.research_summary:
                 lines.extend([item.research_summary, ""])
             if item.stop_reason:
@@ -389,7 +399,7 @@ def build_report(
                 score = contamination.conditional_score
                 rows.append([
                     "Contamination resistance", f"{score:.2f}" if score is not None else "Not assigned",
-                    f"Assessed {len(contamination.items)}/{contamination.total_item_count} items; "
+                    f"Attempted {len(contamination.items)}/{contamination.total_item_count} items; "
                     f"confirmed overlap in {sum(bool(item.matches) for item in contamination.items)}; "
                     f"failed assessments: {sum(item.status == 'failed' for item in contamination.items)}. "
                     "No confirmed match does not establish absence of contamination.",

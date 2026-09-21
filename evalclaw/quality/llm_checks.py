@@ -248,73 +248,6 @@ def _compact_metadata_for_qc(metadata: dict, *, string_limit: int = 1200) -> dic
     return compact
 
 
-def _stabilize_llm_issue(issue: QcIssue, item_by_id: dict[str, BenchmarkItem]) -> QcIssue:
-    """Prevent LLM QC from rejecting intentional sandbox hidden-test design."""
-    if issue.severity != QcSeverity.error or not issue.item_id:
-        return issue
-    item = item_by_id.get(issue.item_id)
-    if not item or item.task_type != TaskType.agent:
-        return issue
-    env = item.metadata.get("agent_env")
-    if not isinstance(env, dict):
-        return issue
-    env_type = str(env.get("type") or "")
-    message = issue.message.lower()
-    if env_type == "vm":
-        vm = env.get("vm")
-        has_provider_request = (
-            bool(env.get("requires_vm"))
-            and isinstance(vm, dict)
-            and bool(vm.get("guest_os") or vm.get("os"))
-            and bool(vm.get("required_capabilities"))
-        )
-        missing_boot_source_claim = any(
-            phrase in message
-            for phrase in (
-                "no concrete boot source",
-                "no resolvable windows desktop",
-                "no resolvable desktop",
-                "externally managed desktop bridge endpoint",
-            )
-        )
-        if has_provider_request and missing_boot_source_claim:
-            return issue.model_copy(
-                update={
-                    "severity": QcSeverity.warning,
-                    "message": (
-                        issue.message
-                        + " Note: a guest OS plus non-empty required_capabilities is a valid "
-                        "VM Provider resolution request; this was demoted from an LLM QC "
-                        "blocking error."
-                    ),
-                }
-            )
-    if env_type != "docker_workspace":
-        return issue
-    if isinstance(env.get("hidden_files"), dict) and env.get("test_command"):
-        false_positive_phrases = (
-            "hidden tests are not visible",
-            "hidden files are not visible",
-            "target cannot access the hidden",
-            "agent cannot access the hidden",
-            "hidden tests are not accessible to the target",
-            "hidden files are not accessible to the target",
-        )
-        if any(phrase in message for phrase in false_positive_phrases):
-            return issue.model_copy(
-                update={
-                    "severity": QcSeverity.warning,
-                    "message": (
-                        issue.message
-                        + " Note: EvaluationClaw runner-private hidden files are executable "
-                        "through test_command after the target agent finishes; this was "
-                        "demoted from an LLM QC blocking error."
-                    ),
-                }
-            )
-    return issue
-
-
 def _llm_qc_sample(suite: TaskSuite, limit: int) -> tuple[list[BenchmarkItem], dict[str, object]]:
     if limit <= 0:
         return [], {"strategy": "disabled", "sample_size": 0}
@@ -446,7 +379,6 @@ def _llm_qc(
                 "max_tokens": DEFAULT_MAX_OUTPUT_TOKENS,
             }
         )
-    item_by_id = {item.id: item for item in suite.tasks}
     attempts: list[dict[str, object]] = []
     if trace is not None:
         trace["attempts"] = attempts
@@ -496,7 +428,7 @@ def _llm_qc(
                     raise ValueError(f"issue #{index} is invalid: {exc}") from exc
                 if not issue.message.strip():
                     raise ValueError(f"issue #{index} has an empty message")
-                issues.append(_stabilize_llm_issue(issue, item_by_id))
+                issues.append(issue)
         except Exception as exc:
             attempts.append(
                 {

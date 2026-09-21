@@ -1,0 +1,57 @@
+{
+  "title": "题目质量比较 · 界面示例",
+  "pairs": [
+    {
+      "id": "demo-reasoning",
+      "requirement": "评估模型能否根据多个约束进行多步推理，并说明推理依据。",
+      "candidates": [
+        {
+          "source": "example-source-1",
+          "task": "甲、乙、丙三人分别参加周一、周二、周三的会议，每天恰好一人。甲不在周一，乙在丙之前。列出所有可能的安排，并解释为什么没有遗漏。",
+          "response": "有三种安排：乙甲丙、乙丙甲、丙乙甲。甲不在周一即可。",
+          "sections": [
+            {"title": "参考答案", "content": "只有两种：周一乙、周二甲、周三丙；周一乙、周二丙、周三甲。若乙在周二，丙须在周三，甲只能在周一，与条件矛盾。因此乙必须在周一，剩余两人均有可能。"},
+            {"title": "评分规则", "content": "两个合法安排各占0.25；说明穷尽性占0.5。加入任何非法安排则安排部分不得分。"}
+          ]
+        },
+        {
+          "source": "example-source-2",
+          "task": "甲在乙之前，乙在丙之前。谁在最前面？",
+          "response": "甲。",
+          "sections": [
+            {"title": "参考答案与评分", "content": "甲。回答正确得1分，否则0分。"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-agent",
+      "requirement": "评估模型能否从项目已有实现中推断未写明的约定，并在扩展代码时保持一致。",
+      "candidates": [
+        {
+          "source": "example-source-1",
+          "task": "阅读已有处理器，为 /health 添加处理器。遵循项目现有约定，并验证行为。",
+          "response": {
+            "final_message": "已经加入健康检查并验证正常。",
+            "trace": [
+              {"tool": "read_file", "path": "handlers.py", "result": "见附件“初始项目文件”。"},
+              {"tool": "write_file", "path": "health.py", "content": "def health():\n    return {'status': 'ok'}\n"}
+            ],
+            "verification": "作答记录中没有测试调用。"
+          },
+          "sections": [
+            {"title": "环境", "content": {"runtime": "Python 3.11", "initial_files": ["handlers.py"], "network": "disabled"}},
+            {"title": "参考答案与评分", "content": "返回结构应为 (200, {'data': {'status': 'ok'}, 'error': None})。验证返回结构、异常处理约定及已有处理器行为。"}
+          ],
+          "artifacts": [{"label": "初始项目文件 handlers.py", "path": "artifacts/handlers.py"}]
+        },
+        {
+          "source": "example-source-2",
+          "task": "请说明如何在没有文档的代码仓库里发现编码约定。",
+          "response": "我会阅读相邻实现、查找测试，并让新代码遵循一致的风格。",
+          "sections": [{"title": "参考答案与评分", "content": "回答包含阅读已有实现、查找测试、保持风格一致三个要点，每项占三分之一。"}]
+        }
+      ]
+    }
+  ]
+}

@@ -1206,6 +1206,16 @@ class ContaminationMatch(BaseModel):
     source_location: str = ""
     task_area: str = "task"
     task_path: str = ""
+    task_excerpt: str = ""
+    overlap_chars: int | None = None
+    task_field_chars: int | None = None
+    task_offset: int | None = None
+    source_offset: int | None = None
+
+    @computed_field
+    @property
+    def task_coverage(self) -> float | None:
+        return self.overlap_chars / self.task_field_chars if self.task_field_chars and self.overlap_chars is not None else None
 
 
 class ContaminationScore(BaseModel):
@@ -1213,13 +1223,28 @@ class ContaminationScore(BaseModel):
     reasoning: str = Field(min_length=1)
 
 
+class ContaminationAssessment(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    match_index: int = Field(ge=1)
+    kind: Literal["substantive", "boilerplate", "incidental"]
+    score: StrictInt | None = Field(default=None, ge=1, le=5)
+    reasoning: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def score_only_substantive_evidence(self):
+        if (self.kind == "substantive") != (self.score is not None):
+            raise ValueError("Only substantive evidence must have a 1–5 score; boilerplate/incidental evidence must have score=null.")
+        return self
+
+
 class ContaminationItemResult(BaseModel):
     item_id: str
-    status: Literal["matched", "no_confirmed_match", "not_searchable", "failed"]
+    status: Literal["matched", "insufficient_evidence", "no_confirmed_match", "not_searchable", "failed"]
     queries: list[str] = Field(default_factory=list)
     checked_urls: list[str] = Field(default_factory=list)
     matches: list[ContaminationMatch] = Field(default_factory=list)
     contamination: ContaminationScore | None = None
+    assessments: list[ContaminationAssessment] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
     research_summary: str = ""
     unresolved_urls: list[str] = Field(default_factory=list)
@@ -1236,17 +1261,23 @@ class ContaminationReport(BaseModel):
     source_character_limit: int
     max_tool_calls_per_item: int | None = None
     min_overlap_chars: int | None = None
+    evidence_policy: str = "legacy_min_chars"
+    long_overlap_chars: int | None = None
     items: list[ContaminationItemResult] = Field(default_factory=list)
     created_at: str = Field(default_factory=utc_now)
 
     @computed_field
     @property
     def confirmed_overlap_fraction(self) -> float | None:
+        if any(not item.matches and item.status != "no_confirmed_match" for item in self.items):
+            return None
         return sum(bool(item.matches) for item in self.items) / len(self.items) if self.items else None
 
     @computed_field
     @property
     def conditional_score(self) -> float | None:
+        if any(item.matches and item.contamination is None and item.status != "insufficient_evidence" for item in self.items):
+            return None
         scores = [item.contamination.score for item in self.items if item.contamination is not None]
         return sum(scores) / len(scores) if scores else None
 
@@ -1352,7 +1383,7 @@ class BenchmarkConfig(BaseModel):
     contamination_max_queries: int = Field(default=100, ge=1)
     contamination_max_sources: int = Field(default=200, ge=1)
     contamination_max_tool_calls: int = Field(default=500, ge=1)
-    contamination_min_overlap_chars: int = Field(default=200, ge=1)
+    contamination_min_overlap_chars: int = Field(default=200, ge=1, description="Legacy name: long-passage search hint, not a minimum length for accepting exact evidence.")
     task_models: list[TargetModelConfig] = Field(
         default_factory=list,
         description=(

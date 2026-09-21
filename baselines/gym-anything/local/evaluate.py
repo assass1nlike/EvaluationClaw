@@ -51,6 +51,10 @@ def main():
     parser.add_argument("--task")
     parser.add_argument("--run", type=Path, required=True)
     parser.add_argument("--worker", action="store_true")
+    parser.add_argument("--prepare-only", action="store_true")
+    parser.add_argument("--validate-only", action="store_true")
+    parser.add_argument("--prepared", type=Path)
+    parser.add_argument("--settings", type=Path)
     args = parser.parse_args()
     run = args.run.resolve()
     if not args.worker:
@@ -59,9 +63,11 @@ def main():
         from local.eval_runtime import BASE_CACHE, check_host, NetworkPreflightError
         while True:
             try:
-                check_host()
+                check_host(check_network=not (args.prepared or args.prepare_only))
                 break
             except NetworkPreflightError:
+                if args.prepared or args.prepare_only:
+                    raise
                 time.sleep(60)
         source = args.source.resolve()
         task = json.loads((source / "tasks" / args.task / "task.json").read_text())
@@ -79,6 +85,13 @@ def main():
             base.unlink()
             base.symlink_to(BASE_CACHE / base.name)
         (run / "workspace").mkdir()
+        settings = json.loads(args.settings.read_text()) if args.settings else {}
+        if settings:
+            if settings['seed'] != 42 or settings['api_retries'] != 3:
+                raise ValueError('This experiment requires seed=42 and api_retries=3')
+            for role in ('target', 'judge'):
+                if settings[role]['thinking'] is not True or settings[role]['reasoning_effort'] != 'high':
+                    raise ValueError('This harness requires thinking enabled and effort high')
         config = dict(env=source.name, source=str(source), task=args.task, seed=42, runner=runner,
                       model="deepseek-flash", thinking=True, reasoning_effort="high",
                       cli_version="2.1.229", agent="ClaudeCodeAgent",
@@ -89,6 +102,23 @@ def main():
                       task_sha256=hashlib.sha256((source / "tasks" / args.task / "task.json").read_bytes()).hexdigest(),
                       verifier_sha256=hashlib.sha256((source / "tasks" / args.task / "verifier.py").read_bytes()).hexdigest(),
                       source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip())
+        if settings:
+            config.update(model=settings['target']['model'], target=settings['target'], judge=settings['judge'],
+                          cli_timeout_sec=settings['cli_timeout_sec'])
+        config['prepare_only'] = args.prepare_only
+        config['validate_only'] = args.validate_only
+        config['initialization_failure_policy'] = 'official'
+        if args.prepared:
+            from local.eval_readiness import source_digest
+            prepared = json.loads((args.prepared / 'software.json').read_text())
+            if prepared['status'] != 'ready' or prepared['source_sha256'] != source_digest(source):
+                raise RuntimeError('Prepared software does not match the source')
+            config.update(use_cache=True, prepared=str(args.prepared.resolve()))
+            if runner == 'qemu':
+                for old in (run / 'qemu_cache').glob('checkpoint*'):
+                    old.unlink()
+                checkpoint = Path(prepared['checkpoint'])
+                (run / 'qemu_cache' / checkpoint.name).symlink_to(checkpoint)
         (run / "config.json").write_text(json.dumps(config, indent=2) + "\n")
         from seed_batch import runtime_command
         environ = dict(os.environ, PYTHONPATH=f"{ROOT / 'src'}:{ROOT}", PYTHONHASHSEED="42",
@@ -114,6 +144,13 @@ def main():
                       GYM_ANYTHING_QEMU_SSH_KEY=str(ROOT / "local/runtime/qemu/ssh/key"),
                       VLM_BACKEND="local", VLM_MODEL=config["model"],
                       VLM_BASE_URL=api["DEEPSEEK_BASE_URL"], VLM_API_KEY=api["DEEPSEEK_API_KEY"])
+    if config.get('prepare_only'):
+        from local.prepare_software import prepare
+        return prepare(run, config)
+    target = config.get('target', {'model': config['model'], 'anthropic_base_url': api['DEEPSEEK_BASE_URL'].rstrip('/') + '/anthropic', 'api_key_env': 'DEEPSEEK_API_KEY'})
+    judge = config.get('judge', {'model': config['model'], 'base_url': api['DEEPSEEK_BASE_URL'], 'api_key_env': 'DEEPSEEK_API_KEY'})
+    os.environ.update(ANTHROPIC_API_KEY=api[target['api_key_env']], ANTHROPIC_BASE_URL=target['anthropic_base_url'],
+                      VLM_MODEL=judge['model'], VLM_BASE_URL=judge['base_url'], VLM_API_KEY=api[judge['api_key_env']])
     import openai
     original_client = openai.OpenAI
 
@@ -122,7 +159,7 @@ def main():
         create = client.chat.completions.create
 
         def configured_create(**params):
-            params.update(model=config["model"], reasoning_effort="high",
+            params.update(model=judge["model"], reasoning_effort="high",
                           extra_body={"thinking": {"type": "enabled"}})
             return create(**params)
 
@@ -142,6 +179,7 @@ def main():
     import agents.agents as registry
     from agents.evaluation import run_single as official
     from local.eval_setup import observe_initialization
+    from local.eval_readiness import observe_prepared_initialization, configure_execution_network
     from contextlib import ExitStack
     evaluate = official.main
     from local.eval_runtime import RecordedDockerSandbox
@@ -149,14 +187,28 @@ def main():
     arguments = ["--env_dir", str(run / "environment"), "--task", config["task"],
                      "--agent", "DeepSeekClaudeCodeAgent", "--agent_args",
                      json.dumps(agent_args), "--seed", "42",
+                     "--vlm_backend", "local", "--vlm_base_url", judge['base_url'], "--vlm_model", judge['model'],
                      *( ["--use_cache"] if config["use_cache"] else [] ),
                      "--cache_level", config["cache_level"], "--verifier_mode", "task", "--verbose"]
     make_env = official._make_env
     with ExitStack() as stack:
         def observed_make_env(args):
-            return stack.enter_context(observe_initialization(make_env(args), run))
+            env = make_env(args)
+            if config.get('prepared'):
+                configure_execution_network(env, config['runner'])
+                return stack.enter_context(observe_prepared_initialization(env, run))
+            return stack.enter_context(observe_initialization(env, run))
         stack.enter_context(patch.object(official, "_make_env", observed_make_env))
         stack.enter_context(patch("agents.shared.cli_harness.select_sandbox", RecordedDockerSandbox))
+        if config.get('validate_only'):
+            env = observed_make_env(official.build_parser().parse_args(arguments))
+            try:
+                observation = env.reset(seed=42, use_cache=True, cache_level='pre_start')
+                (run / 'validation.json').write_text(json.dumps({'status': 'reset_completed', 'screen': observation.get('screen'), 'model_called': False}, default=str, indent=2) + '\n')
+                return 0
+            finally:
+                env._reset_complete = False
+                env.close()
         return evaluate(arguments)
 
 

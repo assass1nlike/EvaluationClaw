@@ -31,6 +31,7 @@ from ..protocols.tool_adapters import (
     tool_adapter_for_target,
 )
 from .components import JsonComponent, asset_bytes
+from .component_contract import scoring_payload
 
 
 class CapabilityMismatch(ValueError):
@@ -496,10 +497,11 @@ class ContractSession:
                     trace_dir=self.directory, trace_name=f"target-{int(self.episode.usage['target_calls']):04d}", **kwargs)
         except LLMOutputTruncatedError as exc:
             self.emit("partial_model_response", "target", exc.raw_response)
-            if limits.target_tokens is None:
-                raise
             self.episode.outputs.append(exc.partial_output or "")
-            raise TaskBudgetExhausted("target_tokens") from exc
+            self.record_target_tokens(exc.raw_response)
+            # A provider's per-response cap can be smaller than the episode
+            # budget. Only recorded spending establishes budget exhaustion.
+            raise
         except TimeoutError as exc:
             if limits.wall_time_seconds is not None and time.monotonic() - self.started >= limits.wall_time_seconds:
                 raise TaskBudgetExhausted("wall_time_seconds") from exc
@@ -635,6 +637,12 @@ class ContractSession:
             self.messages.extend(render_messages(self.item, [message], adapter=self.adapter))
         elif name == "target":
             return self.target_call()
+        elif name == "target_turn":
+            return self.target_turn()[0]
+        elif name == "execute_tool":
+            if action["call_id"] not in self.pending:
+                raise ValueError(f"No pending tool call {action['call_id']}")
+            return self.tool_call(self.pending[action["call_id"]])
         elif name == "actor":
             return {"content": self.actor_call(action["recipient"], action["message"])}
         elif name == "tool_result":
@@ -706,6 +714,21 @@ class ContractSession:
             self.episode.termination = "completed"
         return {"status": "ok"}
 
+    def target_turn(self):
+        """Run one assistant turn, including its actual environment tool loop."""
+        response = self.target_call()
+        terminal_call = None
+        while self.pending:
+            for call in list(self.pending.values()):
+                self.tool_call(call)
+                if self.legacy_environment and self.legacy_environment.done:
+                    terminal_call = call.name
+                    break
+            if self.legacy_environment and self.legacy_environment.done:
+                break
+            response = self.target_call()
+        return response, terminal_call
+
     def run(self):
         protocol = self.protocol.protocol
         try:
@@ -724,17 +747,7 @@ class ContractSession:
                         else:
                             self.messages.extend(render_messages(self.item, [message], adapter=self.adapter))
                         self.emit("input", "task", message.model_dump(mode="json"))
-                    self.target_call()
-                    terminal_call = None
-                    while self.pending:
-                        for call in list(self.pending.values()):
-                            self.tool_call(call)
-                            if self.legacy_environment and self.legacy_environment.done:
-                                terminal_call = call.name
-                                break
-                        if self.legacy_environment and self.legacy_environment.done:
-                            break
-                        self.target_call()
+                    _, terminal_call = self.target_turn()
                     if self.legacy_environment and self.legacy_environment.done:
                         env = self.legacy_environment
                         if (protocol == "dialogue" and terminal_call == "final"
@@ -798,8 +811,8 @@ class ContractSession:
                 break
 
     def legacy_evidence(self, payload):
-        from .evidence import EVALUATOR_EVIDENCE_SCHEMA
         from ..protocols.submission import submission_contract
+        from .evidence import EVALUATOR_EVIDENCE_SCHEMA
         return {"schema_version": EVALUATOR_EVIDENCE_SCHEMA, "item_id": self.item.id,
                 "submission_contract": submission_contract(self.item),
                 "target_execution": {"final_response": getattr(self.legacy_environment, "final_answer", "") or (self.episode.outputs[-1] if self.episode.outputs else ""),
@@ -825,7 +838,9 @@ class ContractSession:
         adapter = tool_adapter_for_target(model)
         history = [{"role": "user", "content": "Begin the interaction. End it with the end action when finished."}]
         tools = [ToolSpec(name="control", description="Execute one authorized control action. "
-            "message: message(role/content); target: invoke target; tool_result: call_id/content; "
+            "message: message(role/content); target: one response, leaving tools pending; "
+            "target_turn: full response/tool loop; execute_tool: call_id (execute a pending target tool); "
+            "tool_result: call_id/content (simulate a pending tool result); "
             "register_tools: tools; reset_session: session/messages; checkpoint: id/scopes; "
             "restore: id; branch: id/branch; tool_call: call(id/name/arguments); end: finish.",
             parameters={"type": "object", "properties": {"action": {"type": "string", "enum": self.protocol.controller_actions}},
@@ -885,20 +900,7 @@ class ContractSession:
         evaluation = self.item.evaluation
         references = {r.id: r for r in evaluation.references}
         for scorer in evaluation.scorers:
-            evidence = self.episode.model_dump(mode="json")
-            evidence["metrics"] = [m for m in evidence["metrics"] if m["metric"] in scorer.depends_on]
-            evidence["events"] = [e for e in evidence["events"] if e["origin"] != "judge"]
-            if self.episode.bindings.get("purpose") == "scripted_trial":
-                for event in evidence["events"]:
-                    if event["origin"] == "trial_target":
-                        event["origin"] = "target"
-                evidence["bindings"]["purpose"] = "scripted_trial"
-            payload = {"task": self.item.model_dump(mode="json"), "episode": evidence,
-                       "references": [references[r].model_dump(mode="json") for r in scorer.references]}
-            from ..protocols.submission import submission_contract
-            contract = submission_contract(self.item)
-            if contract:
-                payload["submission_contract"] = contract
+            payload = scoring_payload(self.item, scorer, self.episode)
             self.emit("scoring_started", "judge", {"scorer": scorer.id})
             try:
                 if scorer.kind in {"exact", "json"}:
@@ -1004,37 +1006,34 @@ class ContractSession:
         return call_judge_model(call_target_model_with_tools, *args, **kwargs)
 
     def judge_response(self, scorer, payload):
-        from .errors import JudgeResponseError
-        history = [{"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
-        prompt = (scorer.instructions + '\nReturn JSON: {"metrics":[{"metric":"declared id","value":0,"reason":"..."}]}. '
-                  + json.dumps([m.model_dump() for m in self.item.evaluation.metrics if m.id in scorer.metrics]))
-        for attempt in range(3):
-            response = self.judge_call(history, self.model_binding("judge"), [], system_prompt=prompt,
-                backend=self.config.llm_backend, failover=self.config.failover_endpoint,
-                trace_dir=self.directory, trace_name=f"judge-{scorer.id}-{attempt}")
-            self.emit("model_response", "judge", response.raw_response)
-            try:
-                raw = extract_json(response.content)
-                self.validate_metrics(scorer, raw)
-                return raw
-            except (ValueError, TypeError, KeyError, jsonschema.ValidationError) as exc:
-                if attempt == 2:
-                    raise JudgeResponseError(f"Judge response validation failed: {exc}") from exc
-                history.extend([response.assistant_message, {"role": "user", "content": f"Repair your scoring output: {exc}"}])
+        return self.judge_agent(scorer, payload, explore=False)
 
-    def judge_agent(self, scorer, payload):
-        from ..protocols.task_view import definition_view
+    def judge_agent(self, scorer, payload, *, explore=True):
+        from ..protocols.task_view import definition_data
         from .errors import JudgeResponseError
+        from .judge_evidence import evidence_page, evidence_view
         model = self.model_binding("judge")
         adapter = tool_adapter_for_target(model)
+        episode = payload["episode"]
         history = [{"role": "user", "content": json.dumps({
-            "task": definition_view(self.item), "metrics": [m.model_dump(mode="json") for m in self.item.evaluation.metrics if m.id in scorer.metrics],
-            "episode_summary": {"termination": self.episode.termination, "outputs": self.episode.outputs,
-                                "usage": self.episode.usage, "artifacts": self.episode.artifacts},
+            "metrics": [m.model_dump(mode="json") for m in self.item.evaluation.metrics if m.id in scorer.metrics],
+            "outputs": evidence_view(episode["outputs"], "/episode/outputs", budget=16000),
+            "references": evidence_view(payload["references"], "/references", budget=16000),
+            "task": evidence_view(definition_data(self.item), "/task", budget=24000),
+            "final_messages": evidence_view(episode["final_messages"], "/episode/final_messages", budget=12000),
+            "submission_contract": evidence_view(payload.get("submission_contract"), "/submission_contract", budget=4000),
+            "episode_summary": {"termination": episode["termination"], "usage": episode["usage"],
+                "metrics": episode["metrics"], "events": len(episode["events"]),
+                "artifacts": evidence_view({k: {field: v[field] for field in ("sha256", "media_type", "size", "path") if field in v}
+                              if isinstance(v, dict) else {"type": type(v).__name__} for k, v in episode["artifacts"].items()},
+                              "/episode/artifacts", budget=8000)},
+            "complete_evidence": {"tool": "read_evidence", "roots": list(payload),
+                "note": "Views may be excerpts. Read JSON Pointer paths into the original evidence; /episode/events contains target actions and /episode/final_messages the full conversation. Artifacts can be read separately by name. Missing detail in a preview is not absent evidence."},
         }, ensure_ascii=False)}]
         tools = [ToolSpec(name="read_evidence", description="Read a page of episode evidence, complete task definition, declared asset, or exported file.",
             parameters={"type": "object", "properties": {"artifact": {"type": "string"},
                 "source": {"type": "string", "enum": ["episode", "task", "asset"]}, "asset_id": {"type": "string"},
+                "path": {"type": "string", "description": "JSON Pointer into complete scoring evidence, e.g. /episode/events/12 or /references/0/value. Overrides source."},
                 "offset": {"type": "integer", "minimum": 0}}, "additionalProperties": False})]
         reviewer = None
         sandbox = None
@@ -1042,13 +1041,13 @@ class ContractSession:
         if self.legacy_environment and hasattr(self.legacy_environment, "_container_name"):
             env = self.legacy_environment
             workspace = (env.docker_executable, env._container_name, env.workdir)
-        if workspace:
+        if explore and workspace:
             from .judge_sandbox import JudgeSandbox
             sandbox = JudgeSandbox(*workspace)
             sandbox.__enter__()
             tools.append(ToolSpec(name="review_command", description="Inspect the submitted Docker filesystem in an isolated reviewer snapshot; does not change target evidence.",
                 parameters={"type": "object", "properties": {"command": {"type": "string"}}, "required": ["command"], "additionalProperties": False}))
-        if isinstance(self.item.environment, ServiceEnvironment) and "inspect" in self.item.environment.capabilities:
+        if explore and isinstance(self.item.environment, ServiceEnvironment) and "inspect" in self.item.environment.capabilities:
             reviewer = self.component(self.item.environment.service, artifacts=self.episode.artifacts, origin="judge")
             tools.append(ToolSpec(name="inspect_state", description="Explore an isolated copy of exported state as reviewer. Your operations are not target actions.",
                 parameters={"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"], "additionalProperties": False}))
@@ -1087,21 +1086,22 @@ class ContractSession:
                         if call.name == "read_evidence":
                             name = call.arguments.get("artifact")
                             if name:
-                                artifact = self.episode.artifacts[name]
+                                artifact = episode["artifacts"][name]
                                 data = base64.b64decode(artifact["base64"], validate=True) if "base64" in artifact else Path(artifact["path"]).read_bytes()
                                 if hashlib.sha256(data).hexdigest() != artifact["sha256"]:
                                     raise ValueError("Artifact digest changed")
                                 text = data.decode("utf-8")
-                            elif call.arguments.get("source") == "task":
-                                text = json.dumps(payload["task"], ensure_ascii=False)
                             elif call.arguments.get("source") == "asset":
                                 asset = next(a for a in self.item.assets if a.id == call.arguments["asset_id"])
                                 text = asset_bytes(asset).decode("utf-8")
                             else:
-                                text = json.dumps(payload["episode"], ensure_ascii=False)
+                                path = call.arguments.get("path", "/" + call.arguments.get("source", "episode"))
+                                result = evidence_page(payload, path, call.arguments.get("offset", 0))
+                                text = None
                             offset = call.arguments.get("offset", 0)
-                            result = {"content": text[offset:offset + 30000], "total_chars": len(text),
-                                      "next_offset": offset + 30000 if offset + 30000 < len(text) else None}
+                            if text is not None:
+                                result = {"content": text[offset:offset + 30000], "total_chars": len(text),
+                                          "next_offset": offset + 30000 if offset + 30000 < len(text) else None}
                         elif call.name == "review_command":
                             proc = sandbox.command(call.arguments["command"], 120)
                             result = {"returncode": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr}

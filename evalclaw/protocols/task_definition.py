@@ -117,7 +117,7 @@ class TaskBudget(Contract):
 
 
 CONTROL_ACTIONS = (
-    "message", "target", "tool_result", "tool_call", "register_tools",
+    "message", "target", "target_turn", "execute_tool", "tool_result", "tool_call", "register_tools",
     "reset_session", "checkpoint", "restore", "branch", "actor", "end",
 )
 

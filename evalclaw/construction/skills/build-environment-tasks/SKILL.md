@@ -48,6 +48,9 @@ an incomplete result paired with truthful and false reports; a quoted rejection 
 consent; or early submission with and without preventing a deferred consequence. Expected outcomes
 come from the public task requirements, not the scorer's current output. Use fresh trials and do
 not repair the trial fixture to make it pass. There is no requirement to run every kind of check.
+For a reference repair or numerical oracle, independently check the reported symptom and nearby
+boundary cases; matching a private patch is not proof of correctness. Include a valid alternative
+when the checker assumes one interface spelling or file layout that the public task leaves open.
 
 EvaluationClaw derives canonical `metadata.agent_env`, `metadata.task_agent`, and `metadata.agent_task_package` records from the returned task fields during packaging. Do not duplicate those protocol objects manually unless the TaskDesign explicitly requires a protocol extension that cannot be expressed through `environment`, `system_prompt`, `interaction`, `scoring`, or ordinary task metadata.
 

@@ -8,14 +8,30 @@ the same author session and budget. No human edits delivered tasks.
 
 settings.json fixes goals, counts, model endpoints, reasoning, worker counts,
 budgets, seed, native target role capabilities and quality metrics. Author,
-task-model and LaaJ calls share a minimum 2.1-second spacing (at most 29 starts
-per rolling 60 seconds), including retries and all concurrent processes.
+task-model and LaaJ calls share a per-credential request spacing, including
+retries and all concurrent processes. `request_spacing_seconds` defaults to
+2.1. `key_pools` maps a role's credential environment variable to a list of
+interchangeable credential environment variables for its endpoint. Requests
+select the earliest available key; each actual key retains its own quota even
+when multiple roles or environment-variable aliases use it. For two independent
+keys capped at 50 RPM each, use 1.21-second spacing for a small timing margin.
+Logs record the selected environment variable name, never the credential.
+The shared gateway checks every reported response model against the requested
+model before delivering output. Missing or inconsistent identities discard the
+response and retry, with at most `model_identity_attempts` attempts (default 3).
+Each attempt records reported identities and remains subject to the shared
+rate limit. Streams are buffered until validation completes, so callers receive
+output only after the full upstream response. Exhaustion returns an error.
+This checks provider metadata; it cannot independently verify model weights.
 evaluation_model selects the target; task_model selects actors, controllers,
 graders and program model callbacks; laaj_model selects quality reviewers.
 Each has a separate credential environment variable. If either auxiliary model
 is omitted, it uses evaluation_model and evaluation_key_env for legacy configs.
 The target calls its endpoint directly. Correctness and faithfulness are per
-task; diversity compares the suite.
+task; diversity compares the same sample. `laaj_sample_size` defaults to all
+tasks; when set, sampling is uniform without replacement using the experiment
+seed. `evaluation/laaj-sampling.json` records the population size and selected
+IDs. Sampling never reduces the target's task set or filters by target results.
 Contamination is optional and disabled in the acceptance pilot. No Analyser.
 
 source/ and snapshot.json freeze executable code, author instructions, hashes,
@@ -37,8 +53,8 @@ Evaluation prepares declared dependencies and pins the loaded runtime view to
 image IDs; evaluation/prepared-suite.json and images.json record that binding.
 The original bundle remains unchanged. Author cases are replayed if supplied;
 failure is recorded without silently rewriting the task or selecting it out.
-The target then answers compatible tasks and LaaJ reviews the full imported
-suite, including tasks with unsupported target bindings.
+The target then answers compatible tasks. The LaaJ sampling population includes
+all imported tasks, including tasks with unsupported target bindings.
 
 Every requested job remains in summary.json, including author timeout, wrong
 count, conversion failure, dependency preparation failure, incompatibility or

@@ -2,16 +2,19 @@
 from contextlib import closing
 from pathlib import Path
 import subprocess
+from typing import Literal
 
 import jsonschema
 from pydantic import Field
 
 from ..execution.components import JsonComponent
-from ..execution.component_contract import validate_metrics
+from ..execution.component_contract import scoring_payload, validate_metrics
 from ..execution.docker import docker_subprocess_env, resolve_docker_executable
 from ..execution.docker_images import build_docker_image_from_context, build_docker_image_if_requested
 from ..execution.image_acquisition import acquire_image, configured_mirrors
-from ..protocols.task_definition import Contract, ServiceEnvironment
+from ..protocols.task_definition import Contract, EpisodeRecord, ServiceEnvironment, TrialResponse
+from ..execution.task_runtime import ContractSession
+from ..types import BenchmarkConfig, TargetModelConfig
 from .schema import Benchmark
 
 
@@ -122,15 +125,64 @@ class Case(Contract):
     calls: list[Call] = Field(min_length=1)
 
 
-def exercise(suite, cases):
+class EpisodeCase(Contract):
+    task: str
+    component: Literal["episode"]
+    responses: list[TrialResponse] = Field(min_length=1)
+    expected_termination: Literal["completed", "budget_exhausted"] = "completed"
+
+
+class ScriptedSession(ContractSession):
+    """Protocol checks cannot invoke target or auxiliary model endpoints."""
+
+    def component_model(self, request):
+        raise ValueError("Episode tests cannot invoke auxiliary models; use component cases for model-dependent paths")
+
+    def actor_call(self, *args, **kwargs):
+        raise ValueError("Episode tests cannot invoke actor models")
+
+    def run_model_controller(self):
+        raise ValueError("Episode tests require scripted turns or a program controller")
+
+
+def exercise_episode(task, case, config):
+    if task.content.operation != "generate":
+        raise ValueError("Scripted episode tests cannot substitute for continuation likelihood")
+    with closing(ScriptedSession(task, config, config.targets[0])) as session:
+        session.prepare()
+        session.episode.bindings["purpose"] = "scripted_trial"
+        session.trial_responses = iter(case.responses)
+        try:
+            session.run()
+            if next(session.trial_responses, None) is not None:
+                raise ValueError("Episode ended before consuming all supplied responses")
+            if session.pending:
+                raise ValueError("Episode ended with unresolved target tool calls")
+            if session.episode.termination != case.expected_termination:
+                raise ValueError(f"Unexpected termination: {session.episode.termination}")
+            return {"status": "passed", "episode": session.episode.model_dump(mode="json")}
+        except Exception as exc:
+            return {"status": "failed", "error": f"{type(exc).__name__}: {exc}",
+                    "episode": session.episode.model_dump(mode="json")}
+
+
+def exercise(suite, cases, *, config=None):
     """Each case has fresh state; calls within it share a real component process."""
-    cases = [Case.model_validate(case) for case in cases]
+    cases = [(EpisodeCase if case.get("component") == "episode" else Case).model_validate(case) for case in cases]
+    if config is None:
+        target = TargetModelConfig(id="scripted", model="scripted", provider="openai_compatible",
+                                  supported_message_roles=["system", "developer", "user", "assistant", "tool"])
+        config = BenchmarkConfig(targets=[target], task_models=[target], actor_model="scripted")
     specs = {(task, name): spec for task, name, spec in components(suite)}
     tasks = {task.id: task for task in suite.tasks}
     reports = []
     for case in cases:
         report = {"task": case.task, "component": case.component, "calls": [], "status": "passed"}
         try:
+            if isinstance(case, EpisodeCase):
+                report.update(exercise_episode(tasks[case.task], case, config))
+                reports.append(report)
+                continue
             spec = specs[(case.task, case.component)]
             task = tasks.get(case.task)
             assets = task.assets if task else [a for t in suite.tasks for a in t.assets]
@@ -138,11 +190,23 @@ def exercise(suite, cases):
                 for call in case.calls:
                     entry = {"method": call.method}
                     report["calls"].append(entry)
-                    result = component.call(call.method, call.params)
-                    entry["result"] = result
+                    params = call.params
                     if call.method == "score" and task:
                         scorer = next(s for s in task.evaluation.scorers
                                       if s.id == case.component or (case.component == "environment" and s.kind == "environment"))
+                        episode = EpisodeRecord.model_validate({"task_id": task.id, "task_digest": "",
+                                                                **params.get("episode", {})})
+                        if episode.task_id != task.id:
+                            raise ValueError("Score case episode.task_id must match the selected task")
+                        payload = scoring_payload(task, scorer, episode)
+                        for key, value in params.items():
+                            if key != "episode" and (key not in payload or value != payload[key]):
+                                raise ValueError(f"Score case params.{key} differs from runtime input; "
+                                                 "provide only episode; task and references are supplied by the runner")
+                        params = payload
+                    result = component.call(call.method, params)
+                    entry["result"] = result
+                    if call.method == "score" and task:
                         validate_metrics(scorer, result, task.evaluation.metrics)
                     jsonschema.validate(result, call.result_schema)
         except Exception as exc:

@@ -263,7 +263,7 @@ def generate(
     contamination_max_queries: int = typer.Option(100, "--contamination-max-queries", min=1, help="Maximum search queries per contamination item."),
     contamination_max_sources: int = typer.Option(200, "--contamination-max-sources", min=1, help="Maximum distinct URLs explored per contamination item."),
     contamination_max_tool_calls: int = typer.Option(500, "--contamination-max-tool-calls", min=1, help="Total research-agent tool budget per contamination item."),
-    contamination_min_overlap_chars: int = typer.Option(200, "--contamination-min-overlap-chars", min=1, help="Minimum consecutive exact-overlap characters after whitespace normalization."),
+    contamination_min_overlap_chars: int = typer.Option(200, "--contamination-long-overlap-chars", "--contamination-min-overlap-chars", min=1, help="Long-passage search hint after whitespace normalization; shorter exact evidence is also accepted. The min-overlap spelling is a legacy alias."),
     use_llm_qc: bool = typer.Option(True, "--use-llm-qc/--no-llm-qc", help="Enable LLM-based QC review (on by default when a QC model is configured)."),
     ablation_simplified_contract: bool = typer.Option(
         False,

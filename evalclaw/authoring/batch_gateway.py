@@ -2,6 +2,8 @@
 import json
 import os
 import secrets
+import shutil
+import tempfile
 from pathlib import Path
 import threading
 import time
@@ -23,6 +25,38 @@ def save(path, value):
     temporary.replace(path)
 
 
+def response_models(stream, content_type):
+    """Read provider identity fields without inspecting generated content."""
+    models = set()
+
+    def observe(value):
+        if not isinstance(value, dict):
+            return
+        for obj in (value, value.get("response")):
+            if isinstance(obj, dict) and isinstance(obj.get("model"), str):
+                models.add(obj["model"])
+
+    stream.seek(0)
+    if "text/event-stream" in content_type:
+        data = []
+        def event():
+            raw = b"\n".join(data).strip()
+            if raw and raw != b"[DONE]":
+                observe(json.loads(raw))
+            data.clear()
+        for line in stream:
+            line = line.rstrip(b"\r\n")
+            if not line:
+                event()
+            elif line.startswith(b"data:"):
+                data.append(line[5:].lstrip(b" "))
+        event()
+    else:
+        observe(json.load(stream))
+    stream.seek(0)
+    return models
+
+
 class Gateway(ThreadingHTTPServer):
     def __init__(self, root, settings, tokens):
         self.root, self.settings, self.tokens = root, settings, tokens
@@ -30,8 +64,20 @@ class Gateway(ThreadingHTTPServer):
         self.rate_lock = threading.Lock()
         self.log_lock = threading.Lock()
         self.job_locks = {job: threading.Lock() for job in tokens.values()}
-        self.last = 0.
+        self.last_by_key = {}
         super().__init__((settings.gateway_host, 0), Handler)
+
+    def acquire_key(self, key_env):
+        candidates = [(name, os.environ[name]) for name in self.settings.key_pools.get(key_env, [key_env])]
+        while True:
+            with self.rate_lock:
+                name, key = min(candidates, key=lambda candidate: self.last_by_key.get(candidate[1], float("-inf")))
+                now = time.monotonic()
+                delay = self.last_by_key.get(key, float("-inf")) + self.settings.request_spacing_seconds - now
+                if delay <= 0:
+                    self.last_by_key[key] = now
+                    return name, key, time.time()
+            time.sleep(delay)
 
     def evaluation_bindings(self, job):
         bindings = {}
@@ -84,7 +130,7 @@ class Gateway(ThreadingHTTPServer):
                         cases = request.get("cases")
                         if not isinstance(cases, list):
                             raise ValueError("exercise requires a JSON list of calls in cases")
-                        result = exercise(suite, cases)
+                        result = exercise(suite, cases, config=config)
             except Exception as exc:
                 result = {"status": "invalid", "error": f"{type(exc).__name__}: {exc}"}
             save(attempt / "request.json", request)
@@ -140,35 +186,48 @@ class Handler(BaseHTTPRequestHandler):
         if payload.get("model") != model_name:
             self.send_error(400, "Model differs from frozen experiment configuration")
             return
-        with self.server.rate_lock:
-            time.sleep(max(0, self.server.last + settings.request_spacing_seconds - time.monotonic()))
-            self.server.last = time.monotonic()
-            started = time.time()
-        entry = {"job": job, "role": role, "started": started, "model": payload.get("model"),
-                 "reasoning": payload.get("reasoning", {"effort": payload.get("reasoning_effort")}),
-                 "request_bytes": len(body)}
-        headers_sent = False
-        try:
-            with httpx.Client(timeout=600, proxy=settings.proxy, trust_env=False) as client:
-                with client.stream("POST", base_url.rstrip("/") + suffix, content=body,
-                    headers={"Authorization": "Bearer " + os.environ[key_env],
-                             "Content-Type": "application/json"}) as response:
-                    entry["status"] = response.status_code
-                    self.send_response(response.status_code)
-                    self.send_header("Content-Type", response.headers.get("content-type", "application/json"))
-                    self.send_header("Connection", "close")
-                    self.end_headers()
-                    headers_sent = True
-                    for chunk in response.iter_bytes():
-                        self.wfile.write(chunk)
+        for attempt in range(1, settings.model_identity_attempts + 1):
+            selected_env, api_key, started = self.server.acquire_key(key_env)
+            entry = {"job": job, "role": role, "started": started, "model": model_name,
+                     "attempt": attempt, "credential_env": selected_env,
+                     "reasoning": payload.get("reasoning", {"effort": payload.get("reasoning_effort")}),
+                     "request_bytes": len(body)}
+            headers_sent = False
+            try:
+                with httpx.Client(timeout=600, proxy=settings.proxy, trust_env=False) as client:
+                    with client.stream("POST", base_url.rstrip("/") + suffix, content=body,
+                        headers={"Authorization": "Bearer " + api_key,
+                                 "Content-Type": "application/json"}) as response, tempfile.TemporaryFile() as buffered:
+                        entry["status"] = response.status_code
+                        content_type = response.headers.get("content-type", "application/json")
+                        # Validate the entire stream before exposing any content or
+                        # tool calls: a later event can contradict an earlier model.
+                        for chunk in response.iter_bytes():
+                            buffered.write(chunk)
+                        buffered.seek(0)
+                        if response.is_success:
+                            models = response_models(buffered, content_type)
+                            entry["reported_models"] = sorted(models)
+                            if models != {model_name}:
+                                entry["error"] = "model_identity_mismatch"
+                                continue
+                        self.send_response(response.status_code)
+                        self.send_header("Content-Type", content_type)
+                        self.send_header("Connection", "close")
+                        self.end_headers()
+                        headers_sent = True
+                        shutil.copyfileobj(buffered, self.wfile)
                         self.wfile.flush()
-        except Exception as exc:
-            entry["error"] = type(exc).__name__ + ": " + str(exc)
-            if not headers_sent:
-                self.send_error(502, "Upstream connection failed")
-        finally:
-            entry["seconds"] = time.time() - started
-            self.server.log(entry)
+                        return
+            except Exception as exc:
+                entry["error"] = type(exc).__name__ + ": " + str(exc)
+                if not headers_sent:
+                    self.send_error(502, "Upstream connection failed")
+                return
+            finally:
+                entry["seconds"] = time.time() - started
+                self.server.log(entry)
+        self.send_error(502, "Upstream model identity mismatch after retry limit")
 
 
 # Installed inside the author container; never expose Docker sockets or real keys.

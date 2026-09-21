@@ -28,6 +28,30 @@ def _config(**kwargs):
     return BenchmarkConfig(laaj_model="judge", laaj_api_key="dummy", **kwargs)
 
 
+@pytest.mark.parametrize("unknown_status", ["failed", "not_searchable"])
+def test_unresolved_search_cannot_report_zero_overlap(unknown_status):
+    report = ContaminationReport(model="judge", search_backend="gemini", total_item_count=2,
+        max_queries_per_item=10, max_sources_per_item=10, source_character_limit=1000,
+        items=[ContaminationItemResult(item_id="valid", status="no_confirmed_match"),
+               ContaminationItemResult(item_id="unknown", status=unknown_status)])
+    assert report.confirmed_overlap_fraction is None
+    assert report.conditional_score is None
+    report.items[1].status = "no_confirmed_match"
+    assert report.confirmed_overlap_fraction == 0
+
+
+def test_incomplete_matched_judgments_do_not_average_only_successful_scores():
+    from evalclaw.types import ContaminationMatch, ContaminationScore
+    match = ContaminationMatch(url="https://source.example", task_quote=PASSAGE, source_excerpt=PASSAGE)
+    report = ContaminationReport(model="judge", search_backend="gemini", total_item_count=2,
+        max_queries_per_item=10, max_sources_per_item=10, source_character_limit=1000,
+        items=[ContaminationItemResult(item_id="scored", status="matched", matches=[match],
+                                      contamination=ContaminationScore(score=5, reasoning="independent core")),
+               ContaminationItemResult(item_id="judge_failed", status="failed", matches=[match])])
+    assert report.confirmed_overlap_fraction == 1
+    assert report.conditional_score is None
+
+
 def _task_suite():
     suite = _suite()
     suite.tasks = suite.tasks[:1]
@@ -39,13 +63,16 @@ def _call(name, **args):
     return ToolCall(id=name, name=name, arguments=args)
 
 
-def _model(monkeypatch, steps, score=2):
+def _model(monkeypatch, steps, score=2, judgments=None):
     remaining = iter(steps)
     calls = []
     def model(messages, **kwargs):
         calls.append({"messages": list(messages), **kwargs})
         if kwargs["system_prompt"] == module.CONTAMINATION_JUDGE_PROMPT:
-            content = json.dumps({"score": score, "reasoning": "The cited original source exposes the solution."})
+            request = json.loads(messages[0]["content"])
+            content = json.dumps({"assessments": judgments if judgments is not None else [
+                {"match_index": m["match_index"], "kind": "substantive", "score": score,
+                 "reasoning": "The cited original source exposes the solution."} for m in request["matches"]]})
             tool_calls = []
         else:
             step = next(remaining)
@@ -139,12 +166,12 @@ def test_pdf_extraction(tmp_path):
     assert tool_module.normalize(tool_module._document_text(pdf, tmp_path)) == PASSAGE
 
 
-@pytest.mark.parametrize("invalid", ["short", "case_changed", "invented", "source_missing"])
-def test_only_substantial_exact_original_overlap_is_confirmed(tmp_path, invalid):
+@pytest.mark.parametrize("invalid", ["empty", "case_changed", "invented", "source_missing"])
+def test_only_exact_original_overlap_is_confirmed(tmp_path, invalid):
     result = ContaminationItemResult(item_id="item_1", status="no_confirmed_match")
     tools = tool_module.ContaminationResearchTools(_task_suite().tasks[0], _config(), result, tmp_path)
     source_id = tools._register("https://source.example", "unrelated" if invalid == "source_missing" else PASSAGE)
-    text = {"short": "The observatory", "case_changed": PASSAGE.upper(), "invented": "Invented " * 50}.get(invalid, PASSAGE)
+    text = {"empty": " \n ", "case_changed": PASSAGE.upper(), "invented": "Invented " * 50}.get(invalid, PASSAGE)
     assert tools.dispatch(_call("confirm_overlap", source_id=source_id, text=text)).error
     assert not result.matches
 
@@ -169,6 +196,71 @@ def test_agent_file_match_and_no_search_summary_shortcut(monkeypatch, tmp_path):
     assert len(report.items[0].matches) == 1
     assert report.items[0].matches[0].task_path == "brief.md"
     assert report.items[0].limitations
+
+
+def test_short_question_records_exact_locations_and_coverage_and_deduplicates(tmp_path):
+    item = _task_suite().tasks[0]
+    item.prompt = "Which marker identifies B-cell lymphomas?"
+    result = ContaminationItemResult(item_id=item.id, status="no_confirmed_match")
+    tools = tool_module.ContaminationResearchTools(item, _config(contamination_min_overlap_chars=1000), result, tmp_path)
+    source = tools._register("https://source.example/question", "Question: " + item.prompt + " Answer: CD20.")
+    assert not tools.dispatch(_call("confirm_overlap", source_id=source, text=item.prompt)).error
+    match = result.matches[0]
+    assert match.overlap_chars == match.task_field_chars == len(item.prompt)
+    assert match.task_coverage == 1 and match.task_offset == 0 and match.source_offset == 10
+    assert match.task_path and match.task_excerpt == item.prompt
+    # Whitespace variants and a different selector for the same source passage are one record.
+    duplicate = tools.dispatch(_call("confirm_overlap", source_id=source,
+                                    text=item.prompt.replace(" ", "\n"), area="task", path=match.task_path))
+    assert not duplicate.error and json.loads(duplicate.content)["duplicate"] is True
+    assert len(result.matches) == 1
+
+
+@pytest.mark.parametrize("kind", ["boilerplate", "incidental"])
+def test_irrelevant_overlap_is_unscored_without_blocking_other_items(monkeypatch, tmp_path, kind):
+    _model(monkeypatch, [[_call("fetch_url", url="https://source.example")],
+                        [_call("confirm_overlap", source_id="source_1", text=PASSAGE)], _done()],
+           judgments=[{"match_index": 1, "kind": kind, "score": None, "reasoning": "No specific problem or substantive material is identified."}])
+    monkeypatch.setattr(tool_module, "fetch_url_text", lambda *a, **k: PASSAGE)
+    report = module.evaluate_contamination("Goal", _task_suite(), _config(), trace_dir=tmp_path, log=lambda _: None)
+    result = report.items[0]
+    assert result.status == "insufficient_evidence" and result.contamination is None
+    assert result.assessments[0].kind == kind and result.matches
+    assert report.conditional_score is None
+    from evalclaw.types import ContaminationScore
+    report.items.append(ContaminationItemResult(item_id="substantive", status="matched",
+        contamination=ContaminationScore(score=2, reasoning="Specific solution exposed.")))
+    assert report.conditional_score == 2
+    assert report.evidence_policy == "exact_content_v2" and report.min_overlap_chars is None
+
+
+def test_strongest_substantive_evidence_not_diluted_by_material_or_boilerplate(monkeypatch):
+    steps = []
+    for i in range(1, 4):
+        steps.extend([[_call("fetch_url", url=f"https://source{i}.example")],
+                      [_call("confirm_overlap", source_id=f"source_{i}", text=PASSAGE)]])
+    judgments = [
+        {"match_index": 1, "kind": "substantive", "score": 5, "reasoning": "Shared data but a new analysis problem."},
+        {"match_index": 2, "kind": "boilerplate", "score": None, "reasoning": "Common setup template."},
+        {"match_index": 3, "kind": "substantive", "score": 1, "reasoning": "This source gives the complete solution."},
+    ]
+    _model(monkeypatch, [*steps, _done()], judgments=judgments)
+    monkeypatch.setattr(tool_module, "fetch_url_text", lambda *a, **k: PASSAGE)
+    report = module.evaluate_contamination("Goal", _task_suite(), _config(), log=lambda _: None)
+    assert report.items[0].status == "matched" and report.conditional_score == 1
+    assert report.items[0].assessments[2].score == 1
+
+
+@pytest.mark.parametrize("judgments", [
+    [],
+    [{"match_index": 2, "kind": "substantive", "score": 1, "reasoning": "Wrong source index"}],
+    [{"match_index": 1, "kind": "boilerplate", "score": 5, "reasoning": "Invalid high score"}],
+    [{"match_index": 1, "kind": "substantive", "score": None, "reasoning": "Missing score"}],
+    [{"match_index": 1, "kind": "incidental", "score": None, "reasoning": "Duplicate"}] * 2,
+])
+def test_judge_must_classify_every_verified_match_once(judgments):
+    with pytest.raises(ValueError):
+        module._validate_judgments({"assessments": judgments}, 1)
 
 
 def test_budget_answers_all_tool_ids_and_allows_final_summary(monkeypatch, tmp_path):

@@ -122,6 +122,42 @@ def test_builder_build_timeout_is_fatal(monkeypatch, build_context):
         )
 
 
+def test_builder_can_repair_missing_base_without_pulling_failed_custom_image(monkeypatch, build_context):
+    from evalclaw.execution.image_acquisition import ImageReferenceError
+
+    missing = True
+    builds = []
+    def prepare(*args, **kwargs):
+        if missing:
+            raise ImageReferenceError("reference unavailable", image="org/base:missing", failures=[
+                {"source": "mirror.example/org/base:missing", "kind": "reference", "codes": ["MANIFEST_UNKNOWN"]},
+            ])
+        return build_context / "policy.json"
+    def run(command, **kwargs):
+        builds.append(command)
+        return subprocess.CompletedProcess(command, 0, "", "")
+    monkeypatch.setattr(images, "configured_mirrors", lambda: ["mirror.example"])
+    monkeypatch.setattr(images, "prepare_build_sources", prepare)
+    monkeypatch.setattr(images.subprocess, "run", run)
+    monkeypatch.setattr(research, "run_docker_image_check", lambda *a, **kw: pytest.fail("failed build was used"))
+    state = {}
+    def tool(name, args):
+        return research._execute_task_builder_tool(
+            ToolCall(id=name, name=name, arguments=args), BenchmarkConfig(),
+            work_dir=build_context, tool_state=state, max_chars=5000,
+        )
+    build = {"dockerfile_path": "Dockerfile", "tag": "task-image:custom"}
+    result = tool("build_image", build)
+    assert result.error == "image_reference_unavailable"
+    assert json.loads(result.content)["image"] == "org/base:missing"
+    assert not builds
+    assert tool("run_image_check", {"image": "task-image:custom", "command": "true"}).error == "tool_error"
+    missing = False
+    assert tool("build_image", build).error is None
+    assert len(builds) == 1
+    assert state["local_images"][research._builder_image_key("task-image:custom")] is True
+
+
 @pytest.mark.parametrize("tag", ["private-image:1", ""])
 @pytest.mark.parametrize("failure", ["recipe", "timeout", "daemon", "launch", "signal"])
 def test_commit_failure_registers_local_image_and_never_downloads_it(monkeypatch, build_context, tag, failure):
@@ -228,6 +264,8 @@ def test_local_image_start_disables_implicit_docker_pull(monkeypatch, build_cont
 
     def acquire(image, **kwargs):
         acquired.append(kwargs["allow_pull"])
+        if inspection:
+            assert kwargs["timeout_s"] == 450
         return image
 
     def run(command, **kwargs):
@@ -240,7 +278,7 @@ def test_local_image_start_disables_implicit_docker_pull(monkeypatch, build_cont
     monkeypatch.setattr(images.subprocess, "run", run)
     monkeypatch.setattr(images, "DockerResourceGuard", lambda *a: SimpleNamespace(register=lambda *a: None, close=lambda: None))
     if inspection:
-        images.start_inspection_container("custom", network="none", allow_pull=False)
+        images.start_inspection_container("custom", network="none", allow_pull=False, pull_timeout_s=450)
     else:
         images.run_docker_image_check("custom", "true", allow_pull=False)
     assert acquired == [False]

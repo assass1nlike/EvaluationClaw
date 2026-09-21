@@ -2238,6 +2238,8 @@ def test_task_builder_starts_inspection_container(monkeypatch) -> None:
     def fake_start(image, *, docker_executable="docker", network="default", timeout_s=120, **kwargs):
         assert kwargs["memory_mb"] == 8192
         assert kwargs["pids_limit"] == 512
+        assert kwargs["pull_timeout_s"] == 450
+        assert timeout_s == 120
         return DockerInspectResult(
             container="inspect-1", action="start", detail=f"Started from {image}."
         )
@@ -2252,7 +2254,7 @@ def test_task_builder_starts_inspection_container(monkeypatch) -> None:
     state: dict = {}
     result = _execute_task_builder_tool(
         ToolCall(id="s1", name="start_inspect_container", arguments={"image": "python:3.11-slim"}),
-        BenchmarkConfig(),
+        BenchmarkConfig(docker_pull_timeout_s=450),
         max_chars=50_000,
         work_dir=Path("/tmp"),
         tool_state=state,
