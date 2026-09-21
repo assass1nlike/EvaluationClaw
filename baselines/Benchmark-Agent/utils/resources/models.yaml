@@ -13,6 +13,18 @@ max_tokens:
 request_timeout_seconds:
   openai/deepseek-flash: 7200
 
+request_parameters:
+  deepseek-flash:
+    extra_body:
+      thinking: {type: enabled}
+      reasoning_effort: high
+  gpt-5.6-luna:
+    reasoning: {effort: high}
+  qwen3.8-27b:
+    reasoning_effort: high
+    extra_body:
+      enable_thinking: true
+
 transform_no_progress_timeout_seconds: 86400
 
 # Independent endpoint for the provider-hosted native web search tool.
@@ -24,7 +36,7 @@ web_search_api:
   retry_max_seconds: 60
   retry_budget_seconds: 180
   timeout_attempts: 6
-  global_concurrency: 1
+  global_concurrency: 8
   queue_dir: cache/runtime/luna
   stop_on_api_error: true
   fallback:
@@ -35,7 +47,7 @@ web_search_api:
     retry_base_seconds: 2
     retry_max_seconds: 60
     retry_budget_seconds: 180
-    global_concurrency: 1
+    global_concurrency: 8
     queue_dir: cache/runtime/luna
     stop_on_api_error: true
 

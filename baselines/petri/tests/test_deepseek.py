@@ -44,7 +44,7 @@ async def test_provider_preserves_reasoning_in_actual_request():
     client = httpx.AsyncClient(transport=httpx.MockTransport(respond))
     model = get_model("deepseek/deepseek-flash", base_url="https://api.deepseek.com/beta",
                       api_key="test", http_client=client, memoize=False,
-                      config=GenerateConfig(max_tokens=300000, reasoning_effort="high",
+                      config=GenerateConfig(seed=61, max_tokens=300000, reasoning_effort="high",
                                             extra_body={"thinking": {"type": "enabled"}}))
     first = await model.generate([ChatMessageUser(content="Read the ledger.")])
     await model.generate([
@@ -57,5 +57,6 @@ async def test_provider_preserves_reasoning_in_actual_request():
     }
     assert requests[1]["messages"][-1]["prefix"] is True
     assert requests[1]["max_tokens"] == 300000
+    assert requests[1]["seed"] == 61
     assert requests[1]["thinking"] == {"type": "enabled"}
     await client.aclose()

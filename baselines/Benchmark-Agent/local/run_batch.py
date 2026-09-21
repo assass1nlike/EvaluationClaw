@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -38,6 +39,9 @@ def main():
         "search_model": config["tools"]["web_search"],
         "search_base_url": config.get("web_search_api", {}).get("base_url"),
         "framework_concurrency": len(topics),
+        "seed": 42,
+        "hash_seed": os.environ.get("PYTHONHASHSEED"),
+        "request_parameters": config.get("request_parameters", {}),
         "api_concurrency": {"deepseek": "no additional limit; official worker pools",
                             "luna_global": config.get("web_search_api", {}).get("global_concurrency")},
         "target_sizes": {topic: query["target_size"] for topic, query in queries.items()},

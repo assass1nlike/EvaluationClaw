@@ -51,7 +51,7 @@ class UsageRecorder:
         except Exception as exc:
             self._logging_error(exc)
 
-    def record(self, source, model, response=None, error=None, api_key=None):
+    def record(self, source, model, response=None, error=None, api_key=None, request_settings=None):
         with self.lock:
             try:
                 usage = getattr(response, "usage", None)
@@ -78,6 +78,8 @@ class UsageRecorder:
                     "error_type": type(error).__name__ if error is not None else None,
                     "usage": usage,
                 }
+                if request_settings is not None:
+                    event["request_settings"] = request_settings
                 if source.endswith("request_response"):
                     event["credential_id"] = hashlib.sha256(api_key.encode()).hexdigest()[:12] if api_key else None
                     http_response = getattr(error, "response", None)
@@ -119,15 +121,21 @@ class UsageRecorder:
             self._save_safely()
 
 
+def request_settings(kwargs):
+    fields = ("thinking", "enable_thinking", "reasoning_effort", "reasoning", "tool_choice", "max_tokens", "max_output_tokens")
+    body = {**kwargs, **(kwargs.get("extra_body") or {})}
+    return {name: body[name] for name in fields if name in body}
+
+
 def observe_sync(call, recorder, source):
     @wraps(call)
     def wrapped(*args, **kwargs):
         try:
             response = call(*args, **kwargs)
         except BaseException as exc:
-            recorder.record(source, kwargs.get("model"), error=exc, api_key=kwargs.get("api_key"))
+            recorder.record(source, kwargs.get("model"), error=exc, api_key=kwargs.get("api_key"), request_settings=request_settings(kwargs))
             raise
-        recorder.record(source, kwargs.get("model"), response=response, api_key=kwargs.get("api_key"))
+        recorder.record(source, kwargs.get("model"), response=response, api_key=kwargs.get("api_key"), request_settings=request_settings(kwargs))
         return response
     return wrapped
 
@@ -138,9 +146,9 @@ def observe_async(call, recorder, source):
         try:
             response = await call(*args, **kwargs)
         except BaseException as exc:
-            recorder.record(source, kwargs.get("model"), error=exc)
+            recorder.record(source, kwargs.get("model"), error=exc, request_settings=request_settings(kwargs))
             raise
-        recorder.record(source, kwargs.get("model"), response=response)
+        recorder.record(source, kwargs.get("model"), response=response, request_settings=request_settings(kwargs))
         return response
     return wrapped
 
@@ -171,12 +179,14 @@ def main():
     # Match imports when running generate_benchmark.py directly from the repository.
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     import generate_benchmark
+    from local.model_runtime import configured_calls, seed_everything
 
     args = generate_benchmark.get_args()
+    seed_everything(42)
     recorder = UsageRecorder(args.cache_path + args.topic_id)
     status = "failed"
     try:
-        with observe_calls(recorder):
+        with observe_calls(recorder), configured_calls():
             generate_benchmark.main(args)
         status = "completed"
     finally:
