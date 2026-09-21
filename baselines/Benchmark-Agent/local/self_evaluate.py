@@ -16,6 +16,7 @@ load_dotenv(ROOT / ".env")
 
 from litellm import completion
 from local.run_with_usage import UsageRecorder, observe_sync
+from local.model_runtime import request_parameters, seed_everything
 from utils.llm_caller import _build_messages, _safe_json_loads
 from utils.model_config import get_api_base_url, get_api_key, get_tool_model, get_max_tokens, get_request_timeout
 
@@ -58,6 +59,7 @@ def main():
     parser.add_argument("--run-dir", type=Path, required=True)
     parser.add_argument("--workers", type=int, default=10)
     args = parser.parse_args()
+    seed_everything(42)
     run = args.run_dir
     evaluation = run / "evaluation.json"
     items = json.loads(evaluation.read_text())
@@ -71,11 +73,13 @@ def main():
     settings = dict(model=model, base_url=get_api_base_url(config_path), api_key=get_api_key(config_path),
                     temperature=0.0, max_tokens=get_max_tokens(model, 12000, config_path),
                     timeout=get_request_timeout(model, 900, config_path), stream=False)
+    settings.update(request_parameters(model))
     manifest = {
         "evaluation_sha256": hashlib.sha256(evaluation.read_bytes()).hexdigest(),
         "model": model, "judge_model": model, "temperature": 0.0, "max_tokens": settings["max_tokens"],
         "timeout_seconds": settings["timeout"],
-        "thinking": "provider default", "workers": args.workers, "application_retries": 0,
+        "request_parameters": request_parameters(model), "seed": 42,
+        "workers": args.workers, "application_retries": 0,
         "answer_system": ANSWER_SYSTEM, "choice_system": CHOICE_SYSTEM, "judge_system": JUDGE_SYSTEM,
         "scoring": "strict choice letter match; separate model judge for other answer types",
     }

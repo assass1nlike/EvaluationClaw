@@ -10,25 +10,16 @@ from local.test_search_retries import call, limited, clock
 from local.test_native_responses import response
 from utils import native_responses as native
 from utils.search_queue import search_slot, infrastructure_wait, progress_clock, SearchInfrastructureError
+from local.queue_test_worker import occupy
 
 
-def occupy(directory, start, acquired=None):
-    start.wait()
-    with search_slot(directory, 4):
-        if acquired is not None:
-            acquired.set()
-            time.sleep(30)
-        else:
-            time.sleep(0.15)
-
-
-def test_eight_processes_share_four_slots(tmp_path):
+@pytest.mark.parametrize("capacity", [4, 8])
+def test_processes_share_slots(tmp_path, capacity):
     ctx = multiprocessing.get_context("spawn")
-    start = ctx.Event()
-    jobs = [ctx.Process(target=occupy, args=(str(tmp_path), start)) for _ in range(8)]
+    start = ctx.Barrier(capacity * 2)
+    jobs = [ctx.Process(target=occupy, args=(str(tmp_path), start, None, capacity)) for _ in range(capacity * 2)]
     for job in jobs:
         job.start()
-    start.set()
     for job in jobs:
         job.join(15)
         assert job.exitcode == 0
@@ -40,7 +31,7 @@ def test_eight_processes_share_four_slots(tmp_path):
             peak = max(peak, len(active))
         else:
             active.remove(row["id"])
-    assert not active and peak == 4
+    assert not active and peak == capacity
 
 
 def test_process_death_releases_slot(tmp_path):

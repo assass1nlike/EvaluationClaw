@@ -16,11 +16,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import numpy as np
+import httpx
 from openai import OpenAI, APIConnectionError, APIStatusError
 
 from local.self_evaluate import (ANSWER_SYSTEM, CHOICE_SYSTEM, JUDGE_SYSTEM, answer_messages,
                                  choice_label, is_choice, save_json, _build_messages, _safe_json_loads)
 from local.run_with_usage import UsageRecorder, observe_sync
+from local.model_runtime import request_parameters
+from local.request_rate import RequestPacer
 from local.upload_hf_questions import RUNS, COUNTS
 from utils.model_config import get_api_key, get_api_base_url, get_max_tokens, get_request_timeout
 
@@ -93,13 +96,20 @@ def main(profile="qwen"):
     parser = argparse.ArgumentParser()
     parser.add_argument("output", type=Path)
     parser.add_argument("--workers", type=int, default=8 if profile == "sol" else 128)
+    parser.add_argument("--base-url")
+    parser.add_argument("--key-env")
+    parser.add_argument("--reasoning-effort", choices=["low", "medium", "high", "xhigh"])
+    parser.add_argument("--rpm", type=int)
     args = parser.parse_args()
+    if args.workers < 1 or (args.rpm is not None and args.rpm < 1):
+        parser.error("workers and rpm must be positive")
     seed_everything(42)
     out = args.output
     out.mkdir(parents=True, exist_ok=True)
     if (out / "config.json").exists():
         raise ValueError("Use a fresh output directory")
-    key = os.environ["RIGHTAPI_API_KEY" if profile == "sol" else "QWEN_API_KEY"]
+    key_env = args.key_env or ("RIGHTAPI_API_KEY" if profile == "sol" else "QWEN_API_KEY")
+    key = os.environ[key_env]
     jobs, sources = [], {}
     for (topic, batch), count in zip(RUNS.items(), COUNTS):
         run = ROOT / "cache" / batch / "user_queries" / f"{topic}_200"
@@ -123,21 +133,32 @@ def main(profile="qwen"):
         answer_base_url = "https://www.rightapi.ai/v1"
     judge_config = {"model": "deepseek-flash", "temperature": 0.0,
                     "max_tokens": get_max_tokens("openai/deepseek-flash"), "stream": False}
+    answer_config.update(request_parameters(answer_config["model"]))
+    if args.reasoning_effort:
+        answer_config["reasoning_effort"] = args.reasoning_effort
+    answer_base_url = args.base_url or answer_base_url
+    judge_config.update(request_parameters(judge_config["model"]))
     config = {"sources": sources, "workers_global": args.workers, "seed": 42,
               "hash_seed": os.environ.get("PYTHONHASHSEED"),
               "answer": answer_config, "answer_base_url": answer_base_url,
+              "answer_key_env": key_env, "answer_rpm": args.rpm,
               "judge": judge_config, "judge_base_url": get_api_base_url(),
               "timeout_seconds": 7200, "answer_system": ANSWER_SYSTEM, "choice_system": CHOICE_SYSTEM,
               "judge_system": JUDGE_SYSTEM, "rate_limit_attempts": 20, "transport_attempts": 6,
-              "judge_thinking": "provider default", "qwen_thinking_budget": "provider default",
+              "judge_thinking": "enabled; high", "qwen_thinking_budget": "provider default",
               "scoring": "strict choice letter match; separate DeepSeek judge for other answer types"}
     if profile == "sol":
         config.pop("qwen_thinking_budget")
-        config.update(answer_reasoning="provider default", answer_temperature="provider default",
+        config.update(answer_reasoning=answer_config.get("reasoning_effort", "provider default"), answer_temperature="provider default",
                       answer_api_seed="omitted", empty_answer_attempts=6)
     save_json(out / "config.json", config)
     usage_a, usage_j = UsageRecorder(out / "answering"), UsageRecorder(out / "judging")
-    client_a = OpenAI(api_key=key, base_url=config["answer_base_url"], timeout=7200, max_retries=0)
+    http_options = {}
+    if args.rpm:
+        pacer = RequestPacer(args.rpm, out / "request_starts.jsonl")
+        http_options["http_client"] = httpx.Client(event_hooks={"request": [pacer]}, timeout=7200)
+    client_a = OpenAI(api_key=key, base_url=config["answer_base_url"], timeout=7200, max_retries=0,
+                      **http_options)
     client_j = OpenAI(api_key=get_api_key(), base_url=get_api_base_url(),
                       timeout=get_request_timeout("openai/deepseek-flash"), max_retries=0)
     answer = observe_sync(client_a.chat.completions.create, usage_a, f"{profile}_evaluation.answer")
