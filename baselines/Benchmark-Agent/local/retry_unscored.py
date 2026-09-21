@@ -11,13 +11,13 @@ import shutil
 
 from evaluate_qwen import (ROOT, OpenAI, EmptyAnswerError, empty_answer, request_with_retry,
                            score, answer_messages, seed_everything, save_json,
-                           UsageRecorder, observe_sync, get_api_key)
+                           UsageRecorder, observe_sync, get_api_key, httpx, RequestPacer)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("run", type=Path)
-    parser.add_argument("--key-env", default="RIGHTAPI_API_KEY")
+    parser.add_argument("--key-env")
     args = parser.parse_args()
     run = args.run
     config = json.loads((run / "config.json").read_text())
@@ -42,10 +42,19 @@ def main():
             "seed": config["seed"], "hash_seed": os.environ.get("PYTHONHASHSEED"),
             "items": [{"topic": r["topic"], "index": r["index"]} for r in pending]}
     save_json(recovery / "recovery.json", info)
-    key, judge_key = os.environ[args.key_env], get_api_key()
+    key_env = args.key_env or config.get("answer_key_env", "RIGHTAPI_API_KEY")
+    key, judge_key = os.environ[key_env], get_api_key()
     usage_a, usage_j = UsageRecorder(recovery / "answering"), UsageRecorder(recovery / "judging")
+    http_options = {}
+    if config.get("answer_rpm"):
+        pacer = RequestPacer(config["answer_rpm"], recovery / "request_starts.jsonl")
+        # Allow the previous process's final rolling-minute window to expire.
+        import time
+        pacer.next_start = time.monotonic() + 60
+        http_options["http_client"] = httpx.Client(event_hooks={"request": [pacer]},
+                                                   timeout=config["timeout_seconds"])
     with OpenAI(api_key=key, base_url=config["answer_base_url"], timeout=config["timeout_seconds"],
-                max_retries=0) as client_a, OpenAI(api_key=judge_key, base_url=config["judge_base_url"],
+                max_retries=0, **http_options) as client_a, OpenAI(api_key=judge_key, base_url=config["judge_base_url"],
                 timeout=config["timeout_seconds"], max_retries=0) as client_j:
         answer = observe_sync(client_a.chat.completions.create, usage_a, "recovery.answer")
         judge_call = observe_sync(client_j.chat.completions.create, usage_j, "recovery.judge")

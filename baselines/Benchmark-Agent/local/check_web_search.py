@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 load_dotenv(ROOT / ".env")
 
 from local.run_with_usage import UsageRecorder, observe_calls
+from local.model_runtime import configured_calls, seed_everything
 from tools.executor_tools.implementations.web_tools import web_search
 
 
@@ -22,11 +23,12 @@ def main():
     parser.add_argument("--query", required=True)
     parser.add_argument("--image")
     args = parser.parse_args()
+    seed_everything(42)
     recorder = UsageRecorder(args.output)
     record = {"query": args.query, "image": args.image}
     status = "failed"
     try:
-        with observe_calls(recorder):
+        with observe_calls(recorder), configured_calls():
             record["result"] = web_search(args.query, image_paths=[args.image] if args.image else None)
         status = "completed"
         print(json.dumps(record["result"], ensure_ascii=False))
