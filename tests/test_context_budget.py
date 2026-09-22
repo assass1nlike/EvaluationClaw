@@ -59,6 +59,39 @@ def test_sdk_route_obeys_the_same_remaining_window(monkeypatch):
     assert calls[1]["max_tokens"] == 102915
 
 
+def test_sdk_retries_midstream_failure_without_retaining_partial_answer(monkeypatch):
+    from litellm.exceptions import MidStreamFallbackError
+    calls, waits = [], []
+    monkeypatch.setattr(llm.time, "sleep", waits.append)
+
+    def completion(**kwargs):
+        calls.append(dict(kwargs))
+        if len(calls) == 1:
+            yield {"choices": [{"index": 0, "delta": {"content": "discard"}, "finish_reason": None}]}
+            raise MidStreamFallbackError(message="reset", model="test", llm_provider="openai")
+        yield {"choices": [{"index": 0, "delta": {"content": "final"}, "finish_reason": "stop"}]}
+
+    result, chunks = llm._stream_litellm_response(SimpleNamespace(completion=completion), {"max_tokens": 100})
+    assert result["choices"][0]["message"]["content"] == "final"
+    assert len(chunks) == 1 and calls[0] == calls[1] and waits == [5]
+
+
+@pytest.mark.parametrize("status,attempts", [(402, 1), (400, 1), (429, 8), (503, 8)])
+def test_sdk_transport_retry_is_bounded_and_excludes_permanent_errors(monkeypatch, status, attempts):
+    from openai import APIStatusError
+    calls = []
+    monkeypatch.setattr(llm.time, "sleep", lambda _: None)
+    response = httpx.Response(status, request=httpx.Request("POST", "https://example.test"))
+
+    def completion(**kwargs):
+        calls.append(kwargs)
+        raise APIStatusError("failed", response=response, body={})
+
+    with pytest.raises(APIStatusError):
+        llm._stream_litellm_response(SimpleNamespace(completion=completion), {"max_tokens": 100})
+    assert len(calls) == attempts
+
+
 def test_insufficient_room_is_typed_and_does_not_fail_over():
     error = context_window_error(http_error(overflow(1040000, 393216)), 393216)
     with pytest.raises(LLMContextWindowError):

@@ -880,17 +880,31 @@ def _stream_litellm_response(
     *,
     on_token: Optional[Any] = None,
 ) -> tuple[dict[str, Any], list[Any]]:
-    for attempt in range(2):
+    from openai import APIConnectionError, APIStatusError
+
+    context_adjusted = False
+    failures = 0
+    while True:
         try:
             return _stream_litellm_once(litellm, kwargs, on_token=on_token)
         except Exception as exc:
             error = context_window_error(exc, kwargs.get("max_tokens"))
-            if error is None:
+            if error is not None:
+                if context_adjusted:
+                    raise error from exc
+                kwargs["max_tokens"] = remaining_output(error, kwargs["max_tokens"])
+                context_adjusted = True
+                continue
+            status = getattr(exc, "status_code", None)
+            transient = (isinstance(exc, APIConnectionError)
+                         or isinstance(exc, APIStatusError) and (status == 429 or status is not None and status >= 500))
+            failures += 1
+            if not transient or failures >= 8:
                 raise
-            if attempt:
-                raise error from exc
-            kwargs["max_tokens"] = remaining_output(error, kwargs["max_tokens"])
-    raise AssertionError("unreachable")
+            delay = min(5 * 2 ** (failures - 1), 60)
+            print(f"  [llm network] LiteLLM stream attempt {failures}/8 failed "
+                  f"({type(exc).__name__}); retrying in {delay}s.", flush=True)
+            time.sleep(delay)
 
 
 def _stream_litellm_once(litellm, kwargs, *, on_token=None):

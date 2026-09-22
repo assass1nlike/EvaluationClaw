@@ -45,6 +45,11 @@ if TYPE_CHECKING:
 
 _MODEL_GATEWAY_IMAGE = "evalclaw-model-gateway:latest"
 _OUTPUT_LIMIT_BYTES = 8 * 1024 * 1024
+_OPENCLAW_CLEANUP_MARKERS = (
+    "Agent runtime cleanup did not settle",
+    "Agent exec cleanup failed",
+    "state ownership retained until this process exits",
+)
 
 
 class HarnessExecutionError(RuntimeError):
@@ -337,11 +342,10 @@ def _task_container_options(
     if include_network:
         options += ["--network", network_modes[network]]
     limits = env.get("resource_limits") if isinstance(env.get("resource_limits"), dict) else {}
-    for key, flag in (("memory", "--memory"), ("cpus", "--cpus")):
+    for key, flag in (("memory", "--memory"), ("cpus", "--cpus"), ("pids", "--pids-limit")):
         value = limits.get(key)
         if value is not None and str(value).strip():
             options += [flag, str(value)]
-    options += ["--pids-limit", str(limits.get("pids") or 256)]
     return options
 
 
@@ -1251,6 +1255,7 @@ class ManifestHarnessRunner:
                 "termination": {"status": "failed", "error_type": type(exc).__name__},
                 "failure": failure,
                 "evidence_error": launch_capture.get("evidence_error"),
+                "cleanup_error": launch_capture.get("cleanup_error"),
                 "artifacts": {"episode": episode_filename, "evidence": "execution-failure.json"},
             }, [target.api_key, config.actor_api_key])
             exc.execution_evidence = failure_evidence
@@ -1721,7 +1726,12 @@ class ManifestHarnessRunner:
                     self._stop_episode(resolved, container_name)
                     lifecycle["termination"] = "budget_exhausted"
                 else:
-                    _docker(resolved, ["kill", container_name], check=False)
+                    try:
+                        _docker(resolved, ["kill", container_name], check=False)
+                    except (OSError, subprocess.SubprocessError) as cleanup_exc:
+                        # Preserve the primary episode timeout; the resource guard
+                        # still owns final cleanup if this stop attempt fails.
+                        lifecycle["cleanup_error"] = f"{type(cleanup_exc).__name__}: {cleanup_exc}"
                 stdout = exc.stdout.decode("utf-8", errors="replace") if isinstance(
                     exc.stdout, bytes
                 ) else exc.stdout or ""
@@ -1755,10 +1765,20 @@ class ManifestHarnessRunner:
             structured = cli_result(self.name, proc.stdout)
             if not budget_expired and not preflight_only:
                 from ..execution.harness_evidence import terminal_model_error
-                model_error = terminal_model_error(lifecycle.get("model_events", []))
+                model_error = terminal_model_error(
+                    lifecycle.get("model_events", []), cli_result=structured,
+                )
                 if model_error:
                     raise HarnessExecutionError(model_error, proc.stdout, proc.stderr)
-            if not budget_expired and (proc.returncode != 0 or structured["status"] == "failed"):
+            cleanup_only_failure = (
+                self.name == "openclaw"
+                and structured.get("status") == "completed"
+                and bool(str(structured.get("final_response") or "").strip())
+                and any(marker in proc.stderr for marker in _OPENCLAW_CLEANUP_MARKERS)
+            )
+            if cleanup_only_failure:
+                lifecycle["cleanup_error"] = "OpenClaw completed the answer but reported a runtime cleanup failure."
+            if not budget_expired and (proc.returncode != 0 or structured["status"] == "failed") and not cleanup_only_failure:
                 details = _redact_secret(proc.stderr or proc.stdout, target.api_key)
                 raise HarnessExecutionError(
                     f"Harness {self.name!r} failed: {details}",
@@ -2058,8 +2078,16 @@ _BUILTIN_MANIFESTS: tuple[ManifestHarness, ...] = (
     ),
     ManifestHarness(
         name="openclaw",
-        session_run="openclaw agent --local --json --session-id {session_id} --model {provider}/{model} --timeout {timeout} --message {task}",
+        session_run=(
+            "env OPENCLAW_LOG_LEVEL=warn OPENCLAW_AGENT_CLEANUP_TIMEOUT_MS=120000 "
+            "OPENCLAW_TRAJECTORY_FLUSH_TIMEOUT_MS=120000 OPENCLAW_EMBEDDED_ABORT_SETTLE_TIMEOUT_MS=120000 "
+            "openclaw agent --local --json --session-id {session_id} --model {provider}/{model} --timeout {timeout} --message {task}"
+        ),
         run=(
+            # Resource settlement uses the same grace as Docker control operations;
+            # the outer episode deadline still bounds the entire target process.
+            "env OPENCLAW_LOG_LEVEL=warn OPENCLAW_AGENT_CLEANUP_TIMEOUT_MS=120000 "
+            "OPENCLAW_TRAJECTORY_FLUSH_TIMEOUT_MS=120000 OPENCLAW_EMBEDDED_ABORT_SETTLE_TIMEOUT_MS=120000 "
             "openclaw agent exec --json --timeout {timeout} "
             "--model {provider}/{model} --cwd {workdir} {task}"
         ),

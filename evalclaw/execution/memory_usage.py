@@ -1,6 +1,7 @@
 """Read-only accounting of registered process trees and labelled Docker containers."""
 from __future__ import annotations
 
+import errno
 import json
 import os
 import subprocess
@@ -56,7 +57,11 @@ def container_usage(docker, endpoint=None):
         try:
             current = int((group / "memory.current").read_text())
             stats = dict(line.split() for line in (group / "memory.stat").read_text().splitlines())
-        except FileNotFoundError:
+        except OSError as exc:
+            if exc.errno == errno.ENODEV:
+                raise MemorySamplePending(f"Docker cgroup is being removed: {group}") from exc
+            if not isinstance(exc, FileNotFoundError):
+                raise
             # It may have exited between listing and sampling. A still-running
             # container with an unreadable cgroup must never silently count as zero.
             alive = subprocess.check_output(
@@ -85,7 +90,7 @@ def sample_usage(state, docker, endpoint=None):
                        for line in Path("/proc/meminfo").read_text().splitlines()
                        if len(parts := line.split()) >= 2)
         available = meminfo["MemAvailable"]
-    except MemorySamplePending:
+    except (MemorySamplePending, subprocess.TimeoutExpired):
         # Never estimate an unobserved container as zero. No new task fits this
         # sample; the next admission check retries without failing active work.
         return 2**63 - 1, 0

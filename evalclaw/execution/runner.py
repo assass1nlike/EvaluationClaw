@@ -58,6 +58,32 @@ from .plan import build_execution_plan
 from .sandbox import build_code_harness, run_python_sandbox
 
 
+_TRANSIENT_TARGET_FAILURES = (
+    "connection reset by peer",
+    "connection aborted",
+    "connection closed",
+    "midstreamfallbackerror",
+    "api connection error",
+    "temporarily unavailable",
+    "bad gateway",
+    "service unavailable",
+    "gateway timeout",
+)
+_TARGET_EXECUTION_RETRIES = 2
+
+
+def _retryable_target_failure(result: ItemResult) -> bool:
+    """Return true only for failures that can be retried without changing a task."""
+    if not result.error:
+        return False
+    if result.execution.get("stage") in {
+        "evaluation", "harness_preflight", "model_gateway", "memory_budget",
+    }:
+        return False
+    message = result.error.lower()
+    return any(marker in message for marker in _TRANSIENT_TARGET_FAILURES)
+
+
 def _boxed_contents(text: str) -> list[str]:
     contents: list[str] = []
     marker = r"\boxed"
@@ -309,7 +335,7 @@ def _python_test_evidence(
     try:
         returncode, stdout, stderr = run_python_sandbox(
             code,
-            timeout=10,
+            timeout=tool.config.get("timeout_seconds", 10),
             image=config.container_sandbox_image,
             docker_executable=config.docker_executable,
         )
@@ -765,17 +791,30 @@ def run_eval(
             ):
                 return cached_result
             result = None
-            try:
-                with memory_job(config, item=item):
-                    if gateway_blocked.is_set():
-                        return None
-                    result = _run_item(item, config, target_id, trace_dir=item_dir)
-            except MemoryBudgetError as exc:
+            for attempt in range(_TARGET_EXECUTION_RETRIES + 1):
+                attempt_dir = item_dir
+                if item_dir is not None and attempt:
+                    attempt_dir = item_dir / f"attempt-{attempt + 1:02d}"
+                try:
+                    with memory_job(config, item=item):
+                        if gateway_blocked.is_set():
+                            return None
+                        result = _run_item(item, config, target_id, trace_dir=attempt_dir)
+                except MemoryBudgetError as exc:
+                    if result is None:
+                        result = ItemResult(item_id=item.id, target_id=target_id)
+                    result.error = f"MemoryBudgetError: {exc}"
+                    result.score = 0.0
+                    result.execution.update({"stage": "memory_budget", "infrastructure_error": True})
                 if result is None:
-                    result = ItemResult(item_id=item.id, target_id=target_id)
-                result.error = f"MemoryBudgetError: {exc}"
-                result.score = 0.0
-                result.execution.update({"stage": "memory_budget", "infrastructure_error": True})
+                    return None
+                if not _retryable_target_failure(result) or attempt == _TARGET_EXECUTION_RETRIES:
+                    break
+                time.sleep(min(2 ** (attempt + 1), 8))
+            if result is not None and result.error and _retryable_target_failure(result):
+                result.execution["infrastructure_error"] = True
+            if result is not None:
+                result.execution["target_execution_attempts"] = attempt + 1
             if result.error and result.execution.get("stage") == "model_gateway":
                 gateway_blocked.set()
             if item_dir is not None:

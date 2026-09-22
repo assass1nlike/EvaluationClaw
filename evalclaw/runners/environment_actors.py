@@ -400,8 +400,6 @@ class ActorToolExecutor:
             "no-new-privileges",
             "--network",
             network,
-            "--pids-limit",
-            str(limits.get("pids") or 256),
             "-v",
             f"{self.workdir}:/workspace",
             "-w",
@@ -409,8 +407,8 @@ class ActorToolExecutor:
         ]
         if hasattr(os, "getuid") and hasattr(os, "getgid"):
             args += ["--user", f"{os.getuid()}:{os.getgid()}", "-e", "HOME=/tmp"]
-        for key, flag in (("memory", "--memory"), ("cpus", "--cpus")):
-            if limits.get(key):
+        for key, flag in (("memory", "--memory"), ("cpus", "--cpus"), ("pids", "--pids-limit")):
+            if limits.get(key) is not None:
                 args += [flag, str(limits[key])]
         args += [image, "sh", "-lc", command]
         with self._lock:

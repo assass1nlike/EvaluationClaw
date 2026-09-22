@@ -98,13 +98,17 @@ def test_sandbox_runs_in_isolated_container(monkeypatch) -> None:
         lambda **kwargs: DockerStatus(available=True, executable="docker"),
     )
     monkeypatch.setattr("evalclaw.execution.sandbox.resolve_docker_executable", lambda value: "docker")
+    monkeypatch.setattr("evalclaw.execution.sandbox.acquire_image", lambda image, **_: image)
+    monkeypatch.setattr("evalclaw.execution.sandbox.DockerResourceGuard", lambda *args: type(
+        "Guard", (), {"register": lambda *args: None, "close": lambda *args: None})())
 
     def fake_run(command, **kwargs):
         assert command[:3] == ["docker", "run", "--rm"]
         assert "--network" in command and command[command.index("--network") + 1] == "none"
         assert "--read-only" in command
         assert kwargs["input"] == 'assert 1 + 1 == 2\nprint("ok")'
-        return subprocess.CompletedProcess(command, 0, "ok\n", "")
+        return subprocess.CompletedProcess(command, 0, json.dumps(
+            dict(returncode=0, stdout="ok\n", stderr="", timed_out=False)), "")
 
     monkeypatch.setattr("evalclaw.execution.sandbox.subprocess.run", fake_run)
     exit_code, stdout, stderr = run_python_sandbox('assert 1 + 1 == 2\nprint("ok")')
