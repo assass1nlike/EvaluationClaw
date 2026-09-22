@@ -416,6 +416,16 @@ def test_manifest_rejects_credential_without_gateway() -> None:
         harness_module.ManifestHarnessRunner(manifest)._validate_target(_target())
 
 
+@pytest.mark.parametrize("declared", [None, 128, 512, -1])
+def test_task_process_limit_is_applied_only_when_declared(declared):
+    limits = {} if declared is None else {"pids": declared}
+    options = harness_module._task_container_options({"resource_limits": limits})
+    if declared is None:
+        assert '--pids-limit' not in options
+    else:
+        assert options[options.index('--pids-limit') + 1] == str(declared)
+
+
 def test_manifest_rejects_failure_marker_despite_zero_exit(monkeypatch) -> None:
     monkeypatch.setattr(
         harness_module.subprocess,
@@ -436,10 +446,13 @@ def test_manifest_rejects_failure_marker_despite_zero_exit(monkeypatch) -> None:
         )
 
 
-def test_manifest_timeout_does_not_expose_command_or_credentials(monkeypatch) -> None:
+@pytest.mark.parametrize("kill_fails", [False, True])
+def test_manifest_timeout_does_not_expose_command_or_credentials(monkeypatch, kill_fails) -> None:
     calls: dict = {}
 
     def fake_run(command, **kwargs):
+        if command[1] == "kill" and kill_fails:
+            raise harness_module.subprocess.TimeoutExpired(command, 120)
         if command[1] == "exec" and "my-agent" in command[-1]:
             calls["target"] = command
             raise harness_module.subprocess.TimeoutExpired(command, 60)
@@ -453,17 +466,20 @@ def test_manifest_timeout_does_not_expose_command_or_credentials(monkeypatch) ->
         name="x", run="my-agent {task}", model_env={"api_key": "API_KEY"}, timeout=60
     )
 
+    capture = {}
     with pytest.raises(
         harness_module.HarnessTimeoutError, match="timed out after 60 seconds"
     ) as caught:
         harness_module.ManifestHarnessRunner(manifest)._launch(
-            _item(), _target(), BenchmarkConfig(), "img", Path("/tmp/work")
+            _item(), _target(), BenchmarkConfig(), "img", Path("/tmp/work"), capture=capture
         )
 
     assert "API_KEY" not in str(caught.value)
     assert "k" not in str(caught.value)
+    harness_module.cleanup_harness_session(capture)
     name = calls["target"][calls["target"].index("sh") - 1]
     assert calls["cleanup"] == ["docker", "rm", "-f", name]
+    assert bool(capture.get("cleanup_error")) == kill_fails
 
 
 @pytest.mark.parametrize(
@@ -549,7 +565,7 @@ def test_openclaw_preserves_cleanup_error_after_successful_stop(monkeypatch) -> 
                 (),
                 {
                     "returncode": 1,
-                    "stdout": '{"status":"ok"}',
+                    "stdout": '{"ok":true,"final":"done"}',
                     "stderr": (
                         "run ended with stopReason=stop\n"
                         "Agent runtime cleanup did not settle"
@@ -568,11 +584,12 @@ def test_openclaw_preserves_cleanup_error_after_successful_stop(monkeypatch) -> 
         name="openclaw", run="openclaw agent exec {task}", model_env={}
     )
 
-    with pytest.raises(harness_module.HarnessExecutionError) as caught:
-        harness_module.ManifestHarnessRunner(manifest)._launch(
-            _item(), _target(), BenchmarkConfig(), "img", Path("/tmp/work")
-        )
-    assert caught.value.stdout == '{"status":"ok"}'
+    capture = {}
+    output = harness_module.ManifestHarnessRunner(manifest)._launch(
+        _item(), _target(), BenchmarkConfig(), "img", Path("/tmp/work"), capture=capture
+    )
+    assert output == '{"ok":true,"final":"done"}'
+    assert capture["cleanup_error"]
 
 
 @pytest.mark.parametrize("complete,status", [(False, 200), (True, 503)])

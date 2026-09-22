@@ -310,6 +310,14 @@ class JudgeToolRef(BaseModel):
     tool: str
     config: dict[str, Any] = Field(default_factory=dict)
 
+    @model_validator(mode="after")
+    def validate_python_timeout(self):
+        if self.tool == "python_tests" and "timeout_seconds" in self.config:
+            value = self.config["timeout_seconds"]
+            if type(value) is not int or value < 1:
+                raise ValueError("python_tests config.timeout_seconds must be a positive integer")
+        return self
+
 
 class BlueprintSourcePlan(BaseModel):
     strategy: str = "generated"

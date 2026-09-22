@@ -32,9 +32,7 @@ def _duplicate_content(item: BenchmarkItem) -> str:
     return "\n".join(parts)
 
 
-def _token_jaccard(left: str, right: str) -> float:
-    left_tokens = set(re.findall(r"[a-z0-9_]{3,}", left.lower()))
-    right_tokens = set(re.findall(r"[a-z0-9_]{3,}", right.lower()))
+def _token_jaccard(left_tokens: set[str], right_tokens: set[str]) -> float:
     if not left_tokens and not right_tokens:
         return 1.0
     return len(left_tokens & right_tokens) / max(1, len(left_tokens | right_tokens))
@@ -44,6 +42,8 @@ def _duplicate_issues(items: list[BenchmarkItem], *, near_duplicate_limit: int |
     issues: list[QcIssue] = []
     seen_ids: set[str] = set()
     seen_exact: dict[str, str] = {}
+    contents: list[str] = []
+    fingerprints: list[str] = []
     for item in items:
         if item.id in seen_ids:
             issues.append(
@@ -56,7 +56,10 @@ def _duplicate_issues(items: list[BenchmarkItem], *, near_duplicate_limit: int |
                 )
             )
         seen_ids.add(item.id)
-        fingerprint = _prompt_fingerprint(_duplicate_content(item))
+        content = _duplicate_content(item).lower()
+        fingerprint = _prompt_fingerprint(content)
+        contents.append(content)
+        fingerprints.append(fingerprint)
         first_id = seen_exact.get(fingerprint)
         if first_id:
             issues.append(
@@ -72,21 +75,42 @@ def _duplicate_issues(items: list[BenchmarkItem], *, near_duplicate_limit: int |
             seen_exact[fingerprint] = item.id
 
     checked_items = items[:near_duplicate_limit] if near_duplicate_limit is not None else items
+    tokens = [set(re.findall(r"[a-z0-9_]{3,}", text))
+              for text in contents[:len(checked_items)]]
+    grams: dict[int, Counter[str]] = {}
     for idx, item in enumerate(checked_items):
-        for other in checked_items[idx + 1 :]:
-            item_content = _duplicate_content(item)
-            other_content = _duplicate_content(other)
-            if _prompt_fingerprint(item_content) == _prompt_fingerprint(other_content):
+        for other_idx in range(idx + 1, len(checked_items)):
+            other = checked_items[other_idx]
+            if fingerprints[idx] == fingerprints[other_idx]:
                 continue
-            ratio = difflib.SequenceMatcher(None, item_content.lower(), other_content.lower()).ratio()
-            overlap = _token_jaccard(item_content, other_content)
+            left, right = contents[idx], contents[other_idx]
+            # Even a perfect alignment cannot exceed this length-based bound.
+            if 2 * min(len(left), len(right)) / max(1, len(left) + len(right)) < 0.92:
+                continue
+            overlap = _token_jaccard(tokens[idx], tokens[other_idx])
+            if overlap < 0.78:
+                continue
+            metric = "similarity"
+            if max(len(left), len(right)) <= 4096:
+                ratio = difflib.SequenceMatcher(None, left, right).ratio()
+            else:
+                # Full-text, frequency-weighted character shingles avoid the
+                # quadratic alignment cost of long, repetitive inputs. This
+                # is only a near-duplicate warning; exact rejection is above.
+                for index in (idx, other_idx):
+                    if index not in grams:
+                        text = contents[index]
+                        grams[index] = Counter(text[pos:pos + 5] for pos in range(len(text) - 4))
+                common = sum((grams[idx] & grams[other_idx]).values())
+                ratio = 2 * common / (len(left) + len(right) - 8)
+                metric = "character 5-gram Dice similarity"
             if ratio >= 0.92 and overlap >= 0.78:
                 issues.append(
                     _issue(
                         other.id,
                         QcSeverity.warning,
                         QcCategory.duplicate,
-                        f"Prompt is very similar to {item.id} (similarity {ratio:.2f}, token overlap {overlap:.2f}).",
+                        f"Prompt is very similar to {item.id} ({metric} {ratio:.2f}, token overlap {overlap:.2f}).",
                         "Rewrite one item to test a distinct behavior.",
                     )
                 )

@@ -3,7 +3,7 @@
 Backends all return the same :class:`SearchResult` shape so callers can swap
 between them transparently:
 
-  - ``gemini``  : Gemini Google-Search grounding (requires GEMINI_API_KEY).
+  - ``gemini``  : Gemini Google-Search grounding (Developer API key or Vertex ADC).
   - ``ablation-keyless`` : combined free sources (arXiv API + Wikipedia API +
                   DuckDuckGo HTML), no API key required. This is the ablation
                   baseline, not a first-class backend.
@@ -40,6 +40,8 @@ GEMINI_API_BASE = os.environ.get(
 DEFAULT_SEARCH_MODEL = "gemini-2.5-flash-lite"
 
 _GEMINI_TRANSIENT_STATUS = {429, 500, 502, 503, 504}
+_VERTEX_CREDENTIALS = None
+_VERTEX_AUTH_LOCK = threading.Lock()
 
 ARXIV_API = "https://export.arxiv.org/api/query"
 WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
@@ -94,6 +96,24 @@ class SearchTimeoutError(SearchError, TimeoutError):
 
 class SearchBackendError(SearchError):
     """The selected backend returned an operational/API error."""
+
+
+def _vertex_auth_headers() -> dict[str, str]:
+    """Share refreshable ADC credentials across concurrent search calls."""
+    global _VERTEX_CREDENTIALS
+    try:
+        import google.auth
+        from google.auth.transport.requests import Request
+    except ImportError as exc:
+        raise SearchConfigurationError("Vertex search requires evaluationclaw[vertex].") from exc
+    with _VERTEX_AUTH_LOCK:
+        if _VERTEX_CREDENTIALS is None:
+            _VERTEX_CREDENTIALS, _ = google.auth.default(
+                scopes=["https://www.googleapis.com/auth/cloud-platform"],
+            )
+        if not _VERTEX_CREDENTIALS.valid:
+            _VERTEX_CREDENTIALS.refresh(Request())
+        return {"Authorization": f"Bearer {_VERTEX_CREDENTIALS.token}"}
 
 
 # ---------------------------------------------------------------------------
@@ -375,6 +395,10 @@ class NoneBackend(SearchBackend):
 class GeminiBackend(SearchBackend):
     """Gemini Google-Search grounding backend.
 
+    GEMINI_VERTEX_PROJECT selects Vertex with ADC authentication; location
+    defaults to global (GEMINI_VERTEX_LOCATION overrides it). Without a project,
+    use the Developer API and GEMINI_API_KEY. Install the vertex extra for ADC.
+
     Uses Google Search grounding:
       - POST to generateContent with tools=[{google_search:{}}]
       - Extract AI-synthesized content + groundingChunks citations
@@ -394,6 +418,8 @@ class GeminiBackend(SearchBackend):
     ) -> None:
         self.api_key = api_key
         self.model = model
+        self.vertex_project = os.environ.get("GEMINI_VERTEX_PROJECT", "")
+        self.vertex_location = os.environ.get("GEMINI_VERTEX_LOCATION", "global")
         self.resolve_redirects = resolve_redirects
         try:
             self.max_attempts = (
@@ -429,15 +455,19 @@ class GeminiBackend(SearchBackend):
 
     def search_or_raise(self, query: str) -> SearchResult | None:
         key = self.api_key or os.environ.get("GEMINI_API_KEY", "")
-        if not key:
+        if not key and not self.vertex_project:
             raise SearchConfigurationError(
                 "Gemini search requires GEMINI_API_KEY or a Gemini search API key."
             )
 
         endpoint = f"{GEMINI_API_BASE}/models/{self.model}:generateContent"
+        if self.vertex_project:
+            host = "aiplatform.googleapis.com" if self.vertex_location == "global" else f"{self.vertex_location}-aiplatform.googleapis.com"
+            endpoint = (f"https://{host}/v1/projects/{self.vertex_project}/locations/"
+                        f"{self.vertex_location}/publishers/google/models/{self.model}:generateContent")
         payload = {
-            "contents": [{"parts": [{"text": query}]}],
-            "tools": [{"google_search": {}}],
+            "contents": [{"role": "user", "parts": [{"text": query}]}],
+            "tools": [{"googleSearch" if self.vertex_project else "google_search": {}}],
         }
 
         # Reuse the client across retries, and close it even if all attempts fail.
@@ -483,9 +513,10 @@ class GeminiBackend(SearchBackend):
         delay_cap = min(2.0, self.retry_max_delay_s)
         for attempt in range(1, self.max_attempts + 1):
             try:
+                auth = _vertex_auth_headers() if self.vertex_project else {"x-goog-api-key": key}
                 resp = client.post(
                     endpoint,
-                    headers={"Content-Type": "application/json", "x-goog-api-key": key},
+                    headers={"Content-Type": "application/json", **auth},
                     json=payload,
                 )
                 resp.raise_for_status()
@@ -831,7 +862,7 @@ def resolve_backend_name(setting: str | None, *, gemini_key: str | None = None) 
 
     Precedence: explicit setting (not ``auto``) > gemini (the default) >
     ``ablation-keyless``. An explicit ``auto`` still means "gemini if a Gemini
-    key is available, ablation-keyless otherwise".
+    key or a Vertex project is available, ablation-keyless otherwise".
     """
     name = (setting or "gemini").lower()
     if name not in _VALID_BACKENDS:
@@ -839,7 +870,7 @@ def resolve_backend_name(setting: str | None, *, gemini_key: str | None = None) 
     if name != "auto":
         return name
     key = gemini_key or os.environ.get("GEMINI_API_KEY", "")
-    return "gemini" if key else "ablation-keyless"
+    return "gemini" if key or os.environ.get("GEMINI_VERTEX_PROJECT") else "ablation-keyless"
 
 
 def get_backend(

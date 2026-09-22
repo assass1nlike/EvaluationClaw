@@ -441,7 +441,9 @@ def _task_builder_payload(
         type_requirements[TaskType.generation.value] = [
             "Provide a correct, self-contained reference_answer and a concrete rubric. The reference "
             "answer is Judge evidence and is not shown to the target. Optional judge_tools may request "
-            "registered external verification using python_tests. The Judge uses tool results as evidence; "
+            "registered external verification using python_tests. Set config.timeout_seconds to a positive "
+            "integer sufficient for the entire test suite (default 10 seconds); container startup is separate. "
+            "The Judge uses tool results as evidence; "
             "the tools do not directly assign the final score."
         ]
     if TaskType.multi_turn in task_types:

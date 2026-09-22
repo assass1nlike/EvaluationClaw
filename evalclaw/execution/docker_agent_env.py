@@ -72,6 +72,7 @@ class DockerWorkspaceAgentEnvironment:
     pull_timeout: int = 300
     memory: str | None = None
     cpus: str | None = None
+    pids: int | None = None
     workdir: str = "/workspace"
     browser: dict[str, Any] = field(default_factory=dict)
     evaluation: dict[str, Any] = field(default_factory=dict)
@@ -168,6 +169,7 @@ class DockerWorkspaceAgentEnvironment:
             pull_timeout=max(1, int(config.get("pull_timeout") or 300)),
             memory=str(resources.get("memory") or config.get("memory") or "") or None,
             cpus=str(resources.get("cpus") or config.get("cpus") or "") or None,
+            pids=resources.get("pids"),
             workdir=str(config.get("workdir") or "/workspace"),
             browser=browser,
             evaluation=evaluation,
@@ -374,14 +376,14 @@ class DockerWorkspaceAgentEnvironment:
                     "ALL",
                     "--security-opt",
                     "no-new-privileges",
-                    "--pids-limit",
-                    "256",
                 ]
             )
             if self.memory:
                 create.extend(["--memory", self.memory])
             if self.cpus:
                 create.extend(["--cpus", self.cpus])
+            if self.pids is not None:
+                create.extend(["--pids-limit", str(self.pids)])
             create.extend([self.image, "sleep", "infinity"])
             self._require_ok(self._run_docker(create, timeout=self.timeout), "create")
             self._require_ok(self._run_docker(["start", self._container_name], timeout=self.timeout), "start")

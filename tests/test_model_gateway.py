@@ -126,3 +126,29 @@ def test_terminal_provider_failure_cannot_be_masked_by_successful_cli(status, co
                dict(kind="response", id="retry", status=200, complete=True,
                     body='{"choices":[{"message":{"content":"OK"},"finish_reason":"stop"}]}')]
     assert terminal_model_error(events) is None
+
+
+@pytest.mark.parametrize("body", [
+    'data: {"choices":[{"finish_reason":"stop"}]}\n\ndata: [DONE]\n',
+    'data: {"type":"message_stop"}\n',
+    'data: {"type":"response.completed"}\n',
+])
+def test_protocol_completion_survives_client_transport_teardown(body):
+    from evalclaw.execution.harness_evidence import terminal_model_error
+    events = [dict(kind="request", id="r"),
+              dict(kind="response", id="r", status=200, complete=False, body=body)]
+    assert terminal_model_error(events) is None
+    events[-1]["body"] += 'data: {"type":"error","error":"failed"}\n'
+    assert terminal_model_error(events)
+
+
+def test_successful_cli_answer_can_close_before_gateway_completion_marker():
+    from evalclaw.execution.harness_evidence import terminal_model_error
+
+    events = [
+        {"kind": "request", "id": "r"},
+        {"kind": "response", "id": "r", "status": 200, "complete": False, "body": ""},
+    ]
+    assert terminal_model_error(
+        events, cli_result={"status": "completed", "final_response": "answer"}
+    ) is None

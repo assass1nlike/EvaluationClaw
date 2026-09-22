@@ -82,13 +82,13 @@ Shaokun Zhang et al. *Which Agent Causes Task Failures and When? On Automated Fa
 
 包含来自 127 个多 agent 系统的 184 条失败任务记录，标注责任 agent、决定性错误步骤及原因。它与 D7 中“具体哪个 agent 失败、为什么”的目标直接对应，也可为 D8 的错误定位部分提供参照。
 
-比较时，让 EvalClaw 为“多 agent 失败归因”生成测试，与 Who&When 使用相同的责任 agent／错误步骤评分协议，并比较标签正确性、诊断难度、模型区分度与排序稳定性。其原生任务是**事后读取轨迹做归因**，不测试被测模型亲自分工、运行下属和持续跟踪。因此这只能验证 D7 的归因子能力，不能作为完整 D7 的替代品。不要用两个测试集上谁的通过率更低直接判断 benchmark 更好。
+比较时，让 EvalScientist 为“多 agent 失败归因”生成测试，与 Who&When 使用相同的责任 agent／错误步骤评分协议，并比较标签正确性、诊断难度、模型区分度与排序稳定性。其原生任务是**事后读取轨迹做归因**，不测试被测模型亲自分工、运行下属和持续跟踪。因此这只能验证 D7 的归因子能力，不能作为完整 D7 的替代品。不要用两个测试集上谁的通过率更低直接判断 benchmark 更好。
 
 ### AgentDojo：对应 D12
 
 Edoardo Debenedetti et al. *AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for LLM Agents*. NeurIPS 2024 Datasets and Benchmarks. [论文](https://arxiv.org/abs/2406.13352) · [代码](https://github.com/ethz-spylab/agentdojo)
 
-包含 97 项正常任务和 629 个安全测试案例，核心是被测 agent 使用外部工具时，如何抵抗不可信数据中的提示注入；环境覆盖工作区、银行、旅行等任务。它有可执行环境和正常任务／攻击目标的检查，适合与 EvalClaw 在 D12 上直接比较。
+包含 97 项正常任务和 629 个安全测试案例，核心是被测 agent 使用外部工具时，如何抵抗不可信数据中的提示注入；环境覆盖工作区、银行、旅行等任务。它有可执行环境和正常任务／攻击目标的检查，适合与 EvalScientist 在 D12 上直接比较。
 
 保留相同的正常任务能力范围、攻击者权限、注入位置及执行预算，比较正常任务完成率、受攻击时的完成率、攻击成功率，以及测试有效性和模型区分度。D12 额外要求“主动报告指令冲突”，需要单独评估；不能声称 AgentDojo 原生指标已经测量这一点。AgentDojo 的攻击者修改不可信内容，也不等于 D9 中多个可自主行动的 agent 群体。
 
@@ -100,7 +100,7 @@ Edoardo Debenedetti et al. *AgentDojo: A Dynamic Environment to Evaluate Prompt 
 - Petri 是在线自适应审计。固定 seed、审计策略、审计模型、judge 与回滚预算，并保存完整分支；比较相同预算下的有效审计，不把某个模型的固定交互 transcript 直接回放给另一个会采取不同动作的模型。若讨论独立可复用 benchmark 包，其输出形态差异本身需要报告。
 - 统一需求级质量标准：正确性、忠实度、多样性、可执行性／模拟一致性、判别性、构建成本。安全测试还要检查正常任务仍可完成。受测模型在更难题上的低通过率，不足以证明生成框架优越。
 
-这些来源支持的稳妥结论是：**已有系统在相关领域提供强基线，但对上述复合执行协议的支持不完整；EvalClaw 是否填补缺口，需要由有效生成和执行结果证明。** 不能仅凭选中的三个框架存在缺口，推断整个文献没有对手。
+这些来源支持的稳妥结论是：**已有系统在相关领域提供强基线，但对上述复合执行协议的支持不完整；EvalScientist 是否填补缺口，需要由有效生成和执行结果证明。** 不能仅凭选中的三个框架存在缺口，推断整个文献没有对手。
 
 `main.tex` 当前 Setting 1 的 “There is no existing benchmark for these domains” 过于绝对：Who&When 和 AgentDojo 已覆盖其中的子能力。更准确的表述是“现有 benchmark 只覆盖部分子能力，尚未为这些完整需求提供统一的自动化构建方案”。Related Work 关于既有框架不依赖外部检索、只产生静态题目的概括，也应结合 Gym-Anything、Agent-World、AutoControl Arena 等工作收窄。
 

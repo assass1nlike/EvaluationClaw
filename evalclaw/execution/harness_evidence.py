@@ -128,7 +128,9 @@ def _assemble_responses(events: list[dict]) -> list[dict]:
     return ordered
 
 
-def terminal_model_error(events: list[dict]) -> str | None:
+def terminal_model_error(
+    events: list[dict], *, cli_result: dict[str, Any] | None = None,
+) -> str | None:
     """Reject CLI success after the final observed inference actually failed."""
     requests = [event for event in events if event.get("kind") == "request"]
     if not requests:
@@ -141,8 +143,6 @@ def terminal_model_error(events: list[dict]) -> str | None:
     response = responses[-1]
     if response.get("status", 0) >= 400:
         return f"The final model request failed with HTTP {response['status']}"
-    if not response.get("complete"):
-        return "The final model response was interrupted before completion"
     body = response.get("body", "")
     try:
         values = [json.loads(body)]
@@ -163,6 +163,20 @@ def terminal_model_error(events: list[dict]) -> str | None:
                 or value.get("type") in {"message_stop", "response.completed"}
                 or value.get("stop_reason") or value.get("status") == "completed"):
             return None
+    # Some CLI harnesses receive the provider's final bytes and emit their own
+    # successful terminal envelope before the gateway's capture stream flushes
+    # its completion marker.  The CLI envelope is the harness-level contract;
+    # use it only when it contains a non-empty final answer and no provider
+    # error was observed above.
+    if (
+        not response.get("complete")
+        and cli_result
+        and cli_result.get("status") == "completed"
+        and str(cli_result.get("final_response") or "").strip()
+    ):
+        return None
+    if not response.get("complete"):
+        return "The final model response was interrupted before completion"
     return "The final model stream ended without a terminal completion event"
 
 
